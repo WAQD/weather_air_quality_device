@@ -10,8 +10,7 @@ import waqd.app as base_app
 from waqd.assets.assets import get_asset_file_relative
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
 from waqd.web.api.weather.v1.connector import WeatherRetrieval
-from waqd.web.authentication import (User, user_exception_check,
-                                     user_redirect_check)
+from waqd.web.authentication import User, user_exception_check, user_redirect_check
 from waqd.web.helper import get_localized_date
 from waqd.web.pages.weather_main.model import ExteriorView, ForecastView
 from waqd.web.templates import render_main, sub_template
@@ -91,26 +90,29 @@ async def forecast(
 ) -> ForecastView:
     forecast = WeatherRetrieval().get_5_day_forecast()
     current_date_time = datetime.datetime.now()
-
+    tommorrow_idx = 0
+    if forecast[0].date_time.date() == current_date_time.date():
+        tommorrow_idx = 1
     return ForecastView(
+        # determine the next days indexes based on the current date
         day_1_label=get_localized_date(
             current_date_time + datetime.timedelta(days=1), base_app.settings
         ),
         day_1_weather_icon=get_asset_file_relative(forecast[0].get_icon()),
-        day_1_weather_day_min_max=f"{forecast[0].temp_min}°/{forecast[0].temp_max}°",
-        day_1_weather_night_min_max=f"{forecast[0].temp_night_min}°/{forecast[0].temp_night_max}°",
+        day_1_weather_day_min_max=f"{forecast[tommorrow_idx].temp_min}°/{forecast[tommorrow_idx].temp_max}°",
+        day_1_weather_night_min_max=f"{forecast[tommorrow_idx].temp_night_min}°/{forecast[tommorrow_idx].temp_night_max}°",
         day_2_label=get_localized_date(
             current_date_time + datetime.timedelta(days=2), base_app.settings
         ),
         day_2_weather_icon=get_asset_file_relative(forecast[1].get_icon()),
-        day_2_weather_day_min_max=f"{forecast[1].temp_min}°/{forecast[1].temp_max}°",
-        day_2_weather_night_min_max=f"{forecast[1].temp_night_min}°/{forecast[1].temp_night_max}°",
+        day_2_weather_day_min_max=f"{forecast[tommorrow_idx + 1].temp_min}°/{forecast[tommorrow_idx + 1].temp_max}°",
+        day_2_weather_night_min_max=f"{forecast[tommorrow_idx + 1].temp_night_min}°/{forecast[tommorrow_idx + 1].temp_night_max}°",
         day_3_label=get_localized_date(
             current_date_time + datetime.timedelta(days=3), base_app.settings
         ),
         day_3_weather_icon=get_asset_file_relative(forecast[2].get_icon()),
-        day_3_weather_day_min_max=f"{forecast[2].temp_min}°/{forecast[2].temp_max}°",
-        day_3_weather_night_min_max=f"{forecast[2].temp_night_min}°/{forecast[2].temp_night_max}°",
+        day_3_weather_day_min_max=f"{forecast[tommorrow_idx + 2].temp_min}°/{forecast[tommorrow_idx + 2].temp_max}°",
+        day_3_weather_night_min_max=f"{forecast[tommorrow_idx + 2].temp_night_min}°/{forecast[tommorrow_idx + 2].temp_night_max}°",
     )
 
 

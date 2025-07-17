@@ -1110,6 +1110,8 @@ class SR501(SensorComponent):  # pylint: disable=invalid-name
         time.sleep(self.BOUNCE_TIME)
         self._motion_detected -= 1
 
+    def stop(self):
+        self._sensor_driver.close()
 
 class WAQDRemoteSensor(TempSensor, HumiditySensor, BarometricSensor, CO2Sensor):
     """Remote sensor via WAQD HTTP service"""
