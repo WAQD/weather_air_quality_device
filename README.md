@@ -105,6 +105,10 @@ Use virtualenv:
 
   pip install -e .[dev,test]
 
+or
+
+  pdm install -G waqd,dev,test
+
 ## Performance Profiling
 
 https://github.com/dfeneyrou/palanteer/releases

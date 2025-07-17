@@ -61,6 +61,7 @@ def customize_splash_screen():
     os.makedirs("/usr/share/plymouth/themes/pix", exist_ok=True)
     try:
         logging.info("Customizing splash screen")
+        # TODO: use rotated image for on-the-head screen
         src_image = f"{str(installer_root_dir)}/src/waqd/assets/gui_base/loading_screen.png"
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
         # remove rainbow screen

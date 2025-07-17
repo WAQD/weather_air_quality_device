@@ -23,8 +23,9 @@
             <input type="password" id="password" class="input input-bordered flex-grow js-kioskboard-input"
             data-kioskboard-specialcharacters="true" data-kioskboard-type="keyboard"
             autocomplete="password" placeholder="Password">
-            <button type="button" class="btn btn-square ml-2" onclick="togglePasswordVisibility('password', 'togglePWVisibilityBtn')">
-              <svg id="togglePWVisibilityBtn" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
+            <button type="button" class="btn btn-square ml-2" id="togglePWVisibilityBtn"
+              onclick="togglePasswordVisibility(document.getElementById('password'), document.getElementById('togglePWVisibilityBtn'))">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
                 viewBox="0 0 24 24">
                 <use href="/static/general_icons/visibility.svg#main" fill="white" />
               </svg>

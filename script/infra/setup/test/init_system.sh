@@ -5,7 +5,7 @@
 export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
 
 sudo apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update
-sudo apt full-upgrade -y --force-yes
+sudo apt-get full-upgrade -y
 
 sudo raspi-config nonint do_serial 2  # console off, serial on
 sudo raspi-config nonint do_i2c 0

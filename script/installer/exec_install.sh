@@ -31,7 +31,7 @@ function waqd_install() {
     python3 -m pipx ensurepath
 
     echo "# Full system update... (Step 2/6)"
-    sudo apt-get upgrade -y --force-yes
+    sudo apt-get upgrade -y
     sudo apt-get autoremove -y
     # Install security updates daily - see https://wiki.debian.org/UnattendedUpgrades
     sudo apt-get install unattended-upgrades -y

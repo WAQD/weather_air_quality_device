@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator, field_validator
 
 
 class ForecastView(BaseModel):
@@ -27,6 +27,11 @@ class ForecastView(BaseModel):
         description="Night min/max temperature", default="N/A"
     )
 
+    @field_validator("day_1_weather_day_min_max", "day_1_weather_night_min_max", mode="before")
+    def set_na_if_inf(cls, v):
+        if "inf" in v:
+            return "N/A"
+        return v
 
 class ExteriorView(BaseModel):
     temp: str = Field(description="Temperature in Celsius", default="N/A")
@@ -39,3 +44,9 @@ class ExteriorView(BaseModel):
     background: str = Field(
         description="Background image", default="/static/gui_bgrs/background_s7.jpg"
     )
+
+    @field_validator("weather_day_min_max", "weather_night_min_max", mode="before")
+    def set_na_if_inf(cls, v):
+        if "inf" in v:
+            return "N/A"
+        return v

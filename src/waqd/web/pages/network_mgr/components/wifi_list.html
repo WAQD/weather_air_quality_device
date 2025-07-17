@@ -32,12 +32,10 @@
               <input x-model="network.password" type="password" placeholder="Password"
                 class="input input-lg input-bordered w-full max-w-xs -pr-8 js-kioskboard-input"
                 data-kioskboard-specialcharacters="true" data-kioskboard-type="keyboard"
-                x-ref="pwInput"
                 :id="`${network.ssid}_pw_input`" />
               <button type="button" class="btn btn-square btn-lg btn-secondary"
                 :id="`${network.ssid}_pw_toggle`"
-                x-ref="pwToggle"
-                x-on:click="togglePasswordVisibility($refs.pwInput, $refs.pwToggle)">
+                x-on:click="togglePasswordVisibility(document.getElementById(`${network.ssid}_pw_input`), document.getElementById(`${network.ssid}_pw_toggle`))">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24">
                   <use href="/static/general_icons/visibility.svg#main" fill="white" />
                 </svg>
