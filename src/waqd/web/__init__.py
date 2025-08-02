@@ -64,7 +64,7 @@ def create_api_token():
 
 def start_web_ui_chromium_kiosk_mode():
     # Start Chromium in kiosk mode
-    sleep(5) # wait a little bit so the hw is not overwhelmed and loading in shorter 
+    sleep(15) # wait a little bit so the hw is not overwhelmed and loading in shorter 
     global browser_proc
     browser_proc = subprocess.Popen(
         [
