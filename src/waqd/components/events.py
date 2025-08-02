@@ -179,7 +179,7 @@ class EventHandler(Component):
     Scheduler for configured events.
     """
 
-    def __init__(self,  components: ComponentRegistry, lang: str, night_mode_end: int, enabled=True):
+    def __init__(self,  components: ComponentRegistry, lang: str, night_mode_end: str, enabled=True):
         super().__init__(components, enabled=enabled)
 
         self._scheduler: Optional["BackgroundScheduler"] = None
@@ -223,9 +223,16 @@ class EventHandler(Component):
                 day_of_week_to_run = "mon–fri"
                 if current_date_time.isoweekday() < 6:
                     would_run_today = True
-            self._scheduler.add_job(self._start_execute_event, name=event.name, args=[event],
-                                    trigger="cron", day_of_week=day_of_week_to_run,
-                                    hour=self._night_mode_end)
+            hour, minute = self._night_mode_end.split(":")
+            self._scheduler.add_job(
+                self._start_execute_event,
+                name=event.name,
+                args=[event],
+                trigger="cron",
+                day_of_week=day_of_week_to_run,
+                hour=hour,
+                minute=minute,
+            )
         elif event.recurrence == "date":
             date_obj = None
             try:
