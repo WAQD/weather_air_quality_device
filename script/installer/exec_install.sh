@@ -1,4 +1,6 @@
 #!/bin/bash
+export DEBIAN_FRONTEND=noninteractive # don't ask questions during install
+# set current directory to script directory
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR=${CURRENT_DIR}/../../src
 echo "##### Start updater process #####" 
