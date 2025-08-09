@@ -29,7 +29,7 @@ function waqd_install() {
     # python dependencies
     sudo apt-get -y install python3-venv xscreensaver network-manager
     # install pipx for venv based app creation
-    python3 -m pip install --user pipx==1.7.1 --break-system-packages
+    python3 -m pip install --user pipx==1.7.1 pillow --break-system-packages
     python3 -m pipx ensurepath
 
     echo "# Full system update... (Step 2/6)"
@@ -66,10 +66,10 @@ function waqd_install() {
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system
 
     echo "# Installing application... (Step 6/6)"
-    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install
+    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install $INVERTED_DISPLAY
     # needs installed app
     export PYTHONPATH=${SRC_DIR}
-    python3 -m waqd_installer --set_wallpaper
+    python3 -m waqd_installer --set_wallpaper $INVERTED_DISPLAY
     
     echo "# Waiting for restart..."
     sudo reboot

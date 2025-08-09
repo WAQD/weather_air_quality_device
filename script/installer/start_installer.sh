@@ -2,6 +2,15 @@
 
 ### ENTRYPOINT OF UPDATER/INSTALLER! DON'T RENAME THIS FILE!
 
+# read in --inverted_display flag
+INVERTED_DISPLAY=false
+for arg in "$@"; do
+    if [ "$arg" == "--inverted_display" ]; then
+        INVERTED_DISPLAY=true
+    fi
+done
+export INVERTED_DISPLAY
+
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR=${CURRENT_DIR}/../../src
 
@@ -13,7 +22,7 @@ feh -F -x $SRC_DIR/waqd/assets/gui_base/update_screen.png &
 
 # start Updater function and pass output to zenity. Echos starting with '#' wil be visible in the dialog.
 # Pulsating means, that we have a bouncing loading bar, without actually displaying progress.
-waqd_install | zenity --progress --pulsate --width 250 --no-cancel --title "Updating..." --auto-close &
+waqd_install 2>&1 | tee ~/.waqd/install_details.log | zenity --progress --pulsate --width 250 --no-cancel --title "Updating..." --auto-close &
 
 # move the window between the text on the background image (src\waqd\assets\gui_base\update_screen.png)
 if timeout 1s xset q &>/dev/null; then # only if xserver is running

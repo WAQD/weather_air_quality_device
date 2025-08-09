@@ -26,9 +26,11 @@ installer_root_dir = current_dir.parent.parent
 
 def setup_logger(log_file: Path):
     # set up file logger - log everything in file and stdio
-    logging.basicConfig(level=logging.DEBUG,
-                        filename=str(log_file),
-                        format=r"%(asctime)s :: %(levelname)s :: %(message)s")
+    logging.basicConfig(
+        level=logging.DEBUG,
+        filename=str(log_file),
+        format=r"%(asctime)s :: %(levelname)s :: %(message)s",
+    )
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
@@ -58,13 +60,13 @@ def get_waqd_bin_name(package_root_dir: Path = installer_root_dir) -> str:
 
 
 def get_waqd_version(package_root_dir: Path = installer_root_dir) -> str:
-    """ Determine version from config file - need to read it manually,
-    # importing is not possible without dependencies """
-    about: Dict[str, str] = {}
+    """Determine version from config file - need to read it manually,
+    # importing is not possible without dependencies"""
     version = "latest"
     try:
         sys.path.insert(0, os.path.join(package_root_dir, "src"))
         import waqd
+
         version = waqd.__version__
     except Exception as e:
         logging.error(str(e))
@@ -72,7 +74,7 @@ def get_waqd_version(package_root_dir: Path = installer_root_dir) -> str:
 
 
 def assure_file_exists(file_path: Path, chown=True):
-    """ Create dirs, add to current user and create file. Returns True if file existed before. """
+    """Create dirs, add to current user and create file. Returns True if file existed before."""
     if file_path.exists():
         return True
     logging.info(f"Cannot find file {str(file_path)}- creating it")
@@ -84,7 +86,7 @@ def assure_file_exists(file_path: Path, chown=True):
 
 
 def assure_file_does_not_exist(file_path: Path, chown=True):
-    """ Create dirs, add to current user and create file. Returns True if file did not exist. """
+    """Create dirs, add to current user and create file. Returns True if file did not exist."""
     if not file_path.exists():
         return True
     logging.info(f"File {str(file_path)} exists - deleting it")
@@ -95,7 +97,7 @@ def assure_file_does_not_exist(file_path: Path, chown=True):
 
 
 def replace_in_file(search_replace: Dict[str, str], file_path: Path):
-    """ Replace exact entries in file"""
+    """Replace exact entries in file"""
     assure_file_exists(file_path)
     text = file_path.read_text()
     for search, replace in search_replace.items():
@@ -104,7 +106,7 @@ def replace_in_file(search_replace: Dict[str, str], file_path: Path):
 
 
 def remove_line_in_file(remove_lines: List[str], file_path: Path):
-    """ Remove lines in file """
+    """Remove lines in file"""
     assure_file_exists(file_path)
     with open(file_path, "r+") as fd:
         lines = fd.readlines()
@@ -118,7 +120,7 @@ def remove_line_in_file(remove_lines: List[str], file_path: Path):
 
 
 def add_line_to_file(lines_to_add: List[str], file_path: Path, unique=True):
-    """ Add lines to file, unqiue to check, if it should appear only once """
+    """Add lines to file, unqiue to check, if it should appear only once"""
     assure_file_exists(file_path)
     with open(file_path, "r+") as fd:
         entries = fd.readlines()
@@ -130,7 +132,9 @@ def add_line_to_file(lines_to_add: List[str], file_path: Path, unique=True):
                 fd.write(f"{line_to_add}\n")
 
 
-def comment_line_in_file(line_to_comment: str, file_path: Path, comment_char="#", uncomment=False):
+def comment_line_in_file(
+    line_to_comment: str, file_path: Path, comment_char="#", uncomment=False
+):
     text = file_path.read_text()
     new_text = ""
     for line in text.splitlines():
@@ -145,7 +149,7 @@ def comment_line_in_file(line_to_comment: str, file_path: Path, comment_char="#"
 
 
 def add_to_autostart(cmds_to_add: List[str], autostart_file: Path = AUTOSTART_FILE):
-    """ Uses LXDE autostart file and format """
+    """Uses LXDE autostart file and format"""
     lines_to_add = []
     for cmd_to_add in cmds_to_add:
         if not cmd_to_add.startswith("@"):
@@ -154,5 +158,17 @@ def add_to_autostart(cmds_to_add: List[str], autostart_file: Path = AUTOSTART_FI
 
 
 def remove_from_autostart(remove_items: List[str] = [], autostart_file: Path = AUTOSTART_FILE):
-    """ Uses LXDE autostart file and format """
+    """Uses LXDE autostart file and format"""
     remove_line_in_file(remove_items, autostart_file)
+
+
+def rotate_and_overwrite_image(image_path: str|Path, degrees: int = 180):
+    """Rotate the image by the given degrees and overwrite the original file."""
+    try:
+        from PIL import Image
+
+        img = Image.open(str(image_path))
+        img = img.rotate(degrees)
+        img.save(image_path)
+    except Exception as e:
+        logging.error(f"Failed to rotate image: {e}")

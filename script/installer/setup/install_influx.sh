@@ -18,4 +18,4 @@ echo "943666881a1b8d9b849b74caebf02d3465d6beb716510d86a39f6c8e8dac7515  influxda
 && echo 'deb [signed-by=/etc/apt/trusted.gpg.d/influxdata-archive.gpg] https://repos.influxdata.com/debian stable main' \
 | sudo tee /etc/apt/sources.list.d/influxdata.list
 # Install influxdb
-sudo apt-get update && sudo apt-get install influxdb2
+sudo apt-get update && sudo apt-get install influxdb2 -y
