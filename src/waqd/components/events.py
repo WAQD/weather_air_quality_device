@@ -220,7 +220,7 @@ class EventHandler(Component):
             if event.recurrence == "day":
                 would_run_today = True
             elif event.recurrence == "weekday":
-                day_of_week_to_run = "mon–fri"
+                day_of_week_to_run = "mon-fri"
                 if current_date_time.isoweekday() < 6:
                     would_run_today = True
             hour, minute = self._night_mode_end.split(":")
@@ -270,7 +270,7 @@ class EventHandler(Component):
         thread.start()
 
     def _execute_event(self, event: Event):
-        self._logger.debug("EventHandler: Executing now " + event.name)
+        self._logger.info("EventHandler: Executing now " + event.name)
         assert self._scheduler and self._comps, "Internal components not available."
 
         current_date_time = datetime.datetime.now()

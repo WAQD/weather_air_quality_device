@@ -10,6 +10,7 @@ from waqd import __version__ as WAQD_VERSION
 from waqd.base.component import CyclicComponent
 from waqd.base.component_reg import ComponentRegistry
 from waqd.base.network import Network
+from waqd.settings import DISP_INVERTED
 
 if TYPE_CHECKING:
     from github import GitRelease, Repository
@@ -210,6 +211,7 @@ class OnlineUpdater(CyclicComponent):
                 self._logger.info("Updater: Starting updater")
                 os.system("chmod +x " + str(installer_script))
                 # this kills this program
-                os.system(str(installer_script))
+                args = "--inverted_display" if self._settings.get_bool(DISP_INVERTED) else ""
+                os.system(str(installer_script) + " " + args)
             except RuntimeError as error:
                 self._logger.error("Updater: Error while executing updater: \n%s", str(error))

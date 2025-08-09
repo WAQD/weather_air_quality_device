@@ -10,15 +10,13 @@ from subprocess import check_output
 
 from .common import (
     HOME,
-    USER_CONFIG_PATH,
     add_line_to_file,
     assure_file_exists,
     installer_root_dir,
     add_to_autostart,
     remove_from_autostart,
     remove_line_in_file,
-    set_write_permissions,
-    setup_logger,
+    rotate_and_overwrite_image,
 )
 
 def disable_screensaver():
@@ -56,13 +54,15 @@ def enable_hw_access():
     add_line_to_file([enable_text], rules_path, unique=True)
 
 
-def customize_splash_screen():
+
+def customize_splash_screen(inverted_display: bool):
     # copy splash screen to /usr/share/plymouth/themes/pix
     os.makedirs("/usr/share/plymouth/themes/pix", exist_ok=True)
     try:
         logging.info("Customizing splash screen")
-        # TODO: use rotated image for on-the-head screen
         src_image = f"{str(installer_root_dir)}/src/waqd/assets/gui_base/loading_screen.png"
+        if inverted_display:
+            rotate_and_overwrite_image(src_image, 180)
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
         # remove rainbow screen
         os.system("raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt")
@@ -86,7 +86,7 @@ def setup_supported_locales():
     for locale in sup_locales:
         if locale.lower() not in installed_locales.lower():
             logging.info(locale.lower() + " not in " +  installed_locales.lower())
-            os.system('echo "' + locale + ' UTF-8\n" | tee -a /etc/locale.gen')
+            os.system('echo "' + locale + ' UTF-8\n' + ' | sudo tee -a /etc/locale.gen')
             locale_added = True
     # generate them, if there is something to add
     if locale_added:
@@ -97,13 +97,15 @@ def setup_supported_locales():
             logging.error(str(e))
 
 
-def set_wallpaper(install_path: Path):
+def set_wallpaper(install_path: Path, inverted_display=False):
     # Can't be run as sudo, or as sudo -runuser. Needs desktop manager running.
     # set wallpaper - get image from install dir
     lib_paths = (install_path / "lib").iterdir()  # TODO does not work anymore
     for lib_path in lib_paths:
         if "python" in lib_path.name:
             image = lib_path / "site-packages/waqd/assets/gui_base/pre_loading_screen.png"
+            if inverted_display:
+                rotate_and_overwrite_image(image, 180)
             try:
                 logging.info("Setting wallpaper..." + f'pcmanfm --set-wallpaper="{str(image)}"')
                 os.system(f'pcmanfm --set-wallpaper="{str(image)}"')
@@ -129,7 +131,7 @@ def clean_lxde_desktop(
     with open(desktop_conf_path, "w") as fd:
         cp.write(fd, space_around_delimiters=False)
 
-def do_setup():
+def do_setup(inverted_dislplay: bool):
     # System setup
     # Start only the desktop, but not the taskbar
     add_to_autostart(["pcmanfm --desktop --profile LXDE-pi"])
@@ -139,7 +141,7 @@ def do_setup():
     disable_screensaver()
 
     # Cosmetic setup
-    customize_splash_screen()
+    customize_splash_screen(inverted_dislplay)
 
     # Enable needed hardware access
     enable_hw_access()

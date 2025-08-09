@@ -13,6 +13,7 @@ EVENTS_ENABLED = "events_enabled"
 DISPLAY_TYPE = "display_type"
 DISP_TYPE_RPI = "RPI_TD"  # original 7" rpi touch display
 DISP_TYPE_WAVESHARE_5_LCD = "Waveshare_LCD"  # Waveshare 5" touch display
+DISP_INVERTED = "display_inverted"
 
 DHT_22_DISABLED = 0
 DHT_22_PIN = "dht_22_pin"  # on if not DHT_22_DISABLED (0)

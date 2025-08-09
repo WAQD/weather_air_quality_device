@@ -3,52 +3,55 @@ import logging
 import os
 import secrets
 from pathlib import Path
-from typing import Union, Dict
+from typing import Dict, Union
 
 import bcrypt
+
 from waqd import PROG_NAME
 from waqd.settings import (
     AUTO_UPDATER_ENABLED,
-    CCS811_ENABLED,
-    FORECAST_BG,
-    INTERIOR_BG,
-    LOCATION_ALTITUDE_M,
-    LAST_TEMP_C_OUTSIDE,
-    LOCATION_COUNTRY_CODE,
-    LOCATION_STATE,
-    MH_Z19_ENABLED,
-    EVENTS_ENABLED,
+    BME_280_ENABLED,
+    BMP_280_ENABLED,
     BRIGHTNESS,
+    CCS811_ENABLED,
     DAY_STANDBY_TIMEOUT,
+    DHT_22_DISABLED,
+    DHT_22_PIN,
+    DISP_INVERTED,
     DISP_TYPE_RPI,
     DISPLAY_TYPE,
+    EVENTS_ENABLED,
+    FORECAST_BG,
+    INTERIOR_BG,
     LANG,
-    MH_Z19_VALUE_OFFSET,
-    LOCATION_LONGITUDE,
-    LOCATION_LATITUDE,
-    REMOTE_API_KEY,
-    REMOTE_MODE_URL,
-    STARTUP_JINGLE,
-    UPDATER_USER_BETA_CHANNEL,
     LANG_GERMAN,
+    LAST_TEMP_C_OUTSIDE,
+    LOCATION_ALTITUDE_M,
+    LOCATION_COUNTRY_CODE,
+    LOCATION_LATITUDE,
+    LOCATION_LONGITUDE,
     LOCATION_NAME,
+    LOCATION_STATE,
+    LOG_SENSOR_DATA,
+    MH_Z19_ENABLED,
+    MH_Z19_VALUE_OFFSET,
     MOTION_SENSOR_ENABLED,
     MOTION_SENSOR_PIN,
     NIGHT_MODE_BEGIN,
     NIGHT_MODE_END,
     NIGHT_STANDBY_TIMEOUT,
     OW_API_KEY,
+    REMOTE_API_KEY,
+    REMOTE_MODE_URL,
     SOUND_ENABLED,
-    DHT_22_PIN,
-    BME_280_ENABLED,
-    BMP_280_ENABLED,
+    STARTUP_JINGLE,
+    UPDATER_USER_BETA_CHANNEL,
     USER_API_KEY,
-    USER_SESSION_SECRET,
     USER_DEFAULT_PW,
+    USER_SESSION_SECRET,
     WAVESHARE_DISP_BRIGHTNESS_PIN,
-    DHT_22_DISABLED,
-    LOG_SENSOR_DATA,
 )
+
 
 def strtobool(value: str) -> bool:
     value = value.lower()
@@ -97,6 +100,7 @@ class Settings:
                 SOUND_ENABLED: False,
                 EVENTS_ENABLED: True,
                 DISPLAY_TYPE: DISP_TYPE_RPI,
+                DISP_INVERTED: False,
                 WAVESHARE_DISP_BRIGHTNESS_PIN: 18,
                 AUTO_UPDATER_ENABLED: True,
                 UPDATER_USER_BETA_CHANNEL: False,
