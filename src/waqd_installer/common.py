@@ -68,6 +68,7 @@ def get_waqd_version(package_root_dir: Path = installer_root_dir) -> str:
         import waqd
 
         version = waqd.__version__
+        logging.info(f"Using version {version} of waqd")
     except Exception as e:
         logging.error(str(e))
     return version

@@ -33,7 +33,7 @@ function waqd_install() {
     python3 -m pipx ensurepath
 
     echo "# Full system update... (Step 2/6)"
-    sudo apt-get upgrade -y
+    sudo apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
     sudo apt-get autoremove -y
     # Install security updates daily - see https://wiki.debian.org/UnattendedUpgrades
     sudo apt-get install unattended-upgrades -y
@@ -66,10 +66,10 @@ function waqd_install() {
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system
 
     echo "# Installing application... (Step 6/6)"
-    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install $INVERTED_DISPLAY
+    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install --inverted_display=$INVERTED_DISPLAY
     # needs installed app
     export PYTHONPATH=${SRC_DIR}
-    python3 -m waqd_installer --set_wallpaper $INVERTED_DISPLAY
+    python3 -m waqd_installer --set_wallpaper --inverted_display=$INVERTED_DISPLAY
     
     echo "# Waiting for restart..."
     sudo reboot

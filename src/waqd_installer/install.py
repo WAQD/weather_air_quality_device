@@ -51,6 +51,8 @@ def register_waqd_autostart(bin_path: Path = LOCAL_BIN_PATH, autostart_file: Pat
 def do_install():
     # install and add to autostart
     set_write_permissions(INSTALL_TARGET_ROOT)
-    install_waqd(get_waqd_version())
+    version = get_waqd_version()
+    logging.info(f"Using version {version} of waqd")
+    install_waqd(version)
 
     register_waqd_autostart()
