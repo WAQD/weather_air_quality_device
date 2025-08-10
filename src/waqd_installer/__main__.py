@@ -14,7 +14,7 @@ if __name__ == '__main__':
     group.add_argument("--set_wallpaper",
                        action='store_true')
     group.add_argument("--configure_languages", action="store_true")
-    group.add_argument("--inverted_display", action="store_true", default=False)
+    parser.add_argument("--inverted_display", action="store_true")
     args = parser.parse_args()
     # ensure, that the config dir exists and is writable
     os.makedirs(str(common.USER_CONFIG_PATH), exist_ok=True)
