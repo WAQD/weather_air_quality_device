@@ -66,10 +66,10 @@ function waqd_install() {
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system
 
     echo "# Installing application... (Step 6/6)"
-    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install --inverted_display=$INVERTED_DISPLAY
+    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install $INVERTED_DISPLAY
     # needs installed app
     export PYTHONPATH=${SRC_DIR}
-    python3 -m waqd_installer --set_wallpaper --inverted_display=$INVERTED_DISPLAY
+    python3 -m waqd_installer --set_wallpaper $INVERTED_DISPLAY
     
     echo "# Waiting for restart..."
     sudo reboot

@@ -3,10 +3,9 @@
 ### ENTRYPOINT OF UPDATER/INSTALLER! DON'T RENAME THIS FILE!
 
 # read in --inverted_display flag
-INVERTED_DISPLAY=false
 for arg in "$@"; do
     if [ "$arg" == "--inverted_display" ]; then
-        INVERTED_DISPLAY=true
+        INVERTED_DISPLAY=--inverted_display
     fi
 done
 export INVERTED_DISPLAY
