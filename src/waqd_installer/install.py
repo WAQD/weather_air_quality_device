@@ -52,7 +52,7 @@ def do_install():
     # install and add to autostart
     set_write_permissions(INSTALL_TARGET_ROOT)
     version = get_waqd_version()
-    logging.info(f"Using version {version} of waqd")
+    logging.info(f"Installing version {version} of waqd")
     install_waqd(version)
 
     register_waqd_autostart()
