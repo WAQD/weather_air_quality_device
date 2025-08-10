@@ -1,7 +1,7 @@
 [project]
 name = "waqd"
 authors = [{ name = "Péter Gosztolya and Contributors" }]
-version = "3.0.0a3"
+version = "3.0.0b0"
 requires-python = ">=3.11"
 description = 'Weather Air Quality Device - base package'
 license = { 'file' = "LICENSE" }
@@ -28,6 +28,11 @@ dependencies = [
     "passlib >=1.7.4, <2.0.0",     # BSD License - password hashing
     "htmlmin2==0.1.13",             # BSD License - HTML minifier
     "bcrypt>=4.0.0, <5.0.0",       # Apache License, Version 2.0 - Password hashing
+    # "sqlalchemy>=2.0.41",
+    # "sqlmodel>=0.0.24",
+    # "psycopg2>=2.9.10",
+    # "mariadb>=1.1.13",
+    # "websockets>=15.0.1",
 ]
 
 readme = "README.md"
@@ -95,7 +100,6 @@ waqd = [
 ]
 dev = [
     "rope",          # refactoring
-    "debugpy",       # Qt thread debugging
     "pytailwindcss", # for tailwindcss support
     "DebugPy<2.0.0", # MS VSCode debugger for dynamic debugging
 ]
