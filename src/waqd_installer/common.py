@@ -64,11 +64,15 @@ def get_waqd_version(package_root_dir: Path = installer_root_dir) -> str:
     # importing is not possible without dependencies"""
     version = "latest"
     try:
-        sys.path.insert(0, os.path.join(package_root_dir, "src"))
-        import waqd
+        # read version from pyproject.toml
+        pyproject_path = package_root_dir / "pyproject.toml"
+        if pyproject_path.exists():
+            with open(pyproject_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("version = "):
+                        version = line.split("=")[1].strip().strip('"')
+                        break
 
-        version = waqd.__version__
-        logging.info(f"Using version {version} of waqd")
     except Exception as e:
         logging.error(str(e))
     return version
