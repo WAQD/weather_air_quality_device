@@ -28,7 +28,7 @@ class Network:
     def init(self):
         self._runtime_system = RuntimeSystem()
         self._devices = nmcli.device.status()
-        self._wifi_networks = nmcli.device.wifi()
+        self._wifi_networks = []
         self._eth_device = ""
         self._wlan_device = ""
 

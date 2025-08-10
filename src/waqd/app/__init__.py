@@ -61,9 +61,6 @@ def basic_setup():
     from waqd.base.component_ctrl import ComponentController
 
     comp_ctrl = ComponentController(settings)
-    # if waqd.DEBUG_LEVEL > 1:  # disable startup sound
-    #     comp_ctrl.components.tts.say_internal("startup", [WAQD_VERSION])
-
 
 def main():
     basic_setup()
