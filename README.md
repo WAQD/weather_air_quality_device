@@ -107,7 +107,8 @@ Use virtualenv:
 
 or
 
-  pdm install -G waqd,dev,test
+  pdm install -G waqd,dev,test,website
+  pdm lock -G waqd,dev,test,website
 
 ## Performance Profiling
 

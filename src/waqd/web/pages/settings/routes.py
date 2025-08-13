@@ -1,5 +1,4 @@
 from pathlib import Path
-import secrets
 from typing import Annotated
 
 import bcrypt
@@ -7,6 +6,7 @@ from fastapi import APIRouter, Depends, Form
 from fastapi.responses import HTMLResponse
 
 import waqd.app as app
+from waqd import DEBUG_LEVEL, __version__ as WAQD_VERSION
 from waqd.base.file_logger import Logger
 from waqd.components.weather.base_types import Location
 from waqd.components.weather.open_meteo import OpenMeteo
@@ -73,9 +73,12 @@ async def new_release_available():
             component=True,
         ) 
     assert latest_version
+    version = latest_version.title
+    if latest_version.prerelease:
+        version += f"({latest_version.tag_name} - currently on: {WAQD_VERSION})"
     return sub_template(
         "snippets/latest_release_info.html",
-        {"version": latest_version.title, "content": latest_version.body.splitlines()},
+        {"version": version, "content": latest_version.body.splitlines()},
         current_path,
         component=True,
     )

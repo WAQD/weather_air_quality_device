@@ -54,6 +54,21 @@
                 "justMyCode": false
             },
             {
+                "name": "Website",
+                "type": "debugpy",
+                "request": "launch",
+                "module": "uvicorn",
+                "args": [
+                   "waqd_website.main:web_app"
+                ],
+                "console": "integratedTerminal",
+                "subProcess": true,
+                "justMyCode": false,
+                "env": {
+                    "WAQD_DEBUG": "1",
+                }
+            },
+            {
                 "name": "Python: Current File",
                 "type": "python",
                 "request": "launch",

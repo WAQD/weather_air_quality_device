@@ -8,7 +8,7 @@ from time import sleep
 import jwt
 
 import waqd
-import waqd.app as base_app
+import waqd.app as app
 from waqd.settings import USER_API_KEY, USER_DEFAULT_PW, USER_SESSION_SECRET
 
 from .authentication import create_access_token
@@ -30,6 +30,7 @@ def start_web_server(reload=False):
         hostname = "localhost"
     else:
         hostname = "0.0.0.0"
+
     uvicorn.run(
         "waqd.web.main:web_app",
         host=hostname,
@@ -46,20 +47,20 @@ def start_web_server(reload=False):
 def create_api_token():
     try:
         jwt.decode(
-            base_app.settings.get_string(USER_API_KEY),
-            base_app.settings.get_string(USER_SESSION_SECRET),
+            app.settings.get_string(USER_API_KEY),
+            app.settings.get_string(USER_SESSION_SECRET),
             algorithms=["HS256"],
         )
     except Exception:
         # Token is about to expire, create a new one
-        base_app.settings.set(
+        app.settings.set(
             USER_API_KEY,
             create_access_token(
-                {"sub": base_app.settings.get_string(USER_API_KEY)},
+                {"sub": app.settings.get_string(USER_API_KEY)},
                 expires_delta=timedelta(days=365),
             ),
         )
-        base_app.settings.save()
+        app.settings.save()
 
 
 def start_web_ui_chromium_kiosk_mode():
@@ -92,7 +93,10 @@ def prepare_local_login():
     login_admin_file = "login_admin.html"
     login_admin_content = base_template(
         login_admin_file + ".in",
-        {"password": base_app.settings.get_string(USER_DEFAULT_PW)},
+        {
+            "password": app.settings.get_string(USER_DEFAULT_PW),
+            "theme_color": app.settings.get("theme_color"),
+        },
         current_path / "local",
     )
     (current_path / "local" / login_admin_file).write_text(login_admin_content)

@@ -11,7 +11,7 @@ from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
-import waqd.app as base_app
+import waqd.app as app
 
 from waqd.settings import USER_API_KEY, USER_DEFAULT_PW, USER_SESSION_SECRET
 
@@ -127,7 +127,7 @@ def create_access_token(
 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
-        to_encode, base_app.settings.get_string(USER_SESSION_SECRET), algorithm=ALGORITHM
+        to_encode, app.settings.get_string(USER_SESSION_SECRET), algorithm=ALGORITHM
     )
     return encoded_jwt
 
@@ -137,7 +137,7 @@ def get_current_user(token):
         return None
     try:
         payload = jwt.decode(
-            token, base_app.settings.get_string(USER_SESSION_SECRET), algorithms=[ALGORITHM]
+            token, app.settings.get_string(USER_SESSION_SECRET), algorithms=[ALGORITHM]
         )
         username = payload.get("sub")
         if username is None:
@@ -151,7 +151,7 @@ def get_current_user(token):
 
 
 async def get_current_user_with_exception(token: Annotated[str, Depends(oauth2_scheme)]):
-    if token == base_app.settings.get_string(USER_API_KEY):
+    if token == app.settings.get_string(USER_API_KEY):
         user = get_user_from_name(get_db(), "local_admin")
     else:
         user = get_current_user(token)
@@ -190,13 +190,13 @@ def get_db():
         "remote_user": {
             "username": "remote_user",
             "email": "johndoe@example.com",
-            "hashed_password": get_password_hash(base_app.settings.get_string(USER_DEFAULT_PW)),
+            "hashed_password": get_password_hash(app.settings.get_string(USER_DEFAULT_PW)),
             "disabled": False,
             "permissions": [],
         },
         "local_admin": {
             "username": "local_admin",
-            "hashed_password": get_password_hash(base_app.settings.get_string(USER_DEFAULT_PW)),
+            "hashed_password": get_password_hash(app.settings.get_string(USER_DEFAULT_PW)),
             "disabled": False,
             "permissions": ["users:admin", "users:local"],
         },

@@ -1,10 +1,10 @@
-import waqd.app as base_app
+import waqd.app as app
 
 
 class WeatherRetrieval:
     def __init__(self) -> None:
-        assert base_app.comp_ctrl
-        self._comps = base_app.comp_ctrl.components
+        assert app.comp_ctrl
+        self._comps = app.comp_ctrl.components
 
     def get_current_weather(self):
         return self._comps.weather_info.get_current_weather()

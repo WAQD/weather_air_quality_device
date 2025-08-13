@@ -1,10 +1,10 @@
 <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-0 lg:gap-2 lg:place-items-center">
   {% for card in cards %}
   <div
-    class="card card-border shadow-sm bg-base-100 image-full min-w-full self-stretch rounded-box md:rounded-none lg:rounded-box">
+    class="card card-border shadow-sm image-full min-w-full self-stretch rounded-box md:rounded-none lg:rounded-box">
     <figure>
       <img id="{{card.name}}-figure" src="{{card.background}}" />
-    </figure>
+    </figure> 
     <div class="card-body md:p-2">
       <div class="flex space-x-4 justify-evenly items-center-safe">
         <h2 class="text-5xl font-bold tracking-wider">{{card.name}}</h2>

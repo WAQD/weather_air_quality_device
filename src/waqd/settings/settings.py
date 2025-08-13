@@ -45,6 +45,7 @@ from waqd.settings import (
     REMOTE_MODE_URL,
     SOUND_ENABLED,
     STARTUP_JINGLE,
+    THEME_COLOR,
     UPDATER_USER_BETA_CHANNEL,
     USER_API_KEY,
     USER_DEFAULT_PW,
@@ -110,6 +111,7 @@ class Settings:
             self._THEMING_SECTION_NAME: {
                 INTERIOR_BG: "background_s8.jpg",
                 FORECAST_BG: "background_s9.jpg",
+                THEME_COLOR: "purple"
             },
             self._ENERGY_SECTION_NAME: {
                 NIGHT_MODE_BEGIN: "22:00",
