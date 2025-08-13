@@ -15,7 +15,7 @@
     <input id="toggle_{{name}}" type="checkbox" class="toggle" 
         {% if value %} checked {% endif %}
         hx-trigger="click" hx-post="set"
-        hx-vals="js:{'name':'{{name}}', 'value': event.target.checked}"
+        hx-vals="js:{'name':'{{name}}', 'value': event.target.checked}" hx-swap="none"
         onclick="this.nextSibling.textContent = this.checked ? ' On' : ' Off';" />
-    {% if value %} On {% else %} Off {% endif %}
+    <span>{% if value %} On {% else %} Off {% endif %}</span>
 </label>

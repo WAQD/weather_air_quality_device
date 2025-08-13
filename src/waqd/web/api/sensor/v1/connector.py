@@ -3,7 +3,7 @@ from typing import Optional
 
 from pint.facets.plain import PlainQuantity as Quantity
 
-import waqd.app as base_app
+import waqd.app as app
 import waqd.app as app
 from waqd.web.helper import format_unit_disp_value
 
@@ -12,8 +12,8 @@ from .model import SensorApi_v1, TempHumSensorApi_v1
 
 class SensorRetrieval:
     def __init__(self) -> None:
-        assert base_app.comp_ctrl
-        self._comps = base_app.comp_ctrl.components
+        assert app.comp_ctrl
+        self._comps = app.comp_ctrl.components
 
     def get_exterior_sensor_values(self, units=False):
         temp = self._comps.remote_exterior_sensor.get_temperature()
@@ -57,8 +57,8 @@ class SensorRetrieval:
     
 class SensorWriter():
     def __init__(self) -> None:
-        assert base_app.comp_ctrl
-        self._comps = base_app.comp_ctrl.components
+        assert app.comp_ctrl
+        self._comps = app.comp_ctrl.components
 
     def write_sensor_values(self, value: SensorApi_v1):
         self._comps.remote_exterior_sensor.read_callback(

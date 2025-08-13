@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from frozendict import frozendict
 
-import waqd.app as base_app
+import waqd.app as app
 from waqd.assets.assets import get_asset_file_relative
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
 from waqd.web.api.weather.v1.connector import WeatherRetrieval
@@ -22,7 +22,7 @@ current_path = Path(__file__).parent.resolve()
 
 @rt.get("/", response_class=HTMLResponse)
 async def root(current_user: Annotated[User, user_redirect_check]):
-    base_app.comp_ctrl.init_all()
+    app.comp_ctrl.init_all()
     content = sub_template(
         "waqd.html",
         {
@@ -96,19 +96,19 @@ async def forecast(
     return ForecastView(
         # determine the next days indexes based on the current date
         day_1_label=get_localized_date(
-            current_date_time + datetime.timedelta(days=1), base_app.settings
+            current_date_time + datetime.timedelta(days=1), app.settings
         ),
         day_1_weather_icon=get_asset_file_relative(forecast[0].get_icon()),
         day_1_weather_day_min_max=f"{forecast[tommorrow_idx].temp_min}°/{forecast[tommorrow_idx].temp_max}°",
         day_1_weather_night_min_max=f"{forecast[tommorrow_idx].temp_night_min}°/{forecast[tommorrow_idx].temp_night_max}°",
         day_2_label=get_localized_date(
-            current_date_time + datetime.timedelta(days=2), base_app.settings
+            current_date_time + datetime.timedelta(days=2), app.settings
         ),
         day_2_weather_icon=get_asset_file_relative(forecast[1].get_icon()),
         day_2_weather_day_min_max=f"{forecast[tommorrow_idx + 1].temp_min}°/{forecast[tommorrow_idx + 1].temp_max}°",
         day_2_weather_night_min_max=f"{forecast[tommorrow_idx + 1].temp_night_min}°/{forecast[tommorrow_idx + 1].temp_night_max}°",
         day_3_label=get_localized_date(
-            current_date_time + datetime.timedelta(days=3), base_app.settings
+            current_date_time + datetime.timedelta(days=3), app.settings
         ),
         day_3_weather_icon=get_asset_file_relative(forecast[2].get_icon()),
         day_3_weather_day_min_max=f"{forecast[tommorrow_idx + 2].temp_min}°/{forecast[tommorrow_idx + 2].temp_max}°",

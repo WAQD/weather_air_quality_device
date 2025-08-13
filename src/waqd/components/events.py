@@ -18,7 +18,6 @@ from waqd.base.component_reg import ComponentRegistry
 from waqd.base.file_logger import Logger
 
 if TYPE_CHECKING:
-    from PyQt5.QtCore import pyqtBoundSignal
     from apscheduler.schedulers.background import BackgroundScheduler
 
 

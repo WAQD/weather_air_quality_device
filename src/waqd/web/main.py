@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import waqd
-import waqd.app as base_app
+import waqd.app as app
 from waqd.base.file_logger import Logger
 
 from . import LOCAL_SERVER_PORT
@@ -108,5 +108,5 @@ async def root():
     return RedirectResponse(url="/weather")
 
 
-if base_app.comp_ctrl is None:
-    base_app.basic_setup()
+if app.comp_ctrl is None:
+    app.basic_setup()

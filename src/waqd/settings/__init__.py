@@ -39,6 +39,7 @@ REMOTE_MODE_URL = "remote_mode_url"
 # gui
 FORECAST_BG = "forecast_background"
 INTERIOR_BG = "interior_background"
+THEME_COLOR = "theme_color"
 
 # energy saving
 NIGHT_MODE_BEGIN = "night_mode_begin"

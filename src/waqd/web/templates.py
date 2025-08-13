@@ -1,13 +1,14 @@
-from functools import lru_cache, partial
 import functools
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any
+
 from fastapi.responses import HTMLResponse
 from frozendict import deepfreeze
 from htmlmin import minify
-
 from jinja2 import Environment, FileSystemLoader
 
+import waqd.app as app
 from waqd import DEBUG_LEVEL
 
 from .authentication import PermissionChecker, UserInDB
@@ -91,6 +92,7 @@ def render_main(
             "overflow_config": overflow_config,
             "toast": toast,
             "local": local,
+            "theme_color": app.settings.get("theme_color"),
         },
         root_path,
     )

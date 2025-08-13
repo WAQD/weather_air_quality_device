@@ -1,8 +1,4 @@
 /* tailwindcss -i src\waqd\assets\css\custom_theme.css -o src\waqd\assets\css\output.css */
-html {
-  background: no-repeat linear-gradient(180deg, oklch(0.24 0.1403 286.92) 0%,
-      oklch(0.42 0.2119 286.68) 100%);
-}
 
 @import "tailwindcss" source(none);
 @source "../../../**/*.{html}";
@@ -14,7 +10,7 @@ html {
 }
 
 @plugin "./daisyui-theme.js" {
-  name: "mytheme";
+  name: "purple";
   color-scheme: "dark";
   font-family: MyFranzo;
   --color-base-100: oklch(0.17 0.0718 295.71);
@@ -37,6 +33,139 @@ html {
   --color-warning-content: oklch(27% 0.077 45.635);
   --color-error: oklch(73.95% 0.19 27.33);
   --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+@plugin "./daisyui-theme.js" {
+  name: "teal";
+  color-scheme: "dark";
+  font-family: MyFranzo;
+  --color-base-100: oklch(0.17 0.0718 220);
+  --color-base-200: oklch(0.24 0.1403 215);
+  --color-base-300: oklch(0.42 0.2119 210);
+  --color-base-content: oklch(100% 0 0);
+  --color-primary: oklch(0.4 0.2099 220);
+  --color-primary-content: oklch(96% 0 0);
+  --color-secondary: oklch(0.42 0.2119 210);
+  --color-secondary-content: oklch(96% 0 0);
+  --color-accent: oklch(0.6 0.0718 225);
+  --color-accent-content: oklch(18.685% 0.02 225);
+  --color-neutral: oklch(0.24 0.1403 215);
+  --color-neutral-content: oklch(96% 0 0);
+  --color-info: oklch(0.17 0.0718 220);
+  --color-info-content: oklch(96% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+@plugin "./daisyui-theme.js" {
+  name: "peach";
+  color-scheme: "dark";
+  font-family: MyFranzo;
+  --color-base-100: oklch(0.8785 0.0784 58.38); /* main peach */
+  --color-base-200: oklch(0.75 0.09 58.38);    /* slightly darker peach */
+  --color-base-300: oklch(0.65 0.12 58.38);   /* even darker peach */
+  --color-base-content: oklch(98% 0 0);       /* light text for contrast */
+  --color-primary: oklch(0.85 0.12 58.38);    /* strong peach */
+  --color-primary-content: oklch(98% 0 0);
+  --color-secondary: oklch(0.75 0.09 58.38);
+  --color-secondary-content: oklch(98% 0 0);
+  --color-accent: oklch(0.95 0.15 58.38);     /* light accent */
+  --color-accent-content: oklch(98% 0 0);
+  --color-neutral: oklch(0.7 0.05 58.38);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(0.85 0.12 58.38);
+  --color-info-content: oklch(98% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+@plugin "./daisyui-theme.js" {
+  name: "orange";
+  color-scheme: "dark";
+  font-family: MyFranzo;
+  --color-base-100: oklch(0.75 0.183 55.934); /* main orange */
+  --color-base-200: oklch(0.65 0.15 55.934);  /* slightly darker orange */
+  --color-base-300: oklch(0.55 0.12 55.934);  /* even darker orange */
+  --color-base-content: oklch(98% 0 0);       /* light text for contrast */
+  --color-primary: oklch(0.8 0.19 55.934);    /* strong orange */
+  --color-primary-content: oklch(98% 0 0);
+  --color-secondary: oklch(0.7 0.13 55.934);
+  --color-secondary-content: oklch(98% 0 0);
+  --color-accent: oklch(0.9 0.21 55.934);     /* light accent */
+  --color-accent-content: oklch(98% 0 0);
+  --color-neutral: oklch(0.6 0.08 55.934);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(0.8 0.19 55.934);
+  --color-info-content: oklch(98% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+@plugin "./daisyui-theme.js" {
+  name: "forest";
+  color-scheme: "dark";
+  font-family: MyFranzo;
+  --color-base-100: oklch(0.17 0.0718 140);
+  --color-base-200: oklch(0.24 0.1403 135);
+  --color-base-300: oklch(0.42 0.2119 130);
+  --color-base-content: oklch(100% 0 0);
+  --color-primary: oklch(0.4 0.2099 135);
+  --color-primary-content: oklch(96% 0 0);
+  --color-secondary: oklch(0.42 0.2119 130);
+  --color-secondary-content: oklch(96% 0 0);
+  --color-accent: oklch(0.6 0.0718 145);
+  --color-accent-content: oklch(18.685% 0.02 145);
+  --color-neutral: oklch(0.24 0.1403 135);
+  --color-neutral-content: oklch(96% 0 0);
+  --color-info: oklch(0.17 0.0718 140);
+  --color-info-content: oklch(96% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+@plugin "./daisyui-theme.js" {
+  name: "red";
+  color-scheme: "dark";
+  font-family: MyFranzo;
+  --color-base-100: oklch(0.586 0.253 17.585); /* main red */
+  --color-base-200: oklch(0.48 0.22 17.585);  /* slightly darker red */
+  --color-base-300: oklch(0.38 0.18 17.585);  /* even darker red */
+  --color-base-content: oklch(98% 0 0);       /* light text for contrast */
+  --color-primary: oklch(0.65 0.28 17.585);   /* strong red */
+  --color-primary-content: oklch(98% 0 0);
+  --color-secondary: oklch(0.5 0.18 17.585);
+  --color-secondary-content: oklch(98% 0 0);
+  --color-accent: oklch(0.7 0.3 17.585);      /* light accent */
+  --color-accent-content: oklch(98% 0 0);
+  --color-neutral: oklch(0.32 0.12 17.585);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(0.65 0.28 17.585);
+  --color-info-content: oklch(98% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+:root {
   --radius-selector: 1rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
@@ -45,8 +174,11 @@ html {
   --border: 1px;
   --depth: 1;
   --noise: 0;
-  --glass-blur: 1px;
-  --glass-text-shadow-opacity: 0.5;
+  --glass-blur: 0.5px;
+  --glass-opacity: 10%;
+  --glass-reflect-opacity: 10%;
+  --glass-border-opacity: 10%;
+  --glass-text-shadow-opacity: 0.8;
 }
 
 @layer utilities {
@@ -63,4 +195,14 @@ html {
       color: color-mix(in oklab, var(--color-base-content) 90%, transparent);
     }
   }
+
+  /* Override the default brightness filter on image-full cards */
+  .card.image-full>figure img {
+    filter: brightness(50%) !important;
+  }
+
+  html {
+      background: no-repeat linear-gradient(180deg, var(--color-base-200) 0%, var(--color-base-300) 100%);
+    }
+
 }
