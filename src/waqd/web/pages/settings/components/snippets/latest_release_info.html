@@ -1,4 +1,4 @@
-<div class="modal-box">
+<div class="modal-box" x-data="{ updateLoading: false }">
     <h3 class="font-bold text-xl">New Release {{version}} found</h3>
     {% for line in content %}
     {% if line %}
@@ -8,7 +8,18 @@
     <p class="py-4 text-xl">Do you want to install the release?</p>
     <div class="modal-action">
         <form method="dialog">
-            <button class="btn btn-error" hx-post="trigger_update" hx-swap="none">Yes</button>
+            <button
+                id="trigger-update-btn"
+                class="btn btn-error flex items-center gap-2"
+                hx-post="trigger_update"
+                hx-swap="none"
+                @click="updateLoading = true"
+                hx-on:htmx:afterRequest="updateLoading = false"
+                :disabled="updateLoading"
+            >
+                <span>Yes</span>
+                <span x-show="updateLoading" class="loading loading-xs loading-spinner ml-2"></span>
+            </button>
             <button class="btn btn-ghost mr-2">No</button>
         </form>
     </div>
