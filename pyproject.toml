@@ -20,6 +20,13 @@ dependencies = [
     "packaging", # Apache Software License, BSD License
     "File-Read-Backwards==2.0.0", # MIT License - for performance in DetailView
     "frozendict==2.4.6",       # LGPLv3 - for frozen dicts
+    "bcrypt>=4.0.0, <5.0.0",       # Apache License, Version 2.0 - Password hashing
+    "typing_extensions",
+    "fastapi[standard]==0.115.12", # MIT License
+    "Jinja2==3.1.6",               # BSD License
+    "PyJWT==2.10.1",               # MIT License
+    "passlib >=1.7.4, <2.0.0",     # BSD License - password hashing
+    "htmlmin2==0.1.13",             # BSD License - HTML minifier
 ]
 
 readme = "README.md"
@@ -87,12 +94,6 @@ waqd = [
 ]
 website = [
     # Web & UI
-    "fastapi[standard]==0.115.12", # MIT License
-    "Jinja2==3.1.6",               # BSD License
-    "PyJWT==2.10.1",               # MIT License
-    "passlib >=1.7.4, <2.0.0",     # BSD License - password hashing
-    "htmlmin2==0.1.13",             # BSD License - HTML minifier
-    "bcrypt>=4.0.0, <5.0.0",       # Apache License, Version 2.0 - Password hashing
     "sqlalchemy>=2.0.41",
     "sqlmodel>=0.0.24",
     "psycopg2>=2.9.10",
