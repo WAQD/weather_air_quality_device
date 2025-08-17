@@ -17,18 +17,18 @@
     </div>
 
     <legend class="fieldset-legend">{{ t('night_mode_begin_legend') }}</legend>
-    <input type="time" class="input" value="{{night_mode_begin}}:00" hx-trigger="change"
+    <input type="time" class="input input-xl" value="{{night_mode_begin}}:00" hx-trigger="change"
         hx-post="set" hx-swap="none"
         hx-vals="js:{'name':'night_mode_begin', 'value': event.target.value}">
     <legend class="fieldset-legend">{{ t('night_mode_end_legend') }}</legend>
-    <input type="time" class="input" value="{{night_mode_end}}:00" hx-trigger="change" hx-post="set"
+    <input type="time" class="input input-xl" value="{{night_mode_end}}:00" hx-trigger="change" hx-post="set"
         hx-swap="none" hx-vals="js:{'name':'night_mode_end', 'value': event.target.value}" />
 
     <legend class="fieldset-legend">{{ t('motion_sensing_legend') }}</legend>
     <label class="label text text-wrap">{{ t('motion_sensing_desc') }}</label>
 
     <legend class="fieldset-legend">{{ t('night_turnoff_timeout_legend') }}</legend>
-    <select class="select" hx-trigger="change" hx-post="set" hx-swap="none"
+    <select class="select select-xl" hx-trigger="change" hx-post="set" hx-swap="none"
         hx-vals="js:{'name':'night_standby_timeout', 
         'value': (function(v){if(v.endsWith('min')){return parseInt(v)*60;}else{return parseInt(v);} })(event.target.value)}">
     <option disabled selected>{{ t('night_turnoff_timeout_legend') }}</option>
@@ -40,7 +40,7 @@
     </select>
 
     <legend class="fieldset-legend">{{ t('day_standby_timeout_legend') }}</legend>
-    <select class="select" hx-trigger="change" hx-post="set" hx-swap="none"
+    <select class="select select-xl" hx-trigger="change" hx-post="set" hx-swap="none"
         hx-vals="js:{'name':'day_standby_timeout', 
         'value': (function(v){if(v.endsWith('min')){return parseInt(v)*60;}else{return parseInt(v);} })(event.target.value)}">
     <option disabled selected>{{ t('day_standby_timeout_legend') }}</option>

@@ -2,16 +2,16 @@
 <template id="Forecast-template">
     {% for i in [0,1,2] %}
     <div class="stat md:p-2">
-        <div class="stat-title pt-2 pl-2 tracking-wide">
+        <div class="stat-title pt-2 pl-2 tracking-wide -mb-2">
             {% raw %}{{{% endraw %} day_{{ i+1 }}_label {% raw %}}}{% endraw %}
         </div>
 
         <div class="stat-value -mb-2">
-            <div class="grid grid-cols-[50%_15%_35%] grid-rows-2 items-stretch">
+            <div class="grid grid-cols-[35%_15%_50%] grid-rows-2 items-stretch">
                 <div class="row-span-2">
                     <!--TODO: daily weather forecast hx-get="forecast/daily/{{ i+1 }}" hx-trigger="click"
                         hx-target="#modal" hx-swap="innerHTML" onclick="modal.showModal()" -->
-                    <svg viewBox="0 0 24 24" class="-mb-1 h-28">
+                    <svg viewBox="0 0 28 28" class="-mb-1 h-24">
                         <use href="/static/{% raw %}{{{% endraw %}day_{{ i+1 }}_weather_icon{% raw %}}}{% endraw %}#Layer_1"
                             fill="white" />
                     </svg>

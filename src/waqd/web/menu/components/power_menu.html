@@ -1,18 +1,18 @@
 <dialog id="shutdown_menu" class="modal">
   <form method="dialog" class="modal-backdrop">
-    <button>close</button>
+  <button>{{ t('close') }}</button>
   </form>
   <div class="modal-box">
     <form method="dialog">
       <button class="btn btn-circle btn-ghost text-lg absolute right-2 top-2">
         ✕</button>
     </form>
-    <h3 class="text-4xl font-bold text-center">Power Options</h3>
+  <h3 class="text-4xl font-bold text-center">{{ t('power_options') }}</h3>
     <div class="flex flex-col">
       <button id="shutdown_btn" class="btn btn-primary btn-xl mt-4 text-3xl"
-        onclick="shutdown_confirm.showModal()">Shutdown</button>
+        onclick="shutdown_confirm.showModal()">{{ t('shutdown') }}</button>
       <button id="restart_btn" class="btn btn-primary btn-xl mt-4 text-3xl"
-        onclick="restart_confirm.showModal()">Reboot</button>
+        onclick="restart_confirm.showModal()">{{ t('reboot') }}</button>
     </div>
   </div>
 </dialog>
@@ -20,15 +20,15 @@
 <!-- Add confirmation dialogs -->
 <dialog id="shutdown_confirm" class="modal">
   <form method="dialog" class="modal-backdrop">
-    <button>close</button>
+  <button>{{ t('close') }}</button>
   </form>
   <div class="modal-box">
-    <h3 class="font-bold text-3xl">Confirm Shutdown</h3>
-    <p class="py-4 text-2xl">Are you sure you want to shutdown the device?</p>
+  <h3 class="font-bold text-3xl">{{ t('confirm_shutdown') }}</h3>
+  <p class="py-4 text-2xl">{{ t('confirm_shutdowntext') }}</p>
     <div class="modal-action">
       <form method="dialog">
-        <button class="btn btn-xl btn-error" hx-post="/menu/shutdown" hx-swap="none">Yes</button>
-        <button class="btn btn-xl btn-ghost mr-2">No</button>
+  <button class="btn btn-xl btn-error" hx-post="/menu/shutdown" hx-swap="none">{{ t('yes') }}</button>
+  <button class="btn btn-xl btn-ghost mr-2">{{ t('no') }}</button>
       </form>
     </div>
   </div>
@@ -36,15 +36,15 @@
 
 <dialog id="restart_confirm" class="modal">
   <form method="dialog" class="modal-backdrop">
-    <button>close</button>
+  <button>{{ t('close') }}</button>
   </form>
   <div class="modal-box">
-    <h3 class="font-bold text-3xl">Confirm Restart</h3>
-    <p class="py-4 text-2xl">Are you sure you want to restart the device?</p>
+  <h3 class="font-bold text-3xl">{{ t('confirm_restart') }}</h3>
+  <p class="py-4 text-2xl">{{ t('confirm_restarttext') }}</p>
     <div class="modal-action">
       <form method="dialog">
-        <button class="btn btn-xl btn-error" hx-post="/menu/restart" hx-swap="none">Yes</button>
-        <button class="btn btn-xl btn-ghost mr-2">No</button>
+  <button class="btn btn-xl btn-error" hx-post="/menu/restart" hx-swap="none">{{ t('yes') }}</button>
+  <button class="btn btn-xl btn-ghost mr-2">{{ t('no') }}</button>
       </form>
     </div>
   </div>

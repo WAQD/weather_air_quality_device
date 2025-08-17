@@ -1,7 +1,7 @@
 [project]
 name = "waqd"
 authors = [{ name = "Péter Gosztolya and Contributors" }]
-version = "3.0.0b4"
+version = "3.0.0b5"
 requires-python = ">=3.11"
 description = 'Weather Air Quality Device - base package'
 license = { 'file' = "LICENSE" }

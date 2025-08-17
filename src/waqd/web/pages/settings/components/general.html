@@ -2,7 +2,7 @@
     <legend class="fieldset-legend">{{ t('regional_settings_legend') }}</legend>
 
     <legend class="fieldset-legend">{{ t('language_legend') }}</legend>
-    <select class="select text-xl" name="lang" id="lang_select"
+    <select class="select select-xl text-xl" name="lang" id="lang_select"
         hx-trigger="change" hx-post="set"
         hx-vals="js:{'name':'lang', 'value': event.target.value}"
         hx-swap="none"
@@ -44,7 +44,7 @@
         </svg>
 
     <input type="search" placeholder="{{ t('search') }}" id="search_loc_input"  
-        class="js-kioskboard-input" data-kioskboard-placement="top"
+        class="js-kioskboard-input " data-kioskboard-placement="top"
         data-kioskboard-specialcharacters="true" data-kioskboard-type="keyboard"
         hx-get="location_search_result/" hx-trigger="input from:#search_loc_input delay:500ms" 
             hx-target="#location_list" hx-encoding="application/x-www-form-urlencoded"
