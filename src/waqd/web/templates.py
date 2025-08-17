@@ -10,8 +10,10 @@ from jinja2 import Environment, FileSystemLoader
 
 import waqd.app as app
 from waqd import DEBUG_LEVEL
+from waqd.settings import LANG
 
 from .authentication import PermissionChecker, UserInDB
+from waqd.base.translation import Translation
 
 extra_minify = partial(minify, remove_comments=True, remove_empty_space=True)
 current_path = Path(__file__).parent.resolve()
@@ -54,6 +56,38 @@ def base_template(file_name: str, context: dict[str, Any], root_path=current_pat
     def _get_template():
         template_loader = FileSystemLoader(searchpath=[str(root_path), str(root_path.parent)])
         template_env = Environment(loader=template_loader)
+        # Expose a lightweight translation helper backed by JSON catalogs
+        def _t(key: str, /, **kwargs):
+            """Translate a UI key using assets/base/ui_dict.json and format with kwargs.
+
+            Usage in templates:
+              {{ t('motion_reg') }}
+              {{ t('new_pw_text', user_name=user_name, pw=pw) }}
+            """
+            try:
+                lang_str: str = "en"
+                # app.settings may store the language; Translation handles mapping
+                if hasattr(app, "settings"):
+                    # tolerate missing key gracefully
+                    lang_str = app.settings.get_string(LANG)
+                text = Translation().get_localized_string(
+                    asset_id="ui_dict.json",
+                    key=key,
+                    lang=lang_str,
+                    asset_dir="base",
+                ) or ""
+                if kwargs:
+                    try:
+                        return text.format(**kwargs)
+                    except Exception:
+                        # If formatting fails (e.g., missing kw), return raw text
+                        return text
+                return text
+            except Exception:
+                return ""
+
+        # Make available in all templates
+        template_env.globals["t"] = _t
         return template_env.get_template(file_name)
 
     return extra_minify(_get_template().render(context))

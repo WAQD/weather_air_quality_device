@@ -1,5 +1,5 @@
 <div class="alert alert-error" id="login-failed-toast-{{id}}">
-    <span>Login failed! Wrong username or password</span>
+    <span>{{ t('login_failed') }}</span>
     <script>
         setTimeout(() => {
             document.getElementById('login-failed-toast-{{id}}').classList.add('hidden');

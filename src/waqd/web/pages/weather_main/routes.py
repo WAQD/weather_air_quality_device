@@ -8,12 +8,14 @@ from frozendict import frozendict
 
 import waqd.app as app
 from waqd.assets.assets import get_asset_file_relative
+from waqd.settings import LANG
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
 from waqd.web.api.weather.v1.connector import WeatherRetrieval
 from waqd.web.authentication import User, user_exception_check, user_redirect_check
 from waqd.web.helper import get_localized_date
 from waqd.web.pages.weather_main.model import ExteriorView, ForecastView
 from waqd.web.templates import render_main, sub_template
+from waqd.base.translation import Translation
 
 rt = APIRouter()
 
@@ -23,6 +25,7 @@ current_path = Path(__file__).parent.resolve()
 @rt.get("/", response_class=HTMLResponse)
 async def root(current_user: Annotated[User, user_redirect_check]):
     app.comp_ctrl.init_all()
+    lang_val = app.settings.get_string(LANG)
     content = sub_template(
         "waqd.html",
         {
@@ -30,21 +33,30 @@ async def root(current_user: Annotated[User, user_redirect_check]):
                 [
                     frozendict(
                         {
-                            "name": "Interior",
+                            "id": "Interior",
+                            "name": Translation().get_localized_string(
+                                "ui_dict.json", "card_interior", lang_val
+                            ),
                             "background": "/static/gui_bgrs/background_interior2.jpg",
                             "endpoint": "/weather/interior",
                         }
                     ),
                     frozendict(
                         {
-                            "name": "Exterior",
+                            "id": "Exterior",
+                            "name": Translation().get_localized_string(
+                                "ui_dict.json", "card_exterior", lang_val
+                            ),
                             "background": "",
                             "endpoint": "/weather/exterior",
                         }
                     ),
                     frozendict(
                         {
-                            "name": "Forecast",
+                            "id": "Forecast",
+                            "name": Translation().get_localized_string(
+                                "ui_dict.json", "card_forecast", lang_val
+                            ),
                             "background": "/static/gui_bgrs/background_s7.jpg",
                             "endpoint": "/weather/forecast",
                         }

@@ -1,19 +1,19 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend">Manual update</legend>
+    <legend class="fieldset-legend">{{ t('manual_update_legend') }}</legend>
     <label class="label text-wrap">
-        Check manually for updates. You will be prompted for confirmation before the update.
+        {{ t('manual_update_desc') }}
     </label>
     <button class="btn btn-primary btn-lg max-w-96" hx-get="new_release_available/"
         hx-target="#update_modal_content" hx-trigger="click" hx-swap="innerHTML"
         hx-indicator="#update_modal_spinner"
         onclick="update_modal.showModal()">
-        Check for updates
+        {{ t('check_for_updates') }}
     </button>
     
     <!-- Modal -->
     <dialog id="update_modal" class="modal">
         <form method="dialog" class="modal-backdrop">
-            <button>close</button>
+            <button>{{ t('close') }}</button>
         </form>
         <div class="modal-box" id="update_modal_content">
             <div id="update_modal_spinner" class="flex justify-center items-center py-8">
@@ -23,15 +23,13 @@
         </div>
     </dialog>
 
-    {% with title="Auto updates", description="The device will check every few hours and
-     on finding a new release it will update it immeadiatly and restart.",
+    {% with title=t('auto_updates'), description=t('auto_updates_desc'),
     icon="auto_update",
     name="auto_updater_enabled", value=auto_updater_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
-    {% with title="Beta channel", description="Enable beta versions for updates.
-     This will allow you to test new features, but it may be unstable.",
+    {% with title=t('beta_channel'), description=t('beta_channel_desc'),
     icon="refresh",
     name="updater_use_beta_channel", value=updater_use_beta_channel %}
     {% include "components/snippets/bool_setting.html" %}

@@ -1,35 +1,35 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-  <label class="label mb-4">Theme</label>
+  <label class="label mb-4">{{ t('theme_legend') }}</label>
   <div id="theme-buttons" class="grid grid-cols-3 gap-4">
     <button type="button" class="theme-btn flex flex-col items-center gap-2 p-2 rounded-box border border-base-300"
       data-theme="purple" hx-post="set" hx-vals="js:{'name':'theme_color','value':'purple'}" hx-swap="none">
       <span class="w-10 h-10 rounded-box" style="background: oklch(0.4 0.2099 294.94);"></span>
-      <span class="text-lg">Purple</span>
+  <span class="text-lg">{{ t('theme_purple') }}</span>
     </button>
     <button type="button" class="theme-btn flex flex-col items-center gap-2 p-2 rounded-box border border-base-300"
       data-theme="teal" hx-post="set" hx-vals="js:{'name':'theme_color','value':'teal'}" hx-swap="none">
       <span class="w-10 h-10 rounded-box  bg-base-300"></span>
-      <span class="text-lg">Blue</span>
+  <span class="text-lg">{{ t('theme_blue') }}</span>
     </button>
     <button type="button" class="theme-btn flex flex-col items-center gap-2 p-2 rounded-box border border-base-300"
       data-theme="peach" hx-post="set" hx-vals="js:{'name':'theme_color','value':'peach'}" hx-swap="none">
       <span class="w-10 h-10 rounded-box bg-base-300"></span>
-      <span class="text-lg">Peach</span>
+  <span class="text-lg">{{ t('theme_peach') }}</span>
     </button>
     <button type="button" class="theme-btn flex flex-col items-center gap-2 p-2 rounded-box border border-base-300"
       data-theme="orange" hx-post="set" hx-vals="js:{'name':'theme_color','value':'orange'}" hx-swap="none">
       <span class="w-10 h-10 rounded-box bg-base-300"></span>
-      <span class="text-lg">Orange</span>
+  <span class="text-lg">{{ t('theme_orange') }}</span>
     </button>
     <button type="button" class="theme-btn flex flex-col items-center gap-2 p-2 rounded-box border border-base-300"
       data-theme="red" hx-post="set" hx-vals="js:{'name':'theme_color','value':'red'}" hx-swap="none">
       <span class="w-10 h-10 rounded-box bg-base-300"></span>
-      <span class="text-lg">Red</span>
+  <span class="text-lg">{{ t('theme_red') }}</span>
     </button>
     <button type="button" class="theme-btn flex flex-col items-center gap-2 p-2 rounded-box border border-base-300"
       data-theme="forest" hx-post="set" hx-vals="js:{'name':'theme_color','value':'forest'}" hx-swap="none">
       <span class="w-10 h-10 rounded-box bg-base-300"></span>
-      <span class="text-lg">Forest</span>
+  <span class="text-lg">{{ t('theme_forest') }}</span>
     </button>
   </div>
 </fieldset>

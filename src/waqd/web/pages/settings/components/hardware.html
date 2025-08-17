@@ -1,24 +1,24 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend">Temperature</legend>
+    <legend class="fieldset-legend">{{ t('temperature_legend') }}</legend>
 
-    {% with title="Enable BME-280", description="", icon="",
+    {% with title=t('enable_bme280'), description="", icon="",
     name="bme_280_enabled", value=bme_280_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
-    {% with title="Enable BMP-280", description="", icon="",
+    {% with title=t('enable_bmp280'), description="", icon="",
     name="bmp_280_enabled", value=bmp_280_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
 
-    <legend class="fieldset-legend">DHT-11/22</legend>
+    <legend class="fieldset-legend">{{ t('dht_legend') }}</legend>
     <label class="label text-wrap">
-        Select the pin (GPIO) where you connected the sensor.
+        {{ t('select_gpio_pin') }}
     </label>
     <select id="dht_22_select" class="select text-xl" hx-trigger="change" hx-post="set"
         hx-vals="js:{'name':'dht_22_pin', 'value': event.target.value}" hx-swap="none">
-        <option {% if dht_22_pin==0 %}selected{% endif %}>Disabled</option>
+        <option {% if dht_22_pin==0 %}selected{% endif %}>{{ t('disabled') }}</option>
         <option {% if dht_22_pin==4 %}selected{% endif %}>4</option>
         <option {% if dht_22_pin==8 %}selected{% endif %}>8</option>
         <option {% if dht_22_pin==22 %}selected{% endif %}>22</option>
@@ -27,30 +27,30 @@
 
 </fieldset>
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend">Air Quality</legend>
+    <legend class="fieldset-legend">{{ t('air_quality_legend') }}</legend>
 
     <!-- Add calibration -->
-    {% with title="Enable MH-Z19", description="", icon="",
+    {% with title=t('enable_mhz19'), description="", icon="",
     name="mh_z19_enabled", value=mh_z19_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
-    {% with title="Enable CS811", description="", icon="",
+    {% with title=t('enable_ccs811'), description="", icon="",
     name="ccs811_enabled", value=ccs811_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 </fieldset>
 
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend">Motion Sensor</legend>
-    {% with title="Enable Motion Sensor", description="", icon="",
+    <legend class="fieldset-legend">{{ t('motion_sensor_legend') }}</legend>
+    {% with title=t('enable_motion_sensor'), description="", icon="",
     name="motion_sensor_pin", value=motion_sensor_pin %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
-    <legend class="fieldset-legend">Motion Sensor Connection</legend>
+    <legend class="fieldset-legend">{{ t('motion_sensor_connection_legend') }}</legend>
     <label class="label text-wrap">
-        Select the pin (GPIO) where you connected the sensor.
+        {{ t('select_gpio_pin') }}
     </label>
     <select id="motion_sensor_22_select" class="select text-xl" hx-trigger="change" hx-post="set"
         hx-vals="js:{'name':'motion_sensor_pin', 'value': event.target.value}" hx-swap="none">

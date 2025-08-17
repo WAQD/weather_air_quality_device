@@ -16,6 +16,6 @@
         {% if value %} checked {% endif %}
         hx-trigger="click" hx-post="set"
         hx-vals="js:{'name':'{{name}}', 'value': event.target.checked}" hx-swap="none"
-        onclick="this.nextSibling.textContent = this.checked ? ' On' : ' Off';" />
-    <span>{% if value %} On {% else %} Off {% endif %}</span>
+    onclick='this.nextSibling.textContent = this.checked ? "{{ t("on") }}" : "{{ t("off") }}";' />
+    <span>{% if value %} {{ t('on') }} {% else %} {{ t('off') }} {% endif %}</span>
 </label>

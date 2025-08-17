@@ -13,7 +13,7 @@
             <button x-show="!network.showDialog"
               x-on:click="network.inUse ? disconnect(network.ssid) : tryConnect(network.ssid)"
               :class="network.inUse ? 'btn btn-lg btn-info ml-auto p-4' : 'btn btn-lg btn-secondary ml-auto p-4'">
-              <span x-text="network.inUse ? 'Disconnect' : 'Connect'"></span>
+              <span x-text="network.inUse ? window.translations.wifiDisconnect : window.translations.wifiConnect"></span>
               <span x-show="network.disconnecting || network.connecting"
                 class="loading loading-xs loading-spinner ml-4 p-2"></span>
             </button>
@@ -44,11 +44,11 @@
             <div class="flex flex-row items-center gap-4 p-2">
               <button type="button" class="btn btn-lg btn-secondary mr-4"
                 x-on:click="network.showDialog = false">
-                Cancel
+                {{ t('network_manager_cancel') }}
               </button>
               <button type="button" class="btn btn-lg btn-secondary"
                 x-on:click="connect(network.ssid)">
-                Next
+                {{ t('network_manager_next') }}
                 <span x-show="network.connecting"
                   class="loading loading-xs loading-spinner ml-4 p-2"></span>
               </button>
@@ -57,8 +57,8 @@
         </div>
       </div>
       <div class="stat-desc flex flex-row items-center gap-4 p-2">
-        <span x-text="`Signal: ${network.signal}%`"></span>
-        <span :id="`${network.ssid}_security`" x-text="`Security: ${network.security}`"></span>
+  <span x-text="window.translations.wifiSignal + ': ' + network.signal + '%' "></span>
+  <span :id="`${network.ssid}_security`" x-text="window.translations.wifiSecurity + ': ' + network.security"></span>
       </div>
     </div>
   </template>

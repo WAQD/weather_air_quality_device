@@ -2,9 +2,9 @@
 # constants for option names - value (ini name) should be very similar to internal string
 # general
 LANG = "lang"
-LANG_GERMAN = "Deutsch"
-LANG_ENGLISH = "English"
-LANG_HUNGARIAN = "Magyar"
+LANG_GERMAN = "de"
+LANG_ENGLISH = "en"
+LANG_HUNGARIAN = "hu"
 
 SOUND_ENABLED = "sound_enabled"
 STARTUP_JINGLE = "startup_jingle"  # sound played on startup, if sound_enabled is True

@@ -13,7 +13,7 @@
         <li>
           <a href="/settings/"><svg viewBox="0 0 24 24" class="h-4">
               <use href="/static/general_icons/settings.svg#main" fill="white" />
-            </svg>Settings</a>
+            </svg>{{ t('settings') }}</a>
         </li>
         <li>
           <details open>
@@ -21,14 +21,14 @@
               <svg viewBox="0 0 24 24" class="h-4">
                 <use href="/static/general_icons/account_circle.svg#main" fill="#57534d" />
               </svg>
-              Account
+              {{ t('account') }}
             </summary>
             <ul>
               <li><a href="/public/logout/">
                   <svg viewBox="0 0 24 24" class="h-4 w-4">
                     <use href="/static/general_icons/logout.svg#main" fill="white" />
                   </svg>
-                  Logout
+                  {{ t('logout') }}
                 </a></li>
             </ul>
         </li>
@@ -50,7 +50,7 @@
     </a>
   </div>
   {% if local %}
-  <a id="network_icon" href="/network_mgr/" class="btn btn-ghost btn-lg" title="Network Manager"
+  <a id="network_icon" href="/network_mgr/" class="btn btn-ghost btn-lg" title="{{ t('network_manager') }}"
     x-data="networkStatus()" x-init="init()">
     <svg id="network_status_btn" viewBox="0 0 24 24" class="h-10">
       <use :href="networkIcon" fill="white" />

@@ -1,14 +1,18 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend">Regional settings</legend>
+    <legend class="fieldset-legend">{{ t('regional_settings_legend') }}</legend>
 
-    <legend class="fieldset-legend">Language</legend>
-    <select class="select text-xl" disabled> <!-- disabled for now -->
-        <option selected>English</option>
-        <option>Deutsch</option>
-        <option>Magyar</option>
+    <legend class="fieldset-legend">{{ t('language_legend') }}</legend>
+    <select class="select text-xl" name="lang" id="lang_select"
+        hx-trigger="change" hx-post="set"
+        hx-vals="js:{'name':'lang', 'value': event.target.value}"
+        hx-swap="none"
+        onchange="setTimeout(() => location.reload(), 100)">
+        <option value="en" {% if lang == "en" %}selected{% endif %}>English</option>
+        <option value="de" {% if lang == "de" %}selected{% endif %}>Deutsch</option>
+        <option value="hu" {% if lang == "hu" %}selected{% endif %}>Magyar</option>
     </select>
 
-    <legend class="fieldset-legend">Location</legend>
+    <legend class="fieldset-legend">{{ t('location_legend') }}</legend>
     {% if location %}
     <ul class="list bg-base-100 rounded-box shadow-md md:max-w-3/4">
         <li class="list-row ">
@@ -31,18 +35,15 @@
         </li>
     </ul>
     {% endif %}
-    <label class="label text-wrap text-2xl">Please set this value for all location specific
-        functionality to work!
-    </label>
-    <label class="label text-wrap text-2xl">This feature needs internet access to work.
-    </label>
+    <label class="label text-wrap text-2xl">{{ t('location_set_hint') }}</label>
+    <label class="label text-wrap text-2xl">{{ t('location_internet_hint') }}</label>
     <label class="input text-xl">
         <!-- search -->
         <svg viewBox="0 0 24 24" class="-m-1 h-6">
             <use href="/static/general_icons/search.svg#main" fill="#e3e3e3" />
         </svg>
 
-        <input type="search" placeholder="Search" id="search_loc_input"  
+    <input type="search" placeholder="{{ t('search') }}" id="search_loc_input"  
         class="js-kioskboard-input" data-kioskboard-placement="top"
         data-kioskboard-specialcharacters="true" data-kioskboard-type="keyboard"
         hx-get="location_search_result/" hx-trigger="input from:#search_loc_input delay:500ms" 
@@ -56,14 +57,14 @@
 </fieldset>
 
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend">Sound</legend>
-    {% with title="Sound Enabled", description="Global switch for all sounds",
+    <legend class="fieldset-legend">{{ t('sound_legend') }}</legend>
+    {% with title=t('sound_enabled'), description=t('sound_enabled_desc'),
     icon="volume_up",
     name="sound_enabled", value=sound_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
-    {% with title="Startup Jingle", description="Play a jingle on startup",
+    {% with title=t('startup_jingle'), description=t('startup_jingle_desc'),
     icon="notifications",
     name="startup_jingle", value=startup_jingle %}
     {% include "components/snippets/bool_setting.html" %}
@@ -72,13 +73,13 @@
 
 {% if local %}
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
-    <legend class="fieldset-legend  text-error">Danger Zone</legend>
+    <legend class="fieldset-legend  text-error">{{ t('danger_zone_legend') }}</legend>
 
-    <legend class="fieldset-legend">Reset Password</legend>
-    <button class="btn btn-primary max-w-96" onclick="confirm_pw_reset.showModal()">Reset admin password</button>
+    <legend class="fieldset-legend">{{ t('reset_password_legend') }}</legend>
+    <button class="btn btn-primary max-w-96" onclick="confirm_pw_reset.showModal()">{{ t('reset_admin_password') }}</button>
     <dialog id="confirm_pw_reset" class="modal">
         <div class="modal-box">
-            <h3 class="text-lg font-bold">Reset remote password</h3>
+            <h3 class="text-lg font-bold">{{ t('reset_remote_password') }}</h3>
             <div id="pw_reset_result" class="py-4 text-xl"></div>
             <div class="modal-action flex flex-col gap-2">
                 <button class="btn btn-error" 
@@ -87,10 +88,10 @@
                         hx-trigger="click"
                         hx-swap="innerHTML"
                         hx-on::after-request="this.style.display='none'">
-                    Confirm Reset
+                    {{ t('confirm_reset') }}
                 </button>
                 <form method="dialog">
-                    <button class="btn">Close</button>
+                    <button class="btn">{{ t('close') }}</button>
                 </form>
             </div>
         </div>
