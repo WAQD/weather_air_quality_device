@@ -8,6 +8,7 @@ from frozendict import deepfreeze
 from htmlmin import minify
 from jinja2 import Environment, FileSystemLoader
 
+import waqd
 import waqd.app as app
 from waqd import DEBUG_LEVEL
 from waqd.settings import LANG
@@ -65,11 +66,7 @@ def base_template(file_name: str, context: dict[str, Any], root_path=current_pat
               {{ t('new_pw_text', user_name=user_name, pw=pw) }}
             """
             try:
-                lang_str: str = "en"
-                # app.settings may store the language; Translation handles mapping
-                if hasattr(app, "settings"):
-                    # tolerate missing key gracefully
-                    lang_str = app.settings.get_string(LANG)
+                lang_str = app.settings.get_string(LANG)
                 text = Translation().get_localized_string(
                     asset_id="ui_dict.json",
                     key=key,
@@ -86,8 +83,18 @@ def base_template(file_name: str, context: dict[str, Any], root_path=current_pat
             except Exception:
                 return ""
 
+        # Cache busting helper for static files
+        def cache_bust(file_path: str) -> str:
+            """Add cache busting query parameter to static files"""
+            try:
+                # Use app version as cache buster for CSS and other assets
+                return f"{file_path}?v={waqd.__version__}"
+            except Exception:
+                return file_path
+
         # Make available in all templates
         template_env.globals["t"] = _t
+        template_env.globals["cache_bust"] = cache_bust
         return template_env.get_template(file_name)
 
     return extra_minify(_get_template().render(context))
@@ -127,6 +134,7 @@ def render_main(
             "toast": toast,
             "local": local,
             "theme_color": app.settings.get("theme_color"),
+            "version": waqd.__version__,  # Add version for cache busting in main template
         },
         root_path,
     )

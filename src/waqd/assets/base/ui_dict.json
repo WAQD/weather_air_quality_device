@@ -133,7 +133,14 @@
     "enable_ccs811": "Enable CCS811",
     "motion_sensor_legend": "Motion Sensor",
     "enable_motion_sensor": "Enable Motion Sensor",
-    "motion_sensor_connection_legend": "Motion Sensor Connection"
+    "motion_sensor_connection_legend": "Motion Sensor Connection",
+    "power_options": "Power Options",
+    "shutdown": "Shutdown",
+    "reboot": "Reboot",
+    "confirm_shutdown": "Confirm Shutdown",
+    "confirm_shutdown_text": "Are you sure you want to shutdown the device?",
+    "confirm_restart": "Confirm Restart",
+    "confirm_restart_text": "Are you sure you want to restart the device?"
     },
     "de": {
     "network_manager_eth_disconnected": "Getrennt",
@@ -269,7 +276,14 @@
     "enable_ccs811": "CCS811 aktivieren",
     "motion_sensor_legend": "Bewegungssensor",
     "enable_motion_sensor": "Bewegungssensor aktivieren",
-    "motion_sensor_connection_legend": "Anschluss des Bewegungssensors"
+    "motion_sensor_connection_legend": "Anschluss des Bewegungssensors",
+    "power_options": "Energieoptionen",
+    "shutdown": "Herunterfahren",
+    "reboot": "Neustart",
+    "confirm_shutdown": "Herunterfahren bestätigen",
+    "confirm_shutdown_text": "Sind Sie sicher, dass Sie das Gerät herunterfahren möchten?",
+    "confirm_restart": "Neustart bestätigen",
+    "confirm_restart_text": "Sind Sie sicher, dass Sie das Gerät neu starten möchten?"
     },
     "hu": {
     "network_manager_eth_disconnected": "Nincs csatlakoztatva",
@@ -292,6 +306,9 @@
     "settings_tab_theming": "Téma",
     "settings_tab_updates": "Frissítések",
     "settings_tab_about": "Névjegy",
+    "card_interior": "Belső",
+    "card_forecast": "Előrejelzés",
+    "card_exterior": "Külső",
     "interior_temperature": "Hőmérséklet",
     "interior_humidity": "Páratartalom",
     "interior_co2": "CO₂",
@@ -402,6 +419,13 @@
     "enable_ccs811": "CCS811 engedélyezése",
     "motion_sensor_legend": "Mozgásérzékelő",
     "enable_motion_sensor": "Mozgásérzékelő engedélyezése",
-    "motion_sensor_connection_legend": "Mozgásérzékelő csatlakoztatása"
+    "motion_sensor_connection_legend": "Mozgásérzékelő csatlakoztatása",
+    "power_options": "Leállítás menü",
+    "shutdown": "Leállítás",
+    "reboot": "Újraindítás",
+    "confirm_shutdown": "Leállítás megerősítése",
+    "confirm_shutdown_text": "Biztosan le szeretné állítani az eszközt?",
+    "confirm_restart": "Újraindítás megerősítése",
+    "confirm_restart_text": "Biztosan újra szeretné indítani az eszközt?"
     }
 }

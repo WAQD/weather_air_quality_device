@@ -10,20 +10,9 @@
                 "motion"
             ],
             "actions": {
-                "text_2_speach": "${day_time_greeting}!"
+                "text_2_speach": "${day_time_greeting}"
             },
             "last_triggered": "2020-12-25 20:27:24.863244"
-        },
-        {
-            "name": "Wakeup",
-            "recurrence": "weekday",
-            "date": "8:15",
-            "triggers": [],
-            "actions": {
-                "text_2_speach": "${day_time_greeting}!",
-                "play_sound": "alarm.mp3"
-            },
-            "last_triggered": "2020-12-25 16:49:50.628349"
         },
         {
             "name": "Christmas1",
