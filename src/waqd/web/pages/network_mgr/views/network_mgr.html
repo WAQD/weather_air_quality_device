@@ -2,9 +2,21 @@
   class="fieldset bg-base-100 border-base-300 text-3xl rounded-box w-full border p-6 gap-4"
   x-data="networkMgr()" x-init="init()"
   data-wifi-enabled="{{ 'true' if wifi_enabled else 'false' }}">
+  <script>
+    window.translations = {
+      turnOffWifi: "{{ t('network_manager_turn_off_wifi') }}",
+      turnOnWifi: "{{ t('network_manager_turn_on_wifi') }}",
+  ethConnected: "{{ t('network_manager_eth_connected') }}",
+  ethDisconnected: "{{ t('network_manager_eth_disconnected') }}",
+      wifiDisconnect: "{{ t('network_manager_disconnect') }}",
+      wifiConnect:  "{{ t('network_manager_connect') }}",
+      wifiSignal:  "{{ t('network_manager_signal') }}",
+      wifiSecurity: "{{ t('network_manager_security') }}"
+    };
+  </script>
   <div class="flex flex-row align-middle items-center">
     <h3 class="text-3xl font-bold p-2">
-      Networks
+      {{ t('network_manager_networks') }}
     </h3>
     <button id="toggle_wifi" class="btn btn-secondary ml-8 flex flex-row items-center gap-2"
       @click="toggleWifi" :disabled="wifiToggleLoading">
@@ -18,14 +30,14 @@
           <use href="/static/general_icons/wifi_full.svg#main" fill="white" />
         </svg>
       </template>
-      <span x-text="wifiEnabled ? 'Turn Off Wifi' : 'Turn On Wifi'"></span>
+  <span x-text="wifiEnabled ? window.translations.turnOffWifi : window.translations.turnOnWifi"></span>
       <span x-show="wifiToggleLoading" class="loading loading-xs loading-spinner ml-2"></span>
     </button>
     <button id="Rescan" class="btn btn-secondary ml-4" @click="rescanWifi()">
       <svg viewBox="0 0 24 24" class="h-6">
         <use href="/static/general_icons/refresh.svg#main" fill="white" />
       </svg>
-      Rescan
+  {{ t('network_manager_rescan') }}
       <span id="wifi_toggle_spinner" class="loading loading-xs loading-spinner ml-4 p-2"
         x-show="rescanLoading"></span>
     </button>
@@ -41,16 +53,17 @@
             <use href="/static/general_icons/lan.svg#main" fill="white" />
           </svg>
           <div class="text-s tracking-wide p-2">
-            Ethernet-01
+            {{ t('network_manager_ethernet') }}
           </div>
           <div class="btn btn-lg btn-info ml-auto p-4" @click="recheckEthernet"
             :disabled="ethLoading">
-            Recheck
+            {{ t('network_manager_recheck') }}
             <span x-show="ethLoading" class="loading loading-xs loading-spinner ml-2"></span>
           </div>
         </div>
       </div>
-      <div id="eth_con_status" class="stat-desc p-2" x-text="ethStatus"></div>
+      <div id="eth_con_status" class="stat-desc p-2"
+        x-text="ethStatus === 'Connected' ? window.translations.ethConnected : (ethStatus === 'Disconnected' ? window.translations.ethDisconnected : ethStatus)"></div>
     </div>
   </div>
   <div class="mb-60" id="wifi_list"></div>

@@ -1,11 +1,11 @@
 <div class="modal-box" x-data="{ updateLoading: false }">
-    <h3 class="font-bold text-xl">New Release {{version}} found</h3>
+    <h3 class="font-bold text-xl">{{ t('new_release_found', version=version) }}</h3>
     {% for line in content %}
     {% if line %}
     <p class="p-1 text-xl">{{line}}</p>
     {% endif %}
     {% endfor %}
-    <p class="py-4 text-xl">Do you want to install the release?</p>
+    <p class="py-4 text-xl">{{ t('install_release_question') }}</p>
     <div class="modal-action">
         <form method="dialog">
             <button
@@ -17,10 +17,10 @@
                 hx-on:htmx:afterRequest="updateLoading = false"
                 :disabled="updateLoading"
             >
-                <span>Yes</span>
+                <span>{{ t('yes') }}</span>
                 <span x-show="updateLoading" class="loading loading-xs loading-spinner ml-2"></span>
             </button>
-            <button class="btn btn-ghost mr-2">No</button>
+            <button class="btn btn-ghost mr-2">{{ t('no') }}</button>
         </form>
     </div>
 </div>

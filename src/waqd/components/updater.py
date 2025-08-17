@@ -1,4 +1,5 @@
 import os
+from tarfile import TarFile
 from packaging.version import Version
 from pathlib import Path
 from time import sleep
@@ -176,13 +177,13 @@ class OnlineUpdater(CyclicComponent):
 
                 return prefix == abs_directory
 
-            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+            def safe_extract(tar:TarFile, path=".", members=None, *, numeric_owner=False):
                 for member in tar.getmembers():
                     member_path = os.path.join(path, member.name)
                     if not is_within_directory(path, member_path):
                         raise Exception("Attempted Path Traversal in Tar File")
 
-                tar.extractall(path, members, numeric_owner)
+                tar.extractall(path, members, numeric_owner=numeric_owner)
 
             safe_extract(tar, path=str(self._new_version_path))
 

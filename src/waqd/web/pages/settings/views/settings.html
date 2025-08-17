@@ -3,7 +3,7 @@
 <div class="tabs tabs-lift">
   <label class="tab text-3xl">
     <input type="radio" name="my_tabs" checked="checked" />
-    General
+    {{ t('settings_tab_general') }}
   </label>
   <div class="tab-content bg-base-200 border-base-300 p-1">
     {% include "components/general.html" %}
@@ -11,7 +11,7 @@
 
   <label class="tab text-3xl">
     <input type="radio" name="my_tabs" />
-    Display
+    {{ t('settings_tab_display') }}
   </label>
   <div class="tab-content bg-base-200 border-base-300 p-1">
     {% include "components/display.html" %}
@@ -19,7 +19,7 @@
 
   <label class="tab text-3xl">
     <input type="radio" name="my_tabs" />
-    Hardware
+    {{ t('settings_tab_hardware') }}
   </label>
   <div class="tab-content bg-base-200 border-base-300 p-1">
     {% include "components/hardware.html" %}
@@ -27,7 +27,7 @@
 
   <label class="tab text-3xl">
     <input type="radio" name="my_tabs" />
-    Theming
+    {{ t('settings_tab_theming') }}
   </label>
   <div class="tab-content bg-base-200 border-base-300 p-1">
     {% include "components/theming.html" %}
@@ -35,7 +35,7 @@
 
   <label class="tab text-3xl">
     <input type="radio" name="my_tabs" />
-    Updates
+    {{ t('settings_tab_updates') }}
   </label>
   <div class="tab-content bg-base-200 border-base-300 p-1">
     {% include "components/updates.html" %}
@@ -43,7 +43,7 @@
 
   <label class="tab text-3xl">
     <input type="radio" name="my_tabs" />
-    About
+    {{ t('settings_tab_about') }}
   </label>
   <div class="tab-content bg-base-200 border-base-300 p-1" hx-get="/public/about/"
   hx-trigger="load">

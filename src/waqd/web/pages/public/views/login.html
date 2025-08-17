@@ -3,26 +3,26 @@
   <div class="hero-overlay"></div>
   <div class="hero-content flex-col lg:flex-row">
     <div class="text-center lg:text-left glass rounded-box p-4 bg-primary">
-      <h1 class="text-5xl font-bold">Login now!</h1>
+      <h1 class="text-5xl font-bold">{{ t('login_now') }}</h1>
       <p class="py-6 text-lg">
-        WAQD web access for remote login to monitor all your data.
+        {{ t('login_web_access') }}
       </p>
     </div>
     <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
       <div class="card-body">
         <fieldset class="fieldset text-2xl">
-          <label class="label">Username</label>
-          <input type="text" id="username" name="username" autocomplete="username" placeholder="Username"
+          <label class="label">{{ t('username') }}</label>
+          <input type="text" id="username" name="username" autocomplete="username" placeholder="{{ t('username') }}"
            class="input js-kioskboard-input" data-kioskboard-specialcharacters="true"
            data-kioskboard-type="keyboard"
            />
 
-          <label class="label">Password</label>
+          <label class="label">{{ t('password') }}</label>
 
           <div class="flex items-center">
             <input type="password" id="password" class="input input-bordered flex-grow js-kioskboard-input"
             data-kioskboard-specialcharacters="true" data-kioskboard-type="keyboard"
-            autocomplete="password" placeholder="Password">
+            autocomplete="password" placeholder="{{ t('password') }}">
             <button type="button" class="btn btn-square ml-2" id="togglePWVisibilityBtn"
               onclick="togglePasswordVisibility(document.getElementById('password'), document.getElementById('togglePWVisibilityBtn'))">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6"
@@ -33,7 +33,7 @@
           </div>
           <!-- <div><a class="link link-hover">Forgot password?</a></div> -->
           <button class="btn btn-primary mt-4 text-lg" onclick="login()">
-            Login
+            {{ t('login') }}
             <span id="loading" class="hidden loading loading-spinner loading-md ml-4"></span>
           </button>
           <script>

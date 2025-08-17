@@ -3,17 +3,17 @@
   <div
     class="card card-border shadow-sm image-full min-w-full self-stretch rounded-box md:rounded-none lg:rounded-box">
     <figure>
-      <img id="{{card.name}}-figure" src="{{card.background}}" />
+      <img id="{{card.id}}-figure" src="{{card.background}}" />
     </figure> 
     <div class="card-body md:p-2">
       <div class="flex space-x-4 justify-evenly items-center-safe">
         <h2 class="text-5xl font-bold tracking-wider">{{card.name}}</h2>
       </div>
       <div class="divider divider-accent m-0"></div>
-      <div class="stats stats-vertical shadow overflow-hidden glass" id="{{card.name}}-stats"
+      <div class="stats stats-vertical shadow overflow-hidden glass" id="{{card.id}}-stats"
       hx-trigger="load, every 10s" hx-get="{{card.endpoint}}" hx-swap="innerHTML"
-        nunjucks-template="{{card.name}}-template"
-        hx-on::after-settle="handle{{card.name}}AfterSettle(event)">
+        nunjucks-template="{{card.id}}-template"
+        hx-on::after-settle="handle{{card.id}}AfterSettle(event)">
         <div class="flex flex-col gap-8 w-full p-4">
           <div class="skeleton h-32 w-full"></div>
           <div class="skeleton h-4 w-1/2"></div>

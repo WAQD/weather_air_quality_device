@@ -3,7 +3,29 @@
     <form method="dialog">
         <button class="btn btn-md btn-circle btn-ghost text-lg absolute right-2 top-2">✕</button>
     </form>
-    <p id="chartContainer" class="mt-2 p-1" style="height: 500px;">Chart</p>
+        <p id="chartContainer" class="mt-2 p-1" style="height: 500px;">{{ t('forecast_chart') }}</p>
+
+        <script>
+            // Inject translations for JS
+            const forecast_i18n = {
+                chartTitle: "{{ t('weekly_weather_forecast') }}",
+                tooltip: "{{ t('forecast_tooltip') }}",
+                weekdays: [
+                    "{{ t('monday') }}",
+                    "{{ t('tuesday') }}",
+                    "{{ t('wednesday') }}",
+                    "{{ t('thursday') }}",
+                    "{{ t('friday') }}",
+                    "{{ t('saturday') }}",
+                    "{{ t('sunday') }}"
+                ],
+                weather: {
+                    rainy: "{{ t('rainy') }}",
+                    sunny: "{{ t('sunny') }}",
+                    cloudy: "{{ t('cloudy') }}"
+                }
+            };
+        </script>
 
 </div>
 <script>
@@ -12,9 +34,8 @@
     console.log("Hello from forecast_1.html");
     var chart = new CanvasJS.Chart("chartContainer", {
         title: {
-            text: "Weekly Weather Forecast",
+            text: forecast_i18n.chartTitle,
             fontFamily: "MyFranzo",
-
         },
         axisX: {
             labelFontFamily: "MyFranzo",
@@ -29,7 +50,7 @@
         },
         toolTip: {
             shared: true,
-            content: "{name} </br> <strong>Temperature: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C"
+            content: forecast_i18n.tooltip
         },
         data: [{
             type: "rangeSplineArea",
@@ -39,13 +60,13 @@
             indexLabelFontFamily: "MyFranzo",
             indexLabelFormatter: formatter,
             dataPoints: [
-                { label: "Monday", y: [15, 26], name: "rainy" },
-                { label: "Tuesday", y: [15, 27], name: "rainy" },
-                { label: "Wednesday", y: [13, 27], name: "sunny" },
-                { label: "Thursday", y: [14, 27], name: "sunny" },
-                { label: "Friday", y: [15, 26], name: "cloudy" },
-                { label: "Saturday", y: [17, 26], name: "sunny" },
-                { label: "Sunday", y: [16, 27], name: "rainy" }
+                { label: forecast_i18n.weekdays[0], y: [15, 26], name: forecast_i18n.weather.rainy },
+                { label: forecast_i18n.weekdays[1], y: [15, 27], name: forecast_i18n.weather.rainy },
+                { label: forecast_i18n.weekdays[2], y: [13, 27], name: forecast_i18n.weather.sunny },
+                { label: forecast_i18n.weekdays[3], y: [14, 27], name: forecast_i18n.weather.sunny },
+                { label: forecast_i18n.weekdays[4], y: [15, 26], name: forecast_i18n.weather.cloudy },
+                { label: forecast_i18n.weekdays[5], y: [17, 26], name: forecast_i18n.weather.sunny },
+                { label: forecast_i18n.weekdays[6], y: [16, 27], name: forecast_i18n.weather.rainy }
             ]
         }]
     });

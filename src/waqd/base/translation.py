@@ -1,16 +1,9 @@
 import json
-from waqd.settings import LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN
+from waqd.settings import LANG_ENGLISH
 from waqd.assets import get_asset_file
 from waqd.base.file_logger import Logger
 
 # Runtime translations
-
-# map settings to internal shortened lang names
-LANGS_MAP = {
-    LANG_ENGLISH: "en",
-    LANG_GERMAN: "de",
-    LANG_HUNGARIAN: "hu"
-}
 
 class Translation():
     _instance = None
@@ -22,8 +15,6 @@ class Translation():
         return cls._instance
 
     def get_localized_string(self, asset_id: str, key: str, lang=LANG_ENGLISH, asset_dir="base") -> str:
-        if lang in LANGS_MAP:
-            lang = LANGS_MAP.get(lang)
         id = asset_dir + "/" + asset_id
         if id not in self._resources.keys():
             dict_file = get_asset_file(asset_dir, asset_id)

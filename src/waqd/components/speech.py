@@ -7,7 +7,7 @@ from gtts import gTTS
 import waqd
 from waqd.base.component_reg import Component, ComponentRegistry
 from waqd.base.network import Network
-from waqd.base.translation import Translation, LANGS_MAP
+from waqd.base.translation import Translation
 from waqd.settings import LANG_ENGLISH
 
 
@@ -27,7 +27,7 @@ class TextToSpeach(Component):
         os.makedirs(self._save_dir, exist_ok=True)
         self._ready = True
 
-    def get_tts_string(self, key: str, lang="en") -> str:
+    def get_tts_string(self, key: str, lang=LANG_ENGLISH) -> str:
         return Translation().get_localized_string("tts_dict", key, lang)
 
     def say_internal(self, key="", format_args=[]):
@@ -63,8 +63,6 @@ class TextToSpeach(Component):
         Download tts as mp3 and play with VLC. Blocks execution. To be used in a separate thread.
         """
         # remap, if given as setting
-        if lang in LANGS_MAP:
-            lang = LANGS_MAP.get(lang, "")
         try:
             if not filename:
                 # remove most likeable pitfalls. Is not comprehensive!

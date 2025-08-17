@@ -97,6 +97,7 @@ async def trigger_update():
 async def set_setting(name: str = Form(), value=Form()):
     try:
         app.settings.set(name, value)
+        # apply settings immediately if needed
         if name == BRIGHTNESS: # instant set settings
             app.comp_ctrl.components.display.set_brightness(int(value))
         return HTMLResponse("Set ☑")
