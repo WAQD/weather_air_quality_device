@@ -33,6 +33,8 @@
       const responseData = JSON.parse(event.detail.xhr.response);
       if (responseData.background) {
         const figureElement = document.querySelector("#Exterior-figure");
+        // dont change if it already set to the correct background
+        if (figureElement.src.endsWith(responseData.background)) return;
         figureElement.src = "/static/" + responseData.background;
       }
     }
