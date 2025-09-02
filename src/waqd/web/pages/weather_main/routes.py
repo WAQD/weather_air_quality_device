@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 from pathlib import Path
 from typing import Annotated
 
@@ -20,6 +21,21 @@ from waqd.base.translation import Translation
 rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
+
+# Simple in-memory cache for content hashes (resets on restart)
+_content_hashes = {}
+
+
+def _should_skip_swap(endpoint: str, content: str) -> bool:
+    """Check if content has changed since last request. Returns True if swap should be skipped."""
+    content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()
+    last_hash = _content_hashes.get(endpoint)
+
+    if last_hash == content_hash:
+        return True  # Content hasn't changed, skip swap
+
+    _content_hashes[endpoint] = content_hash
+    return False  # Content changed, allow swap
 
 
 @rt.get("/", response_class=HTMLResponse)
@@ -69,24 +85,27 @@ async def root(current_user: Annotated[User, user_redirect_check]):
     return render_main(content, current_user, overflow=False)
 
 
-@rt.get("/interior", response_class=JSONResponse)
+@rt.get("/interior")
 async def interior(
     user=user_exception_check,
 ):
+    # For interior, we redirect to the API endpoint, so we'll handle content comparison there
+    # or implement it in the API endpoint itself
     return RedirectResponse(url="/api/sensor/v1/interior?units=True")
 
 
-@rt.get("/exterior", response_class=JSONResponse)
+@rt.get("/exterior")
 async def exterior(
     user=user_exception_check,
-) -> ExteriorView:
+):
     ext_values = SensorRetrieval().get_exterior_sensor_values(units=True)
     current_weather = WeatherRetrieval().get_current_weather()
     forecast = WeatherRetrieval().get_5_day_forecast()
     if not current_weather:
-        return ExteriorView()
+        return JSONResponse(content=ExteriorView().model_dump())
+
     weather_bgr = get_asset_file_relative(current_weather.get_background_image())
-    return ExteriorView(
+    response_data = ExteriorView(
         background=weather_bgr,
         temp=ext_values.temp,
         hum=ext_values.hum,
@@ -95,17 +114,26 @@ async def exterior(
         weather_night_min_max=f"{forecast[0].temp_night_min}°/{forecast[0].temp_night_max}°",
     )
 
+    # Convert to JSON string for content comparison
+    content_str = str(response_data.model_dump_json())
+
+    if _should_skip_swap("exterior", content_str):
+        # Return empty response with header to prevent swap
+        return JSONResponse(content={}, headers={"HX-Reswap": "none"})
+
+    return JSONResponse(content=response_data.model_dump())
+
 
 @rt.get("/forecast", response_class=JSONResponse)
 async def forecast(
     user=user_exception_check,
-) -> ForecastView:
+):
     forecast = WeatherRetrieval().get_5_day_forecast()
     current_date_time = datetime.datetime.now()
     tommorrow_idx = 0
     if forecast[0].date_time.date() == current_date_time.date():
         tommorrow_idx = 1
-    return ForecastView(
+    response_data = ForecastView(
         # determine the next days indexes based on the current date
         day_1_label=get_localized_date(
             current_date_time + datetime.timedelta(days=1), app.settings
@@ -126,6 +154,15 @@ async def forecast(
         day_3_weather_day_min_max=f"{forecast[tommorrow_idx + 2].temp_min}°/{forecast[tommorrow_idx + 2].temp_max}°",
         day_3_weather_night_min_max=f"{forecast[tommorrow_idx + 2].temp_night_min}°/{forecast[tommorrow_idx + 2].temp_night_max}°",
     )
+
+    # Convert to JSON string for content comparison
+    content_str = str(response_data.model_dump_json())
+
+    if _should_skip_swap("forecast", content_str):
+        # Return empty response with header to prevent swap
+        return JSONResponse(content={}, headers={"HX-Reswap": "none"})
+
+    return JSONResponse(content=response_data.model_dump())
 
 
 @rt.get("/forecast/daily/1", response_class=HTMLResponse)

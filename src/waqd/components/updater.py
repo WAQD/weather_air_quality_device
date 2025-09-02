@@ -199,10 +199,9 @@ class OnlineUpdater(CyclicComponent):
 
         # start updater script - location hardcoded
         if self._runtime_system.is_target_system:
-            self._logger.info("Updater: Starting update.")
+            self._logger.info("Updater: Looking for new updater script")
             installer_script = update_dir / "script" / "installer" / "start_installer.sh"
-            if not installer_script.exists():
-                return
+            assert installer_script.exists()
             try:
                 # shutdown other components gracefully
                 if app.comp_ctrl:

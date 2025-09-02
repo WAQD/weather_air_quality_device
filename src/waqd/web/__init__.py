@@ -96,6 +96,7 @@ def prepare_local_login():
         {
             "password": app.settings.get_string(USER_DEFAULT_PW),
             "theme_color": app.settings.get("theme_color"),
+            "version": waqd.__version__,  # Add version for cache busting
         },
         current_path / "local",
     )
