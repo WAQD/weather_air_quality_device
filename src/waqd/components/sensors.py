@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Optional
 import board
 import requests
 import RPi.GPIO
-from gpiozero import MotionSensor
 from pint.facets.plain import PlainQuantity as Quantity
 
 from waqd import LOCAL_TIMEZONE
@@ -37,6 +36,7 @@ if TYPE_CHECKING:
     import adafruit_bmp280
     import adafruit_ccs811
     from adafruit_bme280.advanced import Adafruit_BME280_I2C
+    from gpiozero import MotionSensor
 
 SENSOR_INTERIOR_TYPE = "interior"
 SENSOR_EXTERIOR_TYPE = "exterior"
@@ -1094,6 +1094,7 @@ class SR501(SensorComponent):  # pylint: disable=invalid-name
     def _register_callback(self):
         """Initializer function, register the wake-up function to the configured pin."""
         try:
+            from gpiozero import MotionSensor
             self._sensor_driver = MotionSensor(self._pin)
             self._sensor_driver.when_activated = self._wake_up_from_sensor
         except Exception as error:
