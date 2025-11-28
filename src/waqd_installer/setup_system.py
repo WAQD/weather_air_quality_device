@@ -8,7 +8,7 @@ from pathlib import Path
 from configparser import ConfigParser, DuplicateSectionError
 from subprocess import check_output
 
-from .common import (
+from waqd_installer.common import (
     HOME,
     add_line_to_file,
     assure_file_exists,
@@ -63,6 +63,7 @@ def customize_splash_screen(inverted_display: bool):
         src_image = f"{str(installer_root_dir)}/src/waqd/assets/gui_base/loading_screen.png"
         if inverted_display:
             rotate_and_overwrite_image(src_image, 180)
+            os.system("sudo plymouth-set-default-theme --rebuild-initrd pix")
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
         # remove rainbow screen
         os.system("raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt")
@@ -117,19 +118,27 @@ def clean_lxde_desktop(
     desktop_conf_path=Path(HOME / ".config/pcmanfm/LXDE-pi/desktop-items-0.conf"),
 ):
     # Can't be run as sudo, or as sudo -runuser. Needs desktop manager running.
-    logging.info("Cleanup desktop icons...")
+    logging.info("Cleanup desktop icons... from " + str(desktop_conf_path))
+    
+    # Kill pcmanfm to prevent it from overwriting our changes
+    os.system("pkill -f 'pcmanfm --desktop' || true")
+    
     assure_file_exists(desktop_conf_path)
     # needs to be under *
     cp = ConfigParser()
-    cp.read(desktop_conf_path, encoding="UTF-8")
+    with open(desktop_conf_path, "r", encoding="UTF-8") as fd:
+        cp.read_file(fd)
     try:
         cp.add_section("*")
     except DuplicateSectionError:
         pass  # don't care
     cp["*"]["show_trash"] = "0"
     cp["*"]["show_mounts"] = "0"
-    with open(desktop_conf_path, "w") as fd:
+    with open(desktop_conf_path, "w", encoding="UTF-8") as fd:
         cp.write(fd, space_around_delimiters=False)
+    
+    # Restart pcmanfm desktop to apply changes
+    os.system("pcmanfm --desktop --profile LXDE-pi </dev/null &>/dev/null &")
 
 def do_setup(inverted_dislplay: bool):
     # System setup

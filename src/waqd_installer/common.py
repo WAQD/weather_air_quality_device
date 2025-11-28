@@ -85,7 +85,7 @@ def assure_file_exists(file_path: Path, chown=True):
     logging.info(f"Cannot find file {str(file_path)}- creating it")
     os.makedirs(file_path.parent, exist_ok=True)
     if chown:
-        (f"sudo chown {USERNAME} {str(file_path.parent)}")
+        os.system(f"sudo chown {USERNAME} {str(file_path.parent)}")
     file_path.touch(exist_ok=True)
     return False
 

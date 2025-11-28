@@ -1,8 +1,7 @@
 import argparse
 import logging
 import os
-from . import install, setup_system, common
-
+from waqd_installer import install, setup_system, common
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
