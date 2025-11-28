@@ -22,22 +22,6 @@ rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
 
-# Simple in-memory cache for content hashes (resets on restart)
-_content_hashes = {}
-
-
-def _should_skip_swap(endpoint: str, content: str) -> bool:
-    """Check if content has changed since last request. Returns True if swap should be skipped."""
-    content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()
-    last_hash = _content_hashes.get(endpoint)
-
-    if last_hash == content_hash:
-        return True  # Content hasn't changed, skip swap
-
-    _content_hashes[endpoint] = content_hash
-    return False  # Content changed, allow swap
-
-
 @rt.get("/", response_class=HTMLResponse)
 async def root(current_user: Annotated[User, user_redirect_check]):
     app.comp_ctrl.init_all()
@@ -114,13 +98,6 @@ async def exterior(
         weather_night_min_max=f"{forecast[0].temp_night_min}°/{forecast[0].temp_night_max}°",
     )
 
-    # Convert to JSON string for content comparison
-    content_str = str(response_data.model_dump_json())
-
-    if _should_skip_swap("exterior", content_str):
-        # Return empty response with header to prevent swap
-        return JSONResponse(content={}, headers={"HX-Reswap": "none"})
-
     return JSONResponse(content=response_data.model_dump())
 
 
@@ -154,13 +131,6 @@ async def forecast(
         day_3_weather_day_min_max=f"{forecast[tommorrow_idx + 2].temp_min}°/{forecast[tommorrow_idx + 2].temp_max}°",
         day_3_weather_night_min_max=f"{forecast[tommorrow_idx + 2].temp_night_min}°/{forecast[tommorrow_idx + 2].temp_night_max}°",
     )
-
-    # Convert to JSON string for content comparison
-    content_str = str(response_data.model_dump_json())
-
-    if _should_skip_swap("forecast", content_str):
-        # Return empty response with header to prevent swap
-        return JSONResponse(content={}, headers={"HX-Reswap": "none"})
 
     return JSONResponse(content=response_data.model_dump())
 

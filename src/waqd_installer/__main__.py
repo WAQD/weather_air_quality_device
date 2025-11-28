@@ -27,7 +27,7 @@ if __name__ == '__main__':
     elif args.setup_system:
         setup_system.do_setup(args.inverted_display)
     elif args.set_wallpaper: # need to handle this separately
-        setup_system.set_wallpaper(common.get_waqd_install_path(), args.inverted_display)
+        setup_system.set_wallpaper(common.get_waqd_install_path())
         setup_system.clean_lxde_desktop()
     elif args.configure_languages:
         # Add languages

@@ -1,0 +1,25 @@
+- Connect via ssh.
+sudo apt-get update
+sudo apt-get upgrade
+
+sudo raspi-config
+6 Advanded Options => A6 Wayland
+and activate X11
+
+- Reboot the pi.
+sudo reboot
+
+- Connect via ssh.
+- Stop and disable WAY-VNC server
+systemctl stop wayvnc
+systemctl disable wayvnc
+
+- Install X11-VNC server
+sudo apt-get install x11vnc
+
+- Enable and start X11-VNC server           
+systemctl enable vncserver-x11-serviced.service
+systemctl start vncserver-x11-serviced.service
+
+- Reboot the pi.
+sudo reboot
