@@ -7,7 +7,6 @@ USE_ZENITY=true
 for arg in "$@"; do
     if [ "$arg" == "--inverted_display" ]; then
         INVERTED_DISPLAY=--inverted_display
-        xrandr --output DSI-1 --rotate inverted
     elif [ "$arg" == "--no-gui" ]; then
         USE_ZENITY=false
     fi

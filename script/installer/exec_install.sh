@@ -63,7 +63,7 @@ function waqd_install() {
     sudo raspi-config nonint do_squeekboard S3 # disable
     sudo raspi-config nonint do_wayland W1 # X11
 
-    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system
+    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system $INVERTED_DISPLAY
 
     echo "# Installing application... (Step 6/6)"
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install $INVERTED_DISPLAY
