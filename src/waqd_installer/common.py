@@ -17,7 +17,9 @@ LOCAL_BIN_PATH = HOME / ".local" / "bin"
 INSTALL_TARGET_ROOT = HOME / ".local/share/pipx/venvs"
 USER_CONFIG_PATH = HOME / ".waqd"
 AUTOSTART_FILE = HOME / ".config/lxsession/rpd-x/autostart"
-
+AUTOSTART_FILE.parent.mkdir(parents=True, exist_ok=True)
+# add write permissions to user
+os.system(f"sudo chmod 777 -R {str(AUTOSTART_FILE.parent)}")
 INSTALL_DIR_SUFFIX = ".{version}"
 
 current_dir = Path(os.path.abspath(os.path.dirname(__file__)))

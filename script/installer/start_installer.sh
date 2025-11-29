@@ -25,6 +25,7 @@ if [ "$USE_ZENITY" = true ]; then
 
     # start Updater function and pass output to zenity. Echos starting with '#' wil be visible in the dialog.
     # Pulsating means, that we have a bouncing loading bar, without actually displaying progress.
+    export GTK_A11Y=none
     waqd_install 2>&1 | tee ~/.waqd/install_details.log | zenity --progress --pulsate --width 250 --no-cancel --title "Updating..." --auto-close &
 
     # move the window between the text on the background image (src\waqd\assets\gui_base\update_screen.png)
