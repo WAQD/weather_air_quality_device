@@ -115,13 +115,13 @@ def set_wallpaper(install_path: Path, inverted_display=False):
             break
 
 def clean_lxde_desktop(
-    desktop_conf_path=Path(HOME / ".config/pcmanfm/LXDE-pi/desktop-items-0.conf"),
+    desktop_conf_path=Path(HOME / ".config/pcmanfm/default/desktop-items-0.conf"),
 ):
     # Can't be run as sudo, or as sudo -runuser. Needs desktop manager running.
     logging.info("Cleanup desktop icons... from " + str(desktop_conf_path))
     
     # Kill pcmanfm to prevent it from overwriting our changes
-    os.system("pkill -f 'pcmanfm --desktop' || true")
+    os.system("pkill -f 'pcmanfm-pi' || true")
     
     assure_file_exists(desktop_conf_path)
     # needs to be under *
@@ -138,13 +138,13 @@ def clean_lxde_desktop(
         cp.write(fd, space_around_delimiters=False)
     
     # Restart pcmanfm desktop to apply changes
-    os.system("pcmanfm --desktop --profile LXDE-pi </dev/null &>/dev/null &")
+    os.system("pcmanfm-pi </dev/null &>/dev/null &")
 
 def do_setup(inverted_dislplay: bool):
     # System setup
     # Start only the desktop, but not the taskbar
-    add_to_autostart(["pcmanfm --desktop --profile LXDE-pi"])
-    remove_from_autostart(["lxpanel --profile"])
+    add_to_autostart(["pcmanfm-pi"])
+    remove_from_autostart(["lxpanel-pi"])
 
     hide_mouse_cursor()
     disable_screensaver()

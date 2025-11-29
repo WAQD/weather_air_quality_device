@@ -10,5 +10,5 @@ sudo ufw allow https
 sudo ufw allow bootps
 sudo ufw allow 53
 
-sudo ufw enable
-# sudo ufw status verbose
+sudo ufw --force enable
+sudo ufw status verbose

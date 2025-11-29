@@ -16,7 +16,7 @@ HOME = Path("/home") / USERNAME
 LOCAL_BIN_PATH = HOME / ".local" / "bin"
 INSTALL_TARGET_ROOT = HOME / ".local/share/pipx/venvs"
 USER_CONFIG_PATH = HOME / ".waqd"
-AUTOSTART_FILE = HOME / ".config/lxsession/LXDE-pi/autostart"
+AUTOSTART_FILE = HOME / ".config/lxsession/rpd-x/autostart"
 
 INSTALL_DIR_SUFFIX = ".{version}"
 
