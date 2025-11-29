@@ -51,8 +51,10 @@ function waqd_install() {
     chmod +x ./setup/setup_firewall.sh
     ./setup/setup_firewall.sh
 
-    # set volume to max
-    amixer sset 'Master' 100%
+    # set volume to max, but don't abort on failure
+    if command -v amixer >/dev/null 2>&1; then
+        amixer sset 'PCM' 100% || echo "Warning: could not set PCM volume"
+    fi
 
     # Enable HW access (serial, i2c and spi)
     
