@@ -87,7 +87,7 @@ def setup_supported_locales():
     for locale in sup_locales:
         if locale.lower() not in installed_locales.lower():
             logging.info(locale.lower() + " not in " +  installed_locales.lower())
-            os.system('echo "' + locale + ' UTF-8\n' + ' | sudo tee -a /etc/locale.gen')
+            os.system('echo "' + locale + ' UTF-8\n"' + ' | sudo tee -a /etc/locale.gen')
             locale_added = True
     # generate them, if there is something to add
     if locale_added:
