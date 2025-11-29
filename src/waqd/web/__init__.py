@@ -22,7 +22,7 @@ LOCAL_SERVER_PORT = "8080"
 def start_web_server(reload=False):
     import uvicorn
 
-    os.system("sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.11")
+    os.system("sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.13")
 
     create_api_token()
     prepare_local_login()
@@ -69,7 +69,7 @@ def start_web_ui_chromium_kiosk_mode():
     global browser_proc
     browser_proc = subprocess.Popen(
         [
-            "chromium-browser",
+            "chromium",
             "--kiosk",
             "--noerrdialogs",
             "--disable-infobars",
