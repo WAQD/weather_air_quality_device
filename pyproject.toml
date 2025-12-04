@@ -1,7 +1,7 @@
 [project]
 name = "waqd"
 authors = [{ name = "Péter Gosztolya and Contributors" }]
-version = "3.0.0b7"
+version = "3.0.0b8"
 requires-python = ">=3.11"
 description = 'Weather Air Quality Device - base package'
 license = { 'file' = "LICENSE" }
@@ -96,7 +96,7 @@ website = [
     # Web & UI
     "sqlalchemy>=2.0.41",
     "sqlmodel>=0.0.24",
-    "psycopg2>=2.9.10",
+    # "psycopg2>=2.9.10",
     "mariadb>=1.1.13",
     "websockets>=15.0.1",
 ]
