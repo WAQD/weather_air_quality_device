@@ -1,14 +1,16 @@
-from pathlib import Path
-from waqd.assets.assets import get_asset_file
-from waqd.base.file_logger import Logger
+import datetime
 import locale
 import platform
 import time
-import datetime
+from pathlib import Path
 from typing import Optional
+
 from pint.facets.plain import PlainQuantity as Quantity
-from waqd.settings import LANG, LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN, Settings
+
 from waqd.app import unit_reg
+from waqd.assets.assets import get_asset_file
+from waqd.base.file_logger import Logger
+from waqd.settings import LANG, LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN, Settings
 
 
 def get_localized_date(date_time: datetime.datetime, settings: Settings) -> str:

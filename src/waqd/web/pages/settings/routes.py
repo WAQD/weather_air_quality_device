@@ -1,12 +1,11 @@
 from pathlib import Path
-from typing import Annotated
 
 import bcrypt
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse
 
 import waqd.app as app
-from waqd import DEBUG_LEVEL, __version__ as WAQD_VERSION
+from waqd import __version__ as WAQD_VERSION
 from waqd.base.file_logger import Logger
 from waqd.components.weather.base_types import Location
 from waqd.components.weather.open_meteo import OpenMeteo
@@ -20,7 +19,6 @@ from waqd.settings import (
     LOCATION_STATE,
     USER_DEFAULT_PW,
 )
-from waqd.web.authentication import PermissionChecker, User, get_current_user_with_redirect, get_db
 from waqd.web.templates import render_main, sub_template
 
 rt = APIRouter()
@@ -29,20 +27,15 @@ current_path = Path(__file__).parent.resolve()
 
 
 @rt.get("/", response_class=HTMLResponse)
-async def settings(current_user: Annotated[User, Depends(get_current_user_with_redirect)]):
+async def settings():
     app.comp_ctrl.unload_all()
     context = app.settings.get_all()
-    context["local"] = PermissionChecker(
-        required_permissions=[
-            "users:local",
-        ]
-    ).check_permissions(current_user)
     content = sub_template(
         "settings.html",
         context,
         current_path,
     )
-    return render_main(content, current_user)
+    return render_main(content)
 
 
 @rt.get("/location_search_result", response_class=HTMLResponse)
@@ -86,6 +79,7 @@ async def new_release_available():
 @rt.post("/trigger_update", response_class=HTMLResponse)
 async def trigger_update():
     try:
+        assert app.comp_ctrl.components.auto_updater.latest_release is not None
         app.comp_ctrl.components.auto_updater.install_update(
             app.comp_ctrl.components.auto_updater.latest_release.tag_name
         )

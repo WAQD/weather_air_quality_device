@@ -1,22 +1,19 @@
 from pathlib import Path
-from typing import Annotated
 
-from fastapi import APIRouter, Form, Body, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Body, Form, Response
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+
 from waqd.base.network import Network
-from waqd.web.authentication import (
-    User,
-)
 from waqd.web.templates import render_main, sub_template
-from waqd.web.authentication import user_exception_check
 
 rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
 
+
 @rt.get("/", response_class=HTMLResponse)
-async def network_mgr(current_user: Annotated[User, user_exception_check]):
+async def network_mgr():
     network = Network()
     wifi_enabled = network.wifi_enabled()
     content = sub_template(
@@ -24,7 +21,7 @@ async def network_mgr(current_user: Annotated[User, user_exception_check]):
         {"wifi_enabled": wifi_enabled},
         current_path,
     )
-    return render_main(content, current_user)
+    return render_main(content)
 
 
 @rt.post("/wifi/toggle")
@@ -58,6 +55,7 @@ class WifiConnectRequest(BaseModel):
     ssid: str
     password: str
 
+
 @rt.post("/wifi/connect")
 async def wifi_connect(data: WifiConnectRequest = Body(...)):
     try:
@@ -66,6 +64,7 @@ async def wifi_connect(data: WifiConnectRequest = Body(...)):
     except Exception:
         return Response(status_code=400)
 
+
 @rt.post("/wifi/try_connect")
 async def wifi_try_connect(ssid: str = Form()):
     try:
@@ -73,6 +72,7 @@ async def wifi_try_connect(ssid: str = Form()):
         return Response(status_code=204)
     except Exception:
         return Response(status_code=401)
+
 
 @rt.post("/wifi/disconnect")
 async def wifi_disconnect():

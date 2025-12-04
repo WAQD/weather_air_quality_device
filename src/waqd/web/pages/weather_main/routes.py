@@ -12,7 +12,6 @@ from waqd.assets.assets import get_asset_file_relative
 from waqd.settings import LANG
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
 from waqd.web.api.weather.v1.connector import WeatherRetrieval
-from waqd.web.authentication import User, user_exception_check, user_redirect_check
 from waqd.web.helper import get_localized_date
 from waqd.web.pages.weather_main.model import ExteriorView, ForecastView
 from waqd.web.templates import render_main, sub_template
@@ -23,7 +22,7 @@ rt = APIRouter()
 current_path = Path(__file__).parent.resolve()
 
 @rt.get("/", response_class=HTMLResponse)
-async def root(current_user: Annotated[User, user_redirect_check]):
+async def root():
     app.comp_ctrl.init_all()
     lang_val = app.settings.get_string(LANG)
     content = sub_template(
@@ -66,13 +65,11 @@ async def root(current_user: Annotated[User, user_redirect_check]):
         },
         current_path,
     )
-    return render_main(content, current_user, overflow=False)
+    return render_main(content, overflow=False)
 
 
 @rt.get("/interior")
-async def interior(
-    user=user_exception_check,
-):
+async def interior():
     # For interior, we redirect to the API endpoint, so we'll handle content comparison there
     # or implement it in the API endpoint itself
     return RedirectResponse(url="/api/sensor/v1/interior?units=True")
@@ -80,7 +77,7 @@ async def interior(
 
 @rt.get("/exterior")
 async def exterior(
-    user=user_exception_check,
+    # user=user_exception_check,
 ):
     ext_values = SensorRetrieval().get_exterior_sensor_values(units=True)
     current_weather = WeatherRetrieval().get_current_weather()
@@ -102,9 +99,7 @@ async def exterior(
 
 
 @rt.get("/forecast", response_class=JSONResponse)
-async def forecast(
-    user=user_exception_check,
-):
+async def forecast():
     forecast = WeatherRetrieval().get_5_day_forecast()
     current_date_time = datetime.datetime.now()
     tommorrow_idx = 0
@@ -136,8 +131,6 @@ async def forecast(
 
 
 @rt.get("/forecast/daily/1", response_class=HTMLResponse)
-async def forecast_1(
-    user=user_exception_check,
-):
+async def forecast_1():
     content = sub_template("forecast_1.html", {}, current_path, True)
     return content

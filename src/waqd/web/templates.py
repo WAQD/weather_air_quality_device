@@ -11,10 +11,8 @@ from jinja2 import Environment, FileSystemLoader
 import waqd
 import waqd.app as app
 from waqd import DEBUG_LEVEL
-from waqd.settings import LANG
-
-from .authentication import PermissionChecker, UserInDB
 from waqd.base.translation import Translation
+from waqd.settings import LANG
 
 extra_minify = partial(minify, remove_comments=True, remove_empty_space=True)
 current_path = Path(__file__).parent.resolve()
@@ -50,11 +48,12 @@ def sub_template(
     return base_template(file_name, context, root_path)
 
 
-def base_template(file_name: str, context: dict[str, Any], root_path=current_path) -> str:
+def base_template(file_name: str, context: dict[str, Any], root_path=current_path, lang_str: str="") -> str:
     # also include the parent, so we can use the components from the main template
-
+    if not lang_str:
+        lang_str = app.settings.get_string(LANG) or "en"
     @conditional_lru_cache
-    def _get_template():
+    def _get_template(lang_str: str = "en") -> Any:
         template_loader = FileSystemLoader(searchpath=[str(root_path), str(root_path.parent)])
         template_env = Environment(loader=template_loader)
         # Expose a lightweight translation helper backed by JSON catalogs
@@ -66,7 +65,7 @@ def base_template(file_name: str, context: dict[str, Any], root_path=current_pat
               {{ t('new_pw_text', user_name=user_name, pw=pw) }}
             """
             try:
-                lang_str = app.settings.get_string(LANG)
+                
                 text = Translation().get_localized_string(
                     asset_id="ui_dict.json",
                     key=key,
@@ -97,43 +96,40 @@ def base_template(file_name: str, context: dict[str, Any], root_path=current_pat
         template_env.globals["cache_bust"] = cache_bust
         return template_env.get_template(file_name)
 
-    return extra_minify(_get_template().render(context))
+    return extra_minify(_get_template(lang_str=lang_str).render(context))
 
 
 def render_main(
-    content: str, user: UserInDB | None, overflow=True, toast="", root_path=current_path
-    , menu: bool=True
+    content: str, user: None=None, overflow=True, toast="", root_path=current_path
+    , menu: bool=True, local: bool=True, logged_in: bool=True, theme_color: str=""
 ) -> HTMLResponse:
     """if overflow is false, on the RPI itself it will not scroll"""
     overflow_config = ""
     if not overflow:
         overflow_config = "overflow-scroll md:overflow-hidden lg:overflow-scroll"
-
-    local = False
-    if user:
-        local = PermissionChecker(
-            required_permissions=[
-                "users:local",
-            ]
-        ).check_permissions(user)
-    if menu:
-        menu_content = base_template(
-            "menu/views/menu.html",
-            {
-                "local": local,
-                "logged_in": bool(user),
-            },
-            current_path,
-        )
+    if not theme_color:
+        if app.settings:
+            theme_color = app.settings.get_string("theme_color")
+        else:
+            theme_color = "purple"
+    # if menu:
+    #     menu_content = base_template(
+    #         "menu/views/menu.html",
+    #         {
+    #             "local": local,
+    #             "logged_in": logged_in,
+    #         },
+    #         current_path,
+    #     )
     tpl = base_template(
         "views/index.html",
         {
-            "menu_content": menu_content if menu else "",
+            # "menu_content": menu_content if menu else "",
             "content": content,
             "overflow_config": overflow_config,
             "toast": toast,
             "local": local,
-            "theme_color": app.settings.get("theme_color"),
+            "theme_color": theme_color,
             "version": waqd.__version__,  # Add version for cache busting in main template
         },
         root_path,
