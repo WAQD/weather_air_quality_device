@@ -112,19 +112,20 @@ def render_main(
             theme_color = app.settings.get_string("theme_color")
         else:
             theme_color = "purple"
-    # if menu:
-    #     menu_content = base_template(
-    #         "menu/views/menu.html",
-    #         {
-    #             "local": local,
-    #             "logged_in": logged_in,
-    #         },
-    #         current_path,
-    #     )
+
+    if menu:
+        menu_content = base_template(
+            "menu/views/menu.html",
+            {
+                "local": local,
+                "logged_in": logged_in,
+            },
+            current_path,
+        )
     tpl = base_template(
         "views/index.html",
         {
-            # "menu_content": menu_content if menu else "",
+            "menu_content": menu_content if menu else "",
             "content": content,
             "overflow_config": overflow_config,
             "toast": toast,

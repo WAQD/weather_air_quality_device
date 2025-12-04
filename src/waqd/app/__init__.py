@@ -79,6 +79,7 @@ def main():
 
         runtime_system = RuntimeSystem()
         if runtime_system.is_target_system and not waqd.HEADLESS_MODE:
+            Logger().info("Starting Chromium in kiosk mode...")
             chrome_browser = Thread(target=start_web_ui_chromium_kiosk_mode, daemon=True)
             chrome_browser.start()
         start_web_server(reload=waqd.DEBUG_LEVEL > 3)

@@ -9,19 +9,6 @@ rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
 
-@rt.get("/", response_class=HTMLResponse)
-async def menu():
-    menu_content = ""
-    menu_content = base_template(
-        "views/menu.html",
-        {
-            "local": True,
-            "logged_in": True,
-        },
-        current_path,
-    )
-    return HTMLResponse(menu_content)
-
 @rt.get("/network_icon", response_class=HTMLResponse)
 async def wifi_signal_strength(
 ):

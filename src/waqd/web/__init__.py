@@ -5,8 +5,6 @@ from time import sleep
 import waqd
 
 browser_proc = None
-LOCAL_SERVER_PORT = "8080"
-
 
 def start_web_server(reload=False):
     import uvicorn
@@ -44,7 +42,7 @@ def start_web_ui_chromium_kiosk_mode():
             "--disable-translate",
             "--disable-pinch",
             "--disable-features=TranslateUI",
-            f"http://localhost:{LOCAL_SERVER_PORT}/login_admin.html",
+            "http://localhost",
             "--force-device-scale-factor=0.8",
         ]
     )

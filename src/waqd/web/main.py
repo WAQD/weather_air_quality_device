@@ -11,7 +11,6 @@ import waqd
 import waqd.app as app
 from waqd.base.file_logger import Logger
 
-from . import LOCAL_SERVER_PORT
 from .api.sensor.v1.routes import rt as sensor_v1_router
 from .api.weather.v1.routes import rt as weather_v1_router
 from .menu.routes import rt as menu_router
@@ -34,8 +33,6 @@ web_app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost",
-        f"http://127.0.0.1:{LOCAL_SERVER_PORT}",
-        f"http://localhost:{LOCAL_SERVER_PORT}",
     ],
     allow_credentials=True,
     allow_methods=["*"],

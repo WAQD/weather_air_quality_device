@@ -11,7 +11,8 @@ from waqd import __version__ as WAQD_VERSION
 from waqd.base.component import CyclicComponent
 from waqd.base.component_reg import ComponentRegistry
 from waqd.base.network import Network
-from waqd.settings import DISP_INVERTED
+from waqd.settings import AUTO_UPDATER_ENABLED, DISP_INVERTED, UPDATER_USER_BETA_CHANNEL
+from waqd.settings.settings import Settings
 
 if TYPE_CHECKING:
     from github import GitRelease, Repository
@@ -28,10 +29,12 @@ class OnlineUpdater(CyclicComponent):
     INIT_WAIT_TIME = 20  # don't start updating until the station is ready
     STOP_TIMEOUT = 2  # override because of long update time
 
-    def __init__(self, components: "ComponentRegistry", enabled=True, use_beta_channel=False):
-        super().__init__(components, enabled=enabled)
+    def __init__(self, components: "ComponentRegistry", settings: Settings):
+        super().__init__(
+            components, settings=settings, enabled=settings.get_bool(AUTO_UPDATER_ENABLED)
+        )
         self._comps: "ComponentRegistry"
-        self._use_beta_channel = use_beta_channel
+        self._use_beta_channel = settings.get_bool(UPDATER_USER_BETA_CHANNEL)
         self._base_path = waqd.base_path  # save for multiprocessing
         self._repository: "Repository.Repository"
         self._releases = []
@@ -177,7 +180,7 @@ class OnlineUpdater(CyclicComponent):
 
                 return prefix == abs_directory
 
-            def safe_extract(tar:TarFile, path=".", members=None, *, numeric_owner=False):
+            def safe_extract(tar: TarFile, path=".", members=None, *, numeric_owner=False):
                 for member in tar.getmembers():
                     member_path = os.path.join(path, member.name)
                     if not is_within_directory(path, member_path):

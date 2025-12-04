@@ -7,7 +7,6 @@ import waqd
 from waqd.base.component import Component, CyclicComponent
 from waqd.base.file_logger import Logger
 from waqd.settings import (
-    AUTO_UPDATER_ENABLED,
     BME_280_ENABLED,
     BMP_280_ENABLED,
     BRIGHTNESS,
@@ -52,8 +51,9 @@ if TYPE_CHECKING:
         TempSensor,
         TextToSpeach,
         TvocSensor,
-        WeatherProvider
+        WeatherProvider,
     )
+
 
 class ComponentRegistry:
     """
@@ -248,7 +248,7 @@ class ComponentRegistry:
                     self._settings.get(OW_API_KEY),
                 ],
             )
-        else: # fallback
+        else:  # fallback
             return self._create_component_instance(
                 OpenMeteo,
                 [
@@ -264,11 +264,7 @@ class ComponentRegistry:
 
         return self._create_component_instance(
             OnlineUpdater,
-            [
-                self,
-                self._settings.get(AUTO_UPDATER_ENABLED),
-                self._settings.get(UPDATER_USER_BETA_CHANNEL),
-            ],
+            [self, self._settings],
         )
 
     @property
