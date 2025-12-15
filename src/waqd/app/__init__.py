@@ -83,7 +83,6 @@ def main():
             chrome_browser = Thread(target=start_web_ui_chromium_kiosk_mode, daemon=True)
             chrome_browser.start()
         start_web_server(reload=waqd.DEBUG_LEVEL > 3)
-
         if waqd.HEADLESS_MODE:
             comp_ctrl._stop_event.wait()
 

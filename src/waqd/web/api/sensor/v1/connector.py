@@ -1,13 +1,14 @@
 import html
-from typing import Optional
+from typing import List, Optional
 
 from pint.facets.plain import PlainQuantity as Quantity
 
 import waqd.app as app
 import waqd.app as app
+from waqd.base.db_logger import InfluxSensorLogger
 from waqd.web.helper import format_unit_disp_value
 
-from .model import SensorApi_v1, TempHumSensorApi_v1
+from .model import SensorApi_v1, SensorDataPoint, SensorHistoryResponse, TempHumSensorApi_v1
 
 
 class SensorRetrieval:
@@ -54,6 +55,51 @@ class SensorRetrieval:
             baro=pres,
             co2=co2,
         )
+    
+    def get_sensor_history(
+        self, sensor_location: str, sensor_type: str, hours: int
+    ) -> SensorHistoryResponse:
+        """
+        Retrieve historical sensor data from InfluxDB.
+        
+        Args:
+            sensor_location: Location type (e.g., 'interior', 'exterior')
+            sensor_type: Sensor measurement type (e.g., 'temp_degC', 'humidity_%')
+            hours: Number of hours of data to retrieve
+        """
+        minutes = hours * 60
+        time_value_pairs = InfluxSensorLogger.get_sensor_values(
+            sensor_location, sensor_type, minutes_to_read=minutes
+        )
+        
+        # Determine unit from sensor_type
+        unit_map = {
+            "temp_degC": "°C",
+            "humidity_%": "%",
+            "pressure_hPa": "hPa",
+            "CO2_ppm": "ppm",
+            "TVOC": "ppb",
+            "dust_ug_per_m3": "µg/m³",
+            "light_lux": "lux",
+        }
+        unit = unit_map.get(sensor_type, "")
+        
+        # Convert to response format
+        data_points = [
+            SensorDataPoint(
+                timestamp=dt.isoformat(),
+                value=float(value)
+            )
+            for dt, value in time_value_pairs
+        ]
+        
+        return SensorHistoryResponse(
+            sensor_location=sensor_location,
+            sensor_type=sensor_type,
+            unit=unit,
+            data=data_points
+        )
+
     
 class SensorWriter():
     def __init__(self) -> None:

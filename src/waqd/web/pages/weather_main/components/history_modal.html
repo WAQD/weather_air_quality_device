@@ -1,0 +1,217 @@
+<!-- Generic History Modal for Time-Series Data -->
+<dialog id="history-modal" class="modal">
+  <div class="modal-box" style="width: 90vw !important; max-width: 90vw !important; height: 85vh !important; max-height: 85vh !important;">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    
+    <h3 id="history-modal-title" class="font-bold text-2xl mb-4">Data History</h3>
+    
+    <div class="flex justify-end mb-4">
+      <select id="history-time-range" class="select select-bordered select-sm">
+        <option value="6">Last 6 hours</option>
+        <option value="12" selected>Last 12 hours</option>
+        <option value="24">Last 24 hours</option>
+        <option value="48">Last 48 hours</option>
+      </select>
+    </div>
+    
+    <div class="w-full" style="height: calc(85vh - 140px);">
+      <canvas id="history-chart"></canvas>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+  // Generic history chart manager
+  const HistoryChart = {
+    chart: null,
+    currentConfig: null,
+
+    // Initialize or update the chart with new data
+    show(config) {
+      this.currentConfig = config;
+      const modal = document.getElementById('history-modal');
+      const title = document.getElementById('history-modal-title');
+      const canvas = document.getElementById('history-chart');
+      const ctx = canvas.getContext('2d');
+
+      // Update title
+      title.textContent = config.title || 'Data History';
+
+      // Get time range
+      const timeRange = parseInt(document.getElementById('history-time-range').value);
+      
+      // Generate data based on time range
+      const data = this.generateData(timeRange, config);
+
+      // Destroy existing chart if any
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
+      // Create new chart
+      this.chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            label: config.label || 'Value',
+            data: data.values,
+            borderColor: config.color || 'rgb(75, 192, 192)',
+            backgroundColor: config.backgroundColor || 'rgba(75, 192, 192, 0.1)',
+            tension: 0.5,
+            fill: true,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  label += context.parsed.y.toFixed(1) + (config.unit || '');
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: config.yAxisLabel || 'Value'
+              },
+              ticks: {
+                callback: function(value) {
+                  return value.toFixed(1) + (config.unit || '');
+                }
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            }
+          }
+        }
+      });
+
+      // Show modal
+      modal.showModal();
+    },
+
+    // Fetch data from API or use hardcoded generator
+    async generateData(hours, config) {
+      // If API endpoint is provided, fetch real data
+      if (config.apiEndpoint) {
+        try {
+          const response = await fetch(
+            `${config.apiEndpoint}?sensor_location=${config.sensorLocation}&sensor_type=${config.sensorType}&hours=${hours}`
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch sensor data');
+          }
+          const apiData = await response.json();
+          
+          const labels = [];
+          const values = [];
+          
+          for (const point of apiData.data) {
+            const date = new Date(point.timestamp);
+            labels.push(this.formatTime(date));
+            values.push(point.value);
+          }
+          
+          return { labels, values };
+        } catch (error) {
+          console.error('Error fetching sensor history:', error);
+          // Fall back to generated data
+        }
+      }
+      
+      // Fallback: generate hardcoded data for prototype
+      const now = new Date();
+      const labels = [];
+      const values = [];
+      const dataPoints = hours * 6; // One point every 10 minutes
+
+      // Use config.dataGenerator if provided, otherwise use default
+      const generator = config.dataGenerator || this.defaultDataGenerator;
+
+      for (let i = dataPoints; i >= 0; i--) {
+        const time = new Date(now - i * 10 * 60 * 1000);
+        labels.push(this.formatTime(time));
+        values.push(generator(i, dataPoints, config));
+      }
+
+      return { labels, values };
+    },
+
+    // Default data generator (sinusoidal pattern with noise)
+    defaultDataGenerator(index, total, config) {
+      const baseValue = config.baseValue || 20;
+      const amplitude = config.amplitude || 3;
+      const noise = (Math.random() - 0.5) * 0.5;
+      return baseValue + Math.sin(index / total * Math.PI * 2) * amplitude + noise;
+    },
+
+    formatTime(date) {
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    },
+
+    // Update chart when time range changes
+    updateTimeRange() {
+      if (this.currentConfig) {
+        this.show(this.currentConfig);
+      }
+    }
+  };
+
+  // Listen for time range changes
+  document.getElementById('history-time-range').addEventListener('change', function() {
+    HistoryChart.updateTimeRange();
+  });
+
+  // Example function to show temperature history
+  function showTemperatureHistory() {
+    HistoryChart.show({
+      title: 'Interior Temperature History',
+      label: 'Temperature',
+      unit: '°C',
+      yAxisLabel: 'Temperature (°C)',
+      color: 'rgb(255, 99, 132)',
+      backgroundColor: 'rgba(255, 99, 132, 0.1)',
+      // Real API configuration
+      apiEndpoint: '/api/sensor/v1/history',
+      sensorLocation: 'interior',
+      sensorType: 'temp_degC',
+    });
+  }
+
+  //# sourceURL=history_modal.html
+</script>

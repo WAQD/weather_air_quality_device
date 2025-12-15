@@ -1,5 +1,17 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
+
+
+class SensorDataPoint(BaseModel):
+    timestamp: str = Field(description="ISO format timestamp")
+    value: float = Field(description="Sensor value")
+
+
+class SensorHistoryResponse(BaseModel):
+    sensor_location: str
+    sensor_type: str
+    unit: str
+    data: List[SensorDataPoint]
 
 
 class SensorApi_v1(BaseModel):

@@ -1,6 +1,6 @@
 <!-- need raw for htmx json substitution to work -->
 <template id="Interior-template">
-    <div class="stat md:p-2">
+    <div class="stat md:p-2 cursor-pointer hover:bg-base-200/50 transition-colors" onclick="showTemperatureHistory()">
         <div class="stat-title">{{ t('interior_temperature') }}</div>
         {% raw %} <div class="stat-value text-7xl tracking-tighter">{{temp}}</div>{% endraw %}
         <div class="stat-figure">
