@@ -9,7 +9,7 @@
             </svg>
         </div>
     </div>
-    <div class="stat md:p-2">
+    <div class="stat md:p-2 cursor-pointer hover:bg-base-200/50 transition-colors" onclick="showHumidityHistory()">
         <div class="stat-title">{{ t('interior_humidity') }}</div>
         {% raw %}<div class="stat-value text-5xl">{{hum}}</div>{% endraw %}
         <div class="stat-desc"></div>
@@ -19,7 +19,7 @@
             </svg>
         </div>
     </div>
-    <div class="stat md:p-2">
+    <div class="stat md:p-2 cursor-pointer hover:bg-base-200/50 transition-colors" onclick="showCO2History()">
         <div class="stat-title">{{ t('interior_co2') }}</div>
         {% raw %}<div id=co2_value class="stat-value text-5xl">
             <p>{{co2}}</p>{% endraw %}
@@ -31,7 +31,7 @@
             </svg>
         </div>
     </div>
-    <div class="stat md:p-2">
+    <div class="stat md:p-2 cursor-pointer hover:bg-base-200/50 transition-colors" onclick="showPressureHistory()">
         <div class="stat-title">{{ t('interior_pressure') }}</div>
         {% raw %}<div id=baro_value class="stat-value text-5xl">
             <p>{{baro}}</p>
