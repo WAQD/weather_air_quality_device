@@ -203,6 +203,5 @@
 
   html {
       background: no-repeat linear-gradient(180deg, var(--color-base-200) 0%, var(--color-base-300) 100%);
-    }
-
+    }    
 }

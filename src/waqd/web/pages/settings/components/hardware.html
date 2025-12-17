@@ -44,7 +44,7 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
     <legend class="fieldset-legend">{{ t('motion_sensor_legend') }}</legend>
     {% with title=t('enable_motion_sensor'), description="", icon="",
-    name="motion_sensor_pin", value=motion_sensor_pin %}
+    name="motion_sensor_pin", value=motion_sensor_enabled %}
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
