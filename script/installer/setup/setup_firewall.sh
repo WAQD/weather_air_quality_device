@@ -11,4 +11,3 @@ sudo ufw allow bootps
 sudo ufw allow 53
 
 sudo ufw --force enable
-sudo ufw status verbose

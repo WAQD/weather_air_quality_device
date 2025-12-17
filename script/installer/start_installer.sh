@@ -37,7 +37,7 @@ if [ "$USE_ZENITY" = true ]; then
             sleep 0.1
             let NEXT_WAIT_TIME=NEXT_WAIT_TIME+1
         done
-        xdotool windowmove $(wmctrl -lp | grep $(pidof zenity) | cut -d' ' -f1) 260 265
+        xdotool windowmove $(wmctrl -lp | grep $(pidof zenity) | cut -d' ' -f1) 260 190
     fi
 else
     # run installer directly without GUI

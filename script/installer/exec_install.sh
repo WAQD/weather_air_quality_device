@@ -27,7 +27,7 @@ function waqd_install() {
 
     echo "# Install needed system libraries... (Step 1/6)"
     # python dependencies
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" python3-venv xscreensaver network-manager
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" python3-venv xscreensaver network-manager pulseaudio-utils
     # install pipx for venv based app creation
     python3 -m pip install --user pipx==1.7.1 pillow --break-system-packages
     python3 -m pipx ensurepath
@@ -52,9 +52,10 @@ function waqd_install() {
     ./setup/setup_firewall.sh
 
     # set volume to max, but don't abort on failure
-    if command -v amixer >/dev/null 2>&1; then
-        amixer sset 'PCM' 100% || echo "Warning: could not set PCM volume"
-    fi
+    # TODO: need to do with pipewire
+    # if command -v amixer >/dev/null 2>&1; then
+    #     amixer sset 'PCM' 100% || echo "Warning: could not set PCM volume"
+    # fi
 
     # Enable HW access (serial, i2c and spi)
     

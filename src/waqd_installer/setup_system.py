@@ -63,10 +63,10 @@ def customize_splash_screen(inverted_display: bool):
         src_image = f"{str(installer_root_dir)}/src/waqd/assets/gui_base/loading_screen.png"
         if inverted_display:
             rotate_and_overwrite_image(src_image, 180)
-            os.system("sudo plymouth-set-default-theme --rebuild-initrd pix")
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
         # remove rainbow screen
         os.system("raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt")
+        os.system("sudo plymouth-set-default-theme --rebuild-initrd pix")
     except Exception as e:
         logging.error(str(e))
 
