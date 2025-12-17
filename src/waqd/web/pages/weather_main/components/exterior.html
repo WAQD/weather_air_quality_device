@@ -1,6 +1,7 @@
 <!-- need raw for htmx json substitution to work -->
 <template id="Exterior-template">
-  <div class="stat md:p-2 cursor-pointer hover:bg-base-200/50 transition-colors">
+  <div class="stat md:p-2"> 
+    <!-- cursor-pointer hover:bg-base-200/50 transition-colors -->
     <!-- onclick="showExteriorTemperatureHistory()" -->
     <div class="stat-title">{{ t('exterior_temperature') }}</div>
     {% raw %}<div class="stat-value text-7xl tracking-tighter">{{temp}}</div>{% endraw %}
@@ -10,7 +11,8 @@
       </svg>
     </div>
   </div>
-  <div class="stat md:p-2 cursor-pointer hover:bg-base-200/50 transition-colors">
+  <div class="stat md:p-2">
+    <!-- cursor-pointer hover:bg-base-200/50 transition-colors -->
     <!-- onclick="showExteriorHumidityHistory()"> -->
     <div class="stat-title">{{ t('exterior_humidity') }}</div>
     {% raw %}<div class="stat-value text-5xl">{{hum}}</div>{% endraw %}
