@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/icon.avif" type="image/avif">
+    <link rel="preload" href="/Franzo-E4GA.woff" as="font" type="font/woff2" crossorigin>
+    <title>WAQD Vue Frontend</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body class="min-h-screen">
+    <div id="app"></div>
+
+    <!-- HTMX and Alpine, loaded globally -->
+    <script type="module">
+      import htmx from 'htmx.org'
+      import Alpine from 'alpinejs'
+
+      window.htmx = htmx
+      window.Alpine = Alpine
+
+      // Start Alpine if you want it active
+      window.Alpine.start()
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
