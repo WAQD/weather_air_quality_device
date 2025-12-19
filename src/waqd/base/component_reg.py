@@ -169,6 +169,7 @@ class ComponentRegistry:
             self.pressure_sensor,
             self.co2_sensor,
             self.motion_detection_sensor,
+            # self.external_websocket_connection,
         ]
         if not waqd.HEADLESS_MODE:
             comps_non_headless = [
@@ -179,6 +180,18 @@ class ComponentRegistry:
                 self.energy_saver,
             ]
         return comps, comps_non_headless
+
+    @property
+    def external_websocket_connection(self) -> "WAQDDeviceClient":
+        """Access for WAQDDeviceClient singleton"""
+        from waqd.components.external_device import WAQDDeviceClient
+
+        SERVER_URL = "http://localhost:8000"  # Your server URL
+        DEVICE_ID = "waqd_device_001"
+        USER_TOKEN = "test_user_123"  # In production, this should be a proper auth token
+        return self._create_component_instance(
+            WAQDDeviceClient, [SERVER_URL, DEVICE_ID, USER_TOKEN]
+        )
 
     @property
     def display(self) -> "Display":
