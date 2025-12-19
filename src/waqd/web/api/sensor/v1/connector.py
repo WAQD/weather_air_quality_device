@@ -1,12 +1,11 @@
 import html
-from typing import List, Optional
+from typing import Optional
 
 from pint.facets.plain import PlainQuantity as Quantity
 
 import waqd.app as app
-import waqd.app as app
-from waqd.base.db_logger import InfluxSensorLogger
 from waqd.web.helper import format_unit_disp_value
+from waqd.components.sensors import SensorValueLogger
 
 from .model import SensorApi_v1, SensorDataPoint, SensorHistoryResponse, TempHumSensorApi_v1
 
@@ -68,7 +67,7 @@ class SensorRetrieval:
             hours: Number of hours of data to retrieve
         """
         minutes = hours * 60
-        time_value_pairs = InfluxSensorLogger.get_sensor_values(
+        time_value_pairs = SensorValueLogger.get_sensor_values(
             sensor_location, sensor_type, minutes_to_read=minutes
         )
         
