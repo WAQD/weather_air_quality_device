@@ -49,5 +49,19 @@
             "command": "${workspaceRoot}/.venv/Scripts/activate.ps1 && tailwindcss -i src/waqd/assets/css/custom_theme.css -o src/waqd/assets/css/output.css -w",
             "problemMatcher": []
         },
+        {
+            "label": "Launch website frontend",
+            "command": "npm run dev",
+            "type": "shell",
+            "args": [],
+            "options": {"cwd": "src/waqd_website/frontend"},
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "test"
+        }
     ]
 }
