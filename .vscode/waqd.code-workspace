@@ -46,9 +46,11 @@
                 "request": "launch",
                 "module": "waqd",
                 "args": [
-                    "-D=2",
                     // "-H"
                 ],
+                "env": {
+                    "WAQD_DEBUG": "1",
+                },
                 "console": "integratedTerminal",
                 "subProcess": true,
                 "justMyCode": false
@@ -59,7 +61,9 @@
                 "request": "launch",
                 "module": "uvicorn",
                 "args": [
-                   "waqd_website.main:web_app"
+                   "waqd_website.main:web_app",
+                   "--reload",
+                   "--reload-dir=src/waqd_website"
                 ],
                 "console": "integratedTerminal",
                 "subProcess": true,
@@ -67,6 +71,19 @@
                 "env": {
                     "WAQD_DEBUG": "1",
                 }
+            },
+            {
+                "type": "firefox",
+                "request": "launch",
+                "name": "vuejs: firefox",
+                "url": "http://localhost:5173",
+                "webRoot": "${workspaceFolder}/src/waqd_website/frontend",
+                "pathMappings": [
+                    {
+                        "url": "webpack:///src/",
+                        "path": "${webRoot}/"
+                    }
+                ]
             },
             {
                 "name": "Python: Current File",
@@ -85,11 +102,11 @@
                 "pathMappings": [
                     {
                         "localRoot": "${workspaceFolder}/src/waqd",
-                        "remoteRoot": "/home/peter/WeatherAirQualityDevice/src/waqd"
+                        "remoteRoot": "/home/peter/.local/share/pipx/venvs/waqd-3-0-0/lib/python3.11/site-packages/waqd"
                     }
                 ],
                 "port": 3003,
-                "host": "waqd-01",
+                "host": "waqd-03",
                 "justMyCode": false
             },
             {
