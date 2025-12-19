@@ -26,6 +26,7 @@ from waqd.base.component_reg import ComponentRegistry
 from waqd.base.db_logger import InfluxSensorLogger
 from waqd.base.file_logger import Logger, SensorFileLogger
 from waqd.base.network import Network
+from waqd.base.system import RuntimeSystem
 from waqd.settings import (LAST_TEMP_C_OUTSIDE, LOCATION_ALTITUDE_M,
                            LOG_SENSOR_DATA, MH_Z19_VALUE_OFFSET,
                            REMOTE_API_KEY, REMOTE_MODE_URL, Settings)
@@ -42,6 +43,11 @@ SENSOR_INTERIOR_TYPE = "interior"
 SENSOR_EXTERIOR_TYPE = "exterior"
 DEFAULT_MAX_MEASURE_POINTS = 5
 DEFAULT_INVALIDATION_TIME_S = 60
+
+if RuntimeSystem().is_target_system:
+    SensorValueLogger = InfluxSensorLogger
+else:
+    SensorValueLogger = SensorFileLogger
 
 
 class SensorComponent(Component):
@@ -122,7 +128,7 @@ class SensorImpl:
         # use file logger when shuttings down and read back here
         if logging_enabled:
             # only enabled sensor returns values
-            log_values = InfluxSensorLogger.get_sensor_values(
+            log_values = SensorValueLogger.get_sensor_values(
                 self._log_location_type, self._log_measure_type
             )
             if log_values:
@@ -222,7 +228,7 @@ class SensorImpl:
             if datetime.datetime.now() - self._last_logging_time <= self.LOGGING_INTERVAL:
                 return True
             # log the mean average of the values
-            InfluxSensorLogger().set_value(
+            SensorValueLogger.set_value(
                 self._log_location_type, self._log_measure_type, self.get_value()
             )
             self._last_logging_time = datetime.datetime.now()
