@@ -31,11 +31,6 @@ DEBUG_LEVEL = int(os.getenv("WAQD_DEBUG", "0"))
 HEADLESS_MODE = False
 MIGRATE_SENSOR_LOGS = False
 LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 480
-
-SELECTEBLE_LOGGER_INTERVAL_VIEW = False
-
 
 class WeatherDataProviders(Enum):  # promote to settings, after stable
     OpenWeatherMap = 0
