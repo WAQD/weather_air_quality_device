@@ -30,10 +30,10 @@ def parse_cmd_args():
     parser.add_argument("-M", "--migrate_sensor_logs", action="store_true")
 
     args = parser.parse_args()
-    waqd.DEBUG_LEVEL = args.debug_level
-    debug_env_var = os.getenv("WAQD_DEBUG")
-    if debug_env_var:
-        waqd.DEBUG_LEVEL = int(debug_env_var)
+    if waqd.DEBUG_LEVEL > 0 and args.debug_level > 0:
+        print("WARNING: Both cli arg and envvar are set for DEBUG_LEVEL. Prioritizing envvar.")
+    if waqd.DEBUG_LEVEL == 0:
+        waqd.DEBUG_LEVEL = args.debug_level
     if args.headless:
         waqd.HEADLESS_MODE = True
     if args.migrate_sensor_logs:
