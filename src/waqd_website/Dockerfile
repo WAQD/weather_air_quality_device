@@ -15,8 +15,7 @@ RUN python -m venv pdm-venv && \
 COPY pyproject.toml pdm.lock LICENSE README.md ./
 COPY src/waqd_website/__init__.py src/waqd_website/__init__.py
 
-RUN . pdm-venv/bin/activate && pdm install --prod && \
-    rm -rf ~/.cache/pdm
+RUN . pdm-venv/bin/activate && pdm install --website && rm -rf ~/.cache/pdm
 
 COPY src/waqd src/waqd
 COPY src/waqd_website src/waqd_website

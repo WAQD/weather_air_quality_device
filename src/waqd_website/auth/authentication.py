@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
+import secrets
 from typing import Annotated, Optional
 
-from fastapi.responses import RedirectResponse
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.openapi.models import OAuthFlows, OAuthFlowPassword
@@ -13,47 +13,14 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-import waqd.app as app
+from waqd_website.database.db import User, get_user_by_username
 
+USER_SESSION_SECRET = secrets.token_hex(32)
 
 class RequiresLoginException(StarletteHTTPException):
     pass
 
-from waqd.settings import USER_API_KEY, USER_DEFAULT_PW, USER_SESSION_SECRET
-if not app.settings:
-    from waqd_website.database.db import User, get_user_by_username
-else:
-    class User(BaseModel):
-        username: str
-        email: str | None = None
-        full_name: str | None = None
-        disabled: bool | None = None
-        hashed_password: str
-        permissions: list[str] = []
-        token_expires: datetime | None = None
-    def get_user_by_username(username: str) -> Optional[User]:
-        db = get_db()
-        user_data = db.get(username)
-        if not user_data:
-            return None
-        return User(**user_data)
-    @lru_cache(maxsize=None)
-    def get_db():
-        return {
-            "remote_user": {
-                "username": "remote_user",
-                "email": "johndoe@example.com",
-                "hashed_password": get_password_hash(app.settings.get_string(USER_DEFAULT_PW)),
-                "disabled": False,
-                "permissions": [],
-            },
-            "local_admin": {
-                "username": "local_admin",
-                "hashed_password": get_password_hash(app.settings.get_string(USER_DEFAULT_PW)),
-                "disabled": False,
-                "permissions": ["users:admin", "users:local"],
-            },
-        }
+
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 30
@@ -70,7 +37,6 @@ class TokenData(BaseModel):
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 class OAuth2PasswordBearerWithCookie(OAuth2):
     def __init__(
@@ -149,7 +115,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
-        to_encode, app.settings.get_string(USER_SESSION_SECRET), algorithm=ALGORITHM
+        to_encode, USER_SESSION_SECRET, algorithm=ALGORITHM
     )
     return encoded_jwt
 
@@ -160,7 +126,7 @@ def get_current_user(token):
         return None
     try:
         payload = jwt.decode(
-            token, app.settings.get_string(USER_SESSION_SECRET), algorithms=[ALGORITHM]
+            token, USER_SESSION_SECRET, algorithms=[ALGORITHM]
         )
         username = payload.get("sub")
         if username is None:
@@ -205,7 +171,10 @@ class PermissionChecker:
     def __init__(self, required_permissions: list[str]) -> None:
         self.required_permissions = required_permissions
 
-    def __call__(self, user: User = Depends(get_current_user_plain), exception=True) -> bool:
+    def __call__(self, _user: User = Depends(get_current_user_plain), exception=True) -> bool:
+        # update from db
+        user = get_user_from_name(_user.username)
+        assert user is not None
         if self.check_permissions(user):
             return True
         if exception:

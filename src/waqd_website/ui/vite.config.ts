@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'node:path'
 import fs from 'node:fs'
+import path from 'node:path'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
@@ -22,16 +23,8 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: '../../waqd/assets/font/Franzo-E4GA.woff',
-          dest: '.'
-        },
-        {
-          src: '../../waqd/assets/gui_base/icon.avif',
-          dest: '.'
-        },
-        {
-          src: '../../waqd/assets/gui_base/*.jpg',
-          dest: 'gui_base'
+          src: '../../waqd/assets/**/*',
+          dest: 'static'
         }
       ]
     }),
@@ -42,35 +35,46 @@ export default defineConfig({
       apply: 'serve',
       configureServer(server) {
         const staticRoot = resolve(__dirname, '../../waqd/assets')
+        
+        server.middlewares.use((req, res, next) => {
+          if (!req.url?.startsWith('/static/')) {
+            return next()
+          }
 
-        server.middlewares.use('/static', (req, res, next) => {
-          // strip the /static prefix
-          const urlPath = req.url || '/'
+          const urlPath = req.url.replace('/static/', '/')
           const filePath = resolve(staticRoot, '.' + urlPath)
 
-          fs.readFile(filePath, (err, data) => {
-            if (err) {
-              return next()
-            }
-            // Very simple content-type guessing: you can improve if needed
-            if (filePath.endsWith('.avif')) {
-              res.setHeader('Content-Type', 'image/avif')
-            } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-              res.setHeader('Content-Type', 'image/jpeg')
-            } else if (filePath.endsWith('.png')) {
-              res.setHeader('Content-Type', 'image/png')
-            } else if (filePath.endsWith('.woff')) {
-              res.setHeader('Content-Type', 'font/woff')
-            } else if (filePath.endsWith('.woff2')) {
-              res.setHeader('Content-Type', 'font/woff2')
-            }
+          // Check if file exists
+          if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+            return next()
+          }
 
-            res.end(data)
-          })
+          // Set proper content type
+          const ext = path.extname(filePath).toLowerCase()
+          const contentTypes: Record<string, string> = {
+            '.avif': 'image/avif',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.svg': 'image/svg+xml',
+            '.woff': 'font/woff',
+            '.woff2': 'font/woff2',
+          }
+          
+          if (contentTypes[ext]) {
+            res.setHeader('Content-Type', contentTypes[ext])
+          }
+
+          // Stream the file
+          const stream = fs.createReadStream(filePath)
+          stream.pipe(res)
+          stream.on('error', () => next())
         })
       },
     },
   ],
+
+  assetsInclude: ['**/*.svg', '**/*.avif'],
 
   resolve: {
     alias: {

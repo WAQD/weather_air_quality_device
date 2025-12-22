@@ -34,7 +34,7 @@ def add_user(
     full_name: Optional[str] = None,
     permissions: Optional[List[str]] = None,
 ):
-    from waqd_website.authentication import get_password_hash
+    from waqd_website.auth.authentication import get_password_hash
 
     hashed_password = get_password_hash(password)
     user = User(
@@ -57,8 +57,16 @@ def get_user_by_username(username: str) -> Optional[User]:
         return user
 
 
+def get_all_users() -> List[User]:
+    """Get all users from the database"""
+    with Session(engine) as session:
+        statement = select(User)
+        users = session.exec(statement).all()
+        return list(users)
+
+
 def update_user_password(username: str, new_password: str) -> bool:
-    from waqd_website.authentication import get_password_hash
+    from waqd_website.auth.authentication import get_password_hash
 
     with Session(engine) as session:
         statement = select(User).where(User.username == username)
@@ -71,7 +79,5 @@ def update_user_password(username: str, new_password: str) -> bool:
     return True
 
 
-# add_user("admin", "admin123", email="admin@admin.com")
-
-# user = get_user_by_username("admin")
-# pass
+# Uncomment to create admin user:
+# add_user("admin", "admin123", email="admin@admin.com", permissions=["users:admin", "users:local"])
