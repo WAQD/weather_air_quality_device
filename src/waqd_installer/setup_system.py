@@ -70,34 +70,6 @@ def customize_splash_screen(inverted_display: bool):
     except Exception as e:
         logging.error(str(e))
 
-
-def setup_supported_locales():
-    sup_locales = ["en_US.UTF-8", "de_DE.UTF-8", "hu_HU.UTF-8"]
-    installed_locales = ""
-    # get locales:
-    try:
-        logging.info("Getting installed languages")
-        installed_locales = check_output(["localectl", "list-locales"]).decode("utf-8")
-    except Exception as e:
-        logging.error(str(e))
-        return
-    logging.info("Found languages: " + installed_locales)
-    # set not installed locales in /etc/locale.gen
-    locale_added = False
-    for locale in sup_locales:
-        if locale.lower() not in installed_locales.lower():
-            logging.info(locale.lower() + " not in " +  installed_locales.lower())
-            os.system('echo "' + locale + ' UTF-8\n"' + ' | sudo tee -a /etc/locale.gen')
-            locale_added = True
-    # generate them, if there is something to add
-    if locale_added:
-        try:
-            logging.info("Generating locale")
-            os.system("locale-gen")
-        except Exception as e:
-            logging.error(str(e))
-
-
 def set_wallpaper(install_path: Path, inverted_display=False):
     # Can't be run as sudo, or as sudo -runuser. Needs desktop manager running.
     # set wallpaper - get image from install dir

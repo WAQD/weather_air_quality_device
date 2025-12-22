@@ -12,7 +12,6 @@ if __name__ == '__main__':
                         action='store_true')
     group.add_argument("--set_wallpaper",
                        action='store_true')
-    group.add_argument("--configure_languages", action="store_true")
     parser.add_argument("--inverted_display", action="store_true")
     args = parser.parse_args()
     # ensure, that the config dir exists and is writable
@@ -28,8 +27,5 @@ if __name__ == '__main__':
     elif args.set_wallpaper: # need to handle this separately
         setup_system.set_wallpaper(common.get_waqd_install_path())
         setup_system.clean_lxde_desktop()
-    elif args.configure_languages:
-        # Add languages
-        setup_system.setup_supported_locales()
     else:
         logging.info("Nothing to do!")

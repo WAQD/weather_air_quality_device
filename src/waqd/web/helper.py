@@ -1,7 +1,3 @@
-import datetime
-import locale
-import platform
-import time
 from pathlib import Path
 from typing import Optional
 
@@ -9,42 +5,6 @@ from pint.facets.plain import PlainQuantity as Quantity
 
 from waqd.app import unit_reg
 from waqd.assets.assets import get_asset_file
-from waqd.base.file_logger import Logger
-from waqd.settings import LANG, LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN, Settings
-
-
-def get_localized_date(date_time: datetime.datetime, settings: Settings) -> str:
-    """
-    Returns a formatted date of a day conforming to the actual locale.
-    Contains weekday name, month and day.
-    """
-    # switch locale to selected language - needs reboot on linux
-    if settings.get(LANG) != LANG_ENGLISH:
-        locale_name = ""
-        try:
-            if platform.system() == "Windows":
-                if settings.get(LANG) == LANG_GERMAN:
-                    locale_name = "de_DE"
-                elif settings.get(LANG) == LANG_HUNGARIAN:
-                    locale_name = "hu-HU"
-            elif platform.system() == "Linux":
-                if settings.get(LANG) == LANG_GERMAN:
-                    locale_name = "de_DE.UTF8"
-                elif settings.get(LANG) == LANG_HUNGARIAN:
-                    locale_name = "hu_HU.UTF8"
-            locale.setlocale(locale.LC_ALL, locale_name)
-        except Exception as error:
-            Logger().error("Cannot set language to %s: %s", settings.get(LANG), str(error))
-            # "sudo apt-get install language-pack-id" is needed...
-            # or sudo locale-gen
-    else:
-        locale.setlocale(locale.LC_ALL, "C")
-
-    local_date = time.strftime("%a, %x", date_time.timetuple())
-    # remove year - twice once with following . and once for none
-    local_date = local_date.replace(str(date_time.year) + ".", "")
-    local_date = local_date.replace(str(date_time.year), "")
-    return local_date
 
 
 def format_unit_disp_value(

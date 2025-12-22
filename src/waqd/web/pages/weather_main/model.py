@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, validator, field_validator
 
 
 class ForecastView(BaseModel):
-    day_1_label: str = Field(description="Day 1 label", default="Day1")
+    day_1_label: str = Field(description="Day 1 label", default="Day 1")
     day_1_weather_icon: str = Field(
         description="Weather icon", default="/static/weather_icons/wi-day-sunny.svg"
     )
@@ -10,7 +10,7 @@ class ForecastView(BaseModel):
     day_1_weather_night_min_max: str = Field(
         description="Night min/max temperature", default="N/A"
     )
-    day_2_label: str = Field(description="Day 2 label", default="Day1")
+    day_2_label: str = Field(description="Day 2 label", default="Day 2")
     day_2_weather_icon: str = Field(
         description="Weather icon", default="/static/weather_icons/wi-cloud.svg"
     )
@@ -18,7 +18,7 @@ class ForecastView(BaseModel):
     day_2_weather_night_min_max: str = Field(
         description="Night min/max temperature", default="N/A"
     )
-    day_3_label: str = Field(description="Day 3 label", default="Day1")
+    day_3_label: str = Field(description="Day 3 label", default="Day 3")
     day_3_weather_icon: str = Field(
         description="Weather icon", default="/static/weather_icons/wi-cloud.svg"
     )

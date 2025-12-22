@@ -1,7 +1,5 @@
 import datetime
-import hashlib
 from pathlib import Path
-from typing import Annotated
 
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -12,7 +10,6 @@ from waqd.assets.assets import get_asset_file_relative
 from waqd.settings import LANG
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
 from waqd.web.api.weather.v1.connector import WeatherRetrieval
-from waqd.web.helper import get_localized_date
 from waqd.web.pages.weather_main.model import ExteriorView, ForecastView
 from waqd.web.templates import render_main, sub_template
 from waqd.base.translation import Translation
@@ -20,6 +17,7 @@ from waqd.base.translation import Translation
 rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
+
 
 @rt.get("/", response_class=HTMLResponse)
 async def root():
@@ -76,9 +74,7 @@ async def interior():
 
 
 @rt.get("/exterior")
-async def exterior(
-    # user=user_exception_check,
-):
+async def exterior():
     ext_values = SensorRetrieval().get_exterior_sensor_values(units=True)
     current_weather = WeatherRetrieval().get_current_weather()
     forecast = WeatherRetrieval().get_5_day_forecast()
@@ -100,37 +96,35 @@ async def exterior(
 
 @rt.get("/forecast", response_class=JSONResponse)
 async def forecast():
-    forecast = WeatherRetrieval().get_5_day_forecast()
+    forecast_values = WeatherRetrieval().get_5_day_forecast()
+    if not forecast_values:
+        # ForecastView with N/A values
+        return JSONResponse(ForecastView().model_dump())
     current_date_time = datetime.datetime.now()
     tommorrow_idx = 0
-    if forecast[0].date_time.date() == current_date_time.date():
+    if forecast_values[0].date_time.date() == current_date_time.date():
         tommorrow_idx = 1
     response_data = ForecastView(
         # determine the next days indexes based on the current date
-        day_1_label=get_localized_date(
-            current_date_time + datetime.timedelta(days=1), app.settings
+        day_1_label=Translation().get_localized_date(
+            current_date_time + datetime.timedelta(days=1), app.settings.get_string(LANG)
         ),
-        day_1_weather_icon=get_asset_file_relative(forecast[0].get_icon()),
-        day_1_weather_day_min_max=f"{forecast[tommorrow_idx].temp_min}°/{forecast[tommorrow_idx].temp_max}°",
-        day_1_weather_night_min_max=f"{forecast[tommorrow_idx].temp_night_min}°/{forecast[tommorrow_idx].temp_night_max}°",
-        day_2_label=get_localized_date(
-            current_date_time + datetime.timedelta(days=2), app.settings
+        day_1_weather_icon=get_asset_file_relative(forecast_values[0].get_icon()),
+        day_1_weather_day_min_max=f"{forecast_values[tommorrow_idx].temp_min}°/{forecast_values[tommorrow_idx].temp_max}°",
+        day_1_weather_night_min_max=f"{forecast_values[tommorrow_idx].temp_night_min}°/{forecast_values[tommorrow_idx].temp_night_max}°",
+        day_2_label=Translation().get_localized_date(
+            current_date_time + datetime.timedelta(days=2), app.settings.get_string(LANG)
         ),
-        day_2_weather_icon=get_asset_file_relative(forecast[1].get_icon()),
-        day_2_weather_day_min_max=f"{forecast[tommorrow_idx + 1].temp_min}°/{forecast[tommorrow_idx + 1].temp_max}°",
-        day_2_weather_night_min_max=f"{forecast[tommorrow_idx + 1].temp_night_min}°/{forecast[tommorrow_idx + 1].temp_night_max}°",
-        day_3_label=get_localized_date(
-            current_date_time + datetime.timedelta(days=3), app.settings
+        day_2_weather_icon=get_asset_file_relative(forecast_values[1].get_icon()),
+        day_2_weather_day_min_max=f"{forecast_values[tommorrow_idx + 1].temp_min}°/{forecast_values[tommorrow_idx + 1].temp_max}°",
+        day_2_weather_night_min_max=f"{forecast_values[tommorrow_idx + 1].temp_night_min}°/{forecast_values[tommorrow_idx + 1].temp_night_max}°",
+        day_3_label=Translation().get_localized_date(
+            current_date_time + datetime.timedelta(days=3), app.settings.get_string(LANG)
         ),
-        day_3_weather_icon=get_asset_file_relative(forecast[2].get_icon()),
-        day_3_weather_day_min_max=f"{forecast[tommorrow_idx + 2].temp_min}°/{forecast[tommorrow_idx + 2].temp_max}°",
-        day_3_weather_night_min_max=f"{forecast[tommorrow_idx + 2].temp_night_min}°/{forecast[tommorrow_idx + 2].temp_night_max}°",
+        day_3_weather_icon=get_asset_file_relative(forecast_values[2].get_icon()),
+        day_3_weather_day_min_max=f"{forecast_values[tommorrow_idx + 2].temp_min}°/{forecast_values[tommorrow_idx + 2].temp_max}°",
+        day_3_weather_night_min_max=f"{forecast_values[tommorrow_idx + 2].temp_night_min}°/{forecast_values[tommorrow_idx + 2].temp_night_max}°",
     )
 
     return JSONResponse(content=response_data.model_dump())
 
-
-@rt.get("/forecast/daily/1", response_class=HTMLResponse)
-async def forecast_1():
-    content = sub_template("forecast_1.html", {}, current_path, True)
-    return content
