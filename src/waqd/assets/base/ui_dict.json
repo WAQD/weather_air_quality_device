@@ -44,6 +44,71 @@
     "de": "Konto",
     "hu": "Fiók"
   },
+  "account_connection_legend": {
+    "en": "Account Connection",
+    "de": "Kontoverknüpfung",
+    "hu": "Fiók kapcsolat"
+  },
+  "account_connection_description": {
+    "en": "Connect this device to your cloud account to access it remotely and view data from anywhere.",
+    "de": "Verbinden Sie dieses Gerät mit Ihrem Cloud-Konto, um von überall darauf zugreifen und Daten anzeigen zu können.",
+    "hu": "Csatlakoztassa ezt az eszközt a felhő fiókjához, hogy távolról is hozzáférjen és bárhonnan megtekinthesse az adatokat."
+  },
+  "connect_to_account": {
+    "en": "Connect to Account",
+    "de": "Mit Konto verbinden",
+    "hu": "Fiókhoz kapcsolódás"
+  },
+  "pairing_device_instructions": {
+    "en": "To connect this device to your account:",
+    "de": "Um dieses Gerät mit Ihrem Konto zu verbinden:",
+    "hu": "Az eszköz fiókhoz való csatlakoztatásához:"
+  },
+  "pairing_device_web_instruction": {
+    "en": "1. A pairing code will be displayed below\n2. Go to the Devices page on the website or app\n3. Click 'Add Device' and enter the code\n4. Confirm the connection on this screen",
+    "de": "1. Ein Kopplungscode wird unten angezeigt\n2. Gehen Sie zur Geräteseite auf der Website oder App\n3. Klicken Sie auf 'Gerät hinzufügen' und geben Sie den Code ein\n4. Bestätigen Sie die Verbindung auf diesem Bildschirm",
+    "hu": "1. Egy párosítási kód jelenik meg alább\n2. Nyissa meg az Eszközök oldalt a weboldalon vagy alkalmazásban\n3. Kattintson a 'Eszköz hozzáadása' gombra és adja meg a kódot\n4. Erősítse meg a kapcsolatot ezen a képernyőn"
+  },
+  "generating_pairing_code": {
+    "en": "Generating pairing code...",
+    "de": "Kopplungscode wird generiert...",
+    "hu": "Párosítási kód generálása..."
+  },
+  "your_pairing_code": {
+    "en": "Your Pairing Code:",
+    "de": "Ihr Kopplungscode:",
+    "hu": "Az Ön párosítási kódja:"
+  },
+  "expires_in": {
+    "en": "Expires in",
+    "de": "Läuft ab in",
+    "hu": "Lejár"
+  },
+  "pairing_code_entered": {
+    "en": "Pairing Code Entered!",
+    "de": "Kopplungscode eingegeben!",
+    "hu": "Párosítási kód beírva!"
+  },
+  "waiting_for_user_confirmation": {
+    "en": "Waiting for confirmation from",
+    "de": "Warte auf Bestätigung von",
+    "hu": "Megerősítésre vár"
+  },
+  "pairing_successful": {
+    "en": "Pairing Successful!",
+    "de": "Kopplung erfolgreich!",
+    "hu": "Párosítás sikeres!"
+  },
+  "device_connected_to_account": {
+    "en": "This device is now connected to your account.",
+    "de": "Dieses Gerät ist jetzt mit Ihrem Konto verbunden.",
+    "hu": "Ez az eszköz most csatlakozik a fiókjához."
+  },
+  "pairing_failed": {
+    "en": "Pairing Failed",
+    "de": "Kopplung fehlgeschlagen",
+    "hu": "Párosítás sikertelen"
+  },
   "admin_controls": {
     "en": "Admin controls",
     "de": "Admin Steuerung",
@@ -108,6 +173,16 @@
     "en": "Close",
     "de": "Schließen",
     "hu": "Bezárás"
+  },
+  "confirm": {
+    "en": "Confirm",
+    "de": "Bestätigen",
+    "hu": "Megerősítés"
+  },
+  "reject": {
+    "en": "Reject",
+    "de": "Ablehnen",
+    "hu": "Elutasítás"
   },
   "cloudy": {
     "en": "cloudy",
@@ -753,6 +828,241 @@
     "en": "Permissions",
     "de": "Berechtigungen",
     "hu": "Engedélyek"
+  },
+  "actions": {
+    "en": "Actions",
+    "de": "Aktionen",
+    "hu": "Műveletek"
+  },
+  "add_user": {
+    "en": "Add User",
+    "de": "Benutzer hinzufügen",
+    "hu": "Felhasználó hozzáadása"
+  },
+  "add": {
+    "en": "Add",
+    "de": "Hinzufügen",
+    "hu": "Hozzáadás"
+  },
+  "my_devices": {
+    "en": "My Devices",
+    "de": "Meine Geräte",
+    "hu": "Eszközeim"
+  },
+  "add_device": {
+    "en": "Add Device",
+    "de": "Gerät hinzufügen",
+    "hu": "Eszköz hozzáadása"
+  },
+  "no_devices_yet": {
+    "en": "No devices yet",
+    "de": "Noch keine Geräte",
+    "hu": "Még nincsenek eszközök"
+  },
+  "add_your_first_device": {
+    "en": "Add your first device to get started",
+    "de": "Fügen Sie Ihr erstes Gerät hinzu, um zu beginnen",
+    "hu": "Adja hozzá az első eszközt a kezdéshez"
+  },
+  "device_name": {
+    "en": "Device Name",
+    "de": "Gerätename",
+    "hu": "Eszköz neve"
+  },
+  "device_name_placeholder": {
+    "en": "e.g. Living Room",
+    "de": "z.B. Wohnzimmer",
+    "hu": "pl. Nappali"
+  },
+  "device_id": {
+    "en": "Device ID",
+    "de": "Geräte-ID",
+    "hu": "Eszköz azonosító"
+  },
+  "device_id_placeholder": {
+    "en": "e.g. WAQD-001",
+    "de": "z.B. WAQD-001",
+    "hu": "pl. WAQD-001"
+  },
+  "location": {
+    "en": "Location",
+    "de": "Standort",
+    "hu": "Hely"
+  },
+  "location_placeholder": {
+    "en": "e.g. Living Room, Main Floor",
+    "de": "z.B. Wohnzimmer, Hauptetage",
+    "hu": "pl. Nappali, Főemelet"
+  },
+  "no_location": {
+    "en": "No location",
+    "de": "Kein Standort",
+    "hu": "Nincs hely megadva"
+  },
+  "optional": {
+    "en": "optional",
+    "de": "optional",
+    "hu": "opcionális"
+  },
+  "connect": {
+    "en": "Connect",
+    "de": "Verbinden",
+    "hu": "Csatlakozás"
+  },
+  "delete_device": {
+    "en": "Delete Device",
+    "de": "Gerät löschen",
+    "hu": "Eszköz törlése"
+  },
+  "delete_device_confirmation": {
+    "en": "Are you sure you want to delete device",
+    "de": "Möchten Sie das Gerät wirklich löschen",
+    "hu": "Biztosan törölni szeretné az eszközt"
+  },
+  "device_added_successfully": {
+    "en": "Device added successfully",
+    "de": "Gerät erfolgreich hinzugefügt",
+    "hu": "Eszköz sikeresen hozzáadva"
+  },
+  "device_deleted_successfully": {
+    "en": "Device deleted successfully",
+    "de": "Gerät erfolgreich gelöscht",
+    "hu": "Eszköz sikeresen törölve"
+  },
+  "error_loading_devices": {
+    "en": "Error loading devices",
+    "de": "Fehler beim Laden der Geräte",
+    "hu": "Hiba az eszközök betöltésekor"
+  },
+  "error_adding_device": {
+    "en": "Error adding device",
+    "de": "Fehler beim Hinzufügen des Geräts",
+    "hu": "Hiba az eszköz hozzáadásakor"
+  },
+  "error_deleting_device": {
+    "en": "Error deleting device",
+    "de": "Fehler beim Löschen des Geräts",
+    "hu": "Hiba az eszköz törlésekor"
+  },
+  "last_seen": {
+    "en": "Last seen",
+    "de": "Zuletzt gesehen",
+    "hu": "Utoljára látva"
+  },
+  "just_now": {
+    "en": "just now",
+    "de": "gerade eben",
+    "hu": "éppen most"
+  },
+  "minutes_ago": {
+    "en": "minutes ago",
+    "de": "Minuten her",
+    "hu": "perce"
+  },
+  "hours_ago": {
+    "en": "hours ago",
+    "de": "Stunden her",
+    "hu": "órája"
+  },
+  "days_ago": {
+    "en": "days ago",
+    "de": "Tagen her",
+    "hu": "napja"
+  },
+  "cancel": {
+    "en": "Cancel",
+    "de": "Abbrechen",
+    "hu": "Mégsem"
+  },
+  "change_password": {
+    "en": "Change Password",
+    "de": "Passwort ändern",
+    "hu": "Jelszó módosítása"
+  },
+  "delete_user": {
+    "en": "Delete User",
+    "de": "Benutzer löschen",
+    "hu": "Felhasználó törlése"
+  },
+  "delete": {
+    "en": "Delete",
+    "de": "Löschen",
+    "hu": "Törlés"
+  },
+  "enter_username": {
+    "en": "Enter username",
+    "de": "Benutzername eingeben",
+    "hu": "Felhasználónév megadása"
+  },
+  "changing_password_for": {
+    "en": "Changing password for",
+    "de": "Passwort ändern für",
+    "hu": "Jelszó módosítása a következő felhasználóhoz"
+  },
+  "new_password": {
+    "en": "New Password",
+    "de": "Neues Passwort",
+    "hu": "Új jelszó"
+  },
+  "confirm_password": {
+    "en": "Confirm Password",
+    "de": "Passwort bestätigen",
+    "hu": "Jelszó megerősítése"
+  },
+  "enter_new_password": {
+    "en": "Enter new password",
+    "de": "Neues Passwort eingeben",
+    "hu": "Új jelszó megadása"
+  },
+  "confirm_new_password": {
+    "en": "Confirm new password",
+    "de": "Neues Passwort bestätigen",
+    "hu": "Új jelszó megerősítése"
+  },
+  "confirm_delete_user": {
+    "en": "Are you sure you want to delete user",
+    "de": "Sind Sie sicher, dass Sie den Benutzer löschen möchten",
+    "hu": "Biztosan törölni szeretné a következő felhasználót"
+  },
+  "admin_access_denied": {
+    "en": "Admin access denied. Redirecting...",
+    "de": "Admin-Zugriff verweigert. Umleitung...",
+    "hu": "Admin hozzáférés megtagadva. Átirányítás..."
+  },
+  "failed_to_load_users": {
+    "en": "Failed to load users",
+    "de": "Fehler beim Laden der Benutzer",
+    "hu": "Nem sikerült betölteni a felhasználókat"
+  },
+  "failed_to_add_user": {
+    "en": "Failed to add user",
+    "de": "Fehler beim Hinzufügen des Benutzers",
+    "hu": "Nem sikerült hozzáadni a felhasználót"
+  },
+  "failed_to_delete_user": {
+    "en": "Failed to delete user",
+    "de": "Fehler beim Löschen des Benutzers",
+    "hu": "Nem sikerült törölni a felhasználót"
+  },
+  "failed_to_change_password": {
+    "en": "Failed to change password",
+    "de": "Fehler beim Ändern des Passworts",
+    "hu": "Nem sikerült módosítani a jelszót"
+  },
+  "username_required": {
+    "en": "Username is required",
+    "de": "Benutzername ist erforderlich",
+    "hu": "Felhasználónév kötelező"
+  },
+  "passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "de": "Passwörter stimmen nicht überein",
+    "hu": "A jelszavak nem egyeznek"
+  },
+  "password_too_short": {
+    "en": "Password must be at least 6 characters",
+    "de": "Passwort muss mindestens 6 Zeichen lang sein",
+    "hu": "A jelszónak legalább 6 karakterből kell állnia"
   },
   "weather_today": {
     "en": "Weather today",

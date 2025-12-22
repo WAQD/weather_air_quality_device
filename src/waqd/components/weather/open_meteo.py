@@ -33,6 +33,9 @@ class OpenMeteo(WeatherProvider):
         self._ready = True
         self.daytime_forecast_points: List[List[Weather]] = []
         self.nighttime_forecast_point: List[List[Weather]] = []
+        self._last_fetch_attempt: Optional[datetime] = None
+        self._last_failed_fetch: Optional[datetime] = None
+        self._fetch_retry_delay = 60 * 2  # 2 minutes retry delay after failure
 
     def find_location_candidates(self, query: str, lang="en") -> List[Location]:
         data = self._call_api(self.API_GEOCONDING_CMD, query=quote(query), lang=lang)
@@ -61,13 +64,42 @@ class OpenMeteo(WeatherProvider):
         return self._five_day_forecast
 
     def _fetch_weather(self):
-        # return if data is up-to-date in a window of 5 minutes
         current_date_time = datetime.now()
+        
+        # Check if we recently failed and should back off from retrying
+        if self._last_failed_fetch:
+            time_since_failure = current_date_time - self._last_failed_fetch
+            if time_since_failure.total_seconds() < self._fetch_retry_delay:
+                # Still in backoff period after failure, return cached data
+                remaining_time = int(
+                    self._fetch_retry_delay - time_since_failure.total_seconds()
+                )
+                self._logger.debug(
+                    "OpenMeteo: Skipping fetch, in backoff period (%ss remaining)",
+                    remaining_time,
+                )
+                return
+        
+        # Return if data is up-to-date in a window of 5 minutes
         if self._current_weather and self._current_weather.fetch_time:
             time_delta = current_date_time - self._current_weather.fetch_time
             if time_delta.seconds < 60 * 5:  # 5 minutes
                 return
-        self._fetch_daily_weather()
+        
+        # Track fetch attempt
+        self._last_fetch_attempt = current_date_time
+        
+        # Attempt to fetch data
+        daily_success = self._fetch_daily_weather()
+        if not daily_success:
+            # Mark failed fetch and return
+            self._last_failed_fetch = current_date_time
+            self._logger.warning(
+                "OpenMeteo: Failed to fetch weather data, will retry in %ss",
+                self._fetch_retry_delay,
+            )
+            return
+        
         self._fetch_hourly_weather()
         # add pressure, humidty and clouds to cw
         self._complete_daily_weather()
@@ -79,6 +111,9 @@ class OpenMeteo(WeatherProvider):
                 continue
             self._five_day_forecast[i].main = daily_weather.main
             self._five_day_forecast[i].icon = self._get_icon_name(daily_weather.wid, True)
+        
+        # Clear failed fetch timestamp on success
+        self._last_failed_fetch = None
 
     def _fetch_daily_weather(self):
         response = self._call_api(
@@ -88,7 +123,7 @@ class OpenMeteo(WeatherProvider):
             "winddirection_10m_dominant&current_weather=true&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude, longitude=self._longitude)
         if not response:
-            return None
+            return False
 
         current_weather = response.get("current_weather", {})
         daily = response.get("daily", {})
@@ -127,7 +162,7 @@ class OpenMeteo(WeatherProvider):
         # current weather
         if not self._five_day_forecast:
             self._logger.warning("OpenMeteo: No daily forecast weather data received")
-            return
+            return False
         sunrise = self._five_day_forecast[0].sunrise
         sunset = self._five_day_forecast[0].sunset
         is_day = is_daytime(sunrise, sunset)
@@ -152,7 +187,7 @@ class OpenMeteo(WeatherProvider):
             current_weather.get("precipitation_sum"),
         )
 
-        return self._current_weather
+        return True
 
     def _complete_daily_weather(self):
         # fill up current weather with hourly data
@@ -343,7 +378,7 @@ class OpenMeteo(WeatherProvider):
             if response.ok:
                 return response.json()
         except Exception as error:
-            self._logger.error(f"OpenMeteo: Can't get data: {str(error)}")
+            self._logger.error("OpenMeteo: Can't get data: %s", str(error))
         return {}
 
     def _get_icon_name(self, ident: int, is_day=False) -> str:

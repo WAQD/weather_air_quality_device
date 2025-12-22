@@ -25,28 +25,23 @@ function waqd_install() {
     pkill waqd || true
     pkill python3 || true
 
-    echo "# Install needed system libraries... (Step 1/6)"
+    echo "# Install needed system libraries... (Step 1/5)"
     # python dependencies
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" python3-venv xscreensaver network-manager pulseaudio-utils
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" python3-venv xscreensaver network-manager pulseaudio-utils  unattended-upgrades
     # install pipx for venv based app creation
     python3 -m pip install --user pipx==1.7.1 pillow --break-system-packages
     python3 -m pipx ensurepath
 
-    echo "# Full system update... (Step 2/6)"
+    echo "# Full system update... (Step 2/5)"
     sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
     sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
-    # Install security updates daily - see https://wiki.debian.org/UnattendedUpgrades
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" unattended-upgrades
 
-    echo "# Installing InfluxDB Database... (Step 3/6)"
+    echo "# Installing InfluxDB Database... (Step 3/5)"
     cd $CURRENT_DIR
     chmod +x ./setup/install_influx.sh
     ./setup/install_influx.sh
 
-    echo "# Configuring system languages (Step 4/6)"
-    sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --configure_languages
-
-    echo "# Setting up the system (Step 5/6)"
+    echo "# Setting up the system (Step 4/5)"
 
     chmod +x ./setup/setup_firewall.sh
     ./setup/setup_firewall.sh
@@ -65,7 +60,7 @@ function waqd_install() {
 
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system $INVERTED_DISPLAY
 
-    echo "# Installing application... (Step 6/6)"
+    echo "# Installing application... (Step 5/5)"
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --install $INVERTED_DISPLAY
     # needs installed app
     export PYTHONPATH=${SRC_DIR}
