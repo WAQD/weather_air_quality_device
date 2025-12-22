@@ -1,488 +1,787 @@
 {
-    "en": {
-    "network_manager_eth_disconnected": "Disconnected",
-    "network_manager_eth_connected": "Connected",
-    "network_manager_networks": "Networks",
-    "network_manager_turn_off_wifi": "Turn Off Wifi",
-    "network_manager_turn_on_wifi": "Turn On Wifi",
-    "network_manager_rescan": "Rescan",
-    "network_manager_ethernet": "Ethernet-01",
-    "network_manager_recheck": "Recheck",
-    "network_manager_disconnect": "Disconnect",
-    "network_manager_connect": "Connect",
-    "network_manager_cancel": "Cancel",
-    "network_manager_next": "Next",
-    "network_manager_signal": "Signal",
-    "network_manager_security": "Security",
-    "settings_tab_general": "General",
-    "settings_tab_display": "Display",
-    "settings_tab_hardware": "Hardware",
-    "settings_tab_theming": "Theming",
-    "settings_tab_updates": "Updates",
-    "settings_tab_about": "About",
-    "card_interior": "Interior",
-    "card_forecast": "Forecast",
-    "card_exterior": "Exterior",
-    "interior_temperature": "Temperature",
-    "interior_humidity": "Humidity",
-    "interior_co2": "CO₂",
-    "interior_pressure": "Pressure",
-    "regional_settings_legend": "Regional settings",
-    "language_legend": "Language",
-    "location_legend": "Location",
-    "location_set_hint": "Please set this value for all location specific functionality to work!",
-    "location_internet_hint": "This feature needs internet access to work.",
-    "search": "Search",
-    "sound_legend": "Sound",
-    "sound_enabled": "Sound Enabled",
-    "sound_enabled_desc": "Global switch for all sounds",
-    "startup_jingle": "Startup Jingle",
-    "startup_jingle_desc": "Play a jingle on startup",
-    "danger_zone_legend": "Danger Zone",
-    "reset_password_legend": "Reset Password",
-    "reset_admin_password": "Reset admin password",
-    "reset_remote_password": "Reset remote password",
-    "confirm_reset": "Confirm Reset",
-    "close": "Close",
-    "about_running": "WeatherAirQualityDevice {version} running on {platform}",
-    "about_used_software": "Used Software:",
-    "about_weather_icons": "Weather Icons licensed under",
-    "about_from": "from",
-    "about_on_github": "on GitHub.",
-    "about_franzo_font": "Franzo Font under",
-    "about_unsplash_images": "Images from Unsplash under",
-    "about_further_software": "For further used software see",
-    "login_now": "Login now!",
-    "login_web_access": "WAQD web access for remote login to monitor all your data.",
-    "username": "Username",
-    "password": "Password",
-    "login": "Login",
-    "display_legend": "Display",
-    "brightness_legend": "Brightness",
-    "night_mode_begin_legend": "Night Mode Begin",
-    "night_mode_end_legend": "Night Mode End",
-    "motion_sensing_legend": "Motion sensing",
-    "motion_sensing_desc": "These settings control after which time on sensing movement the display brightness changes.",
-    "night_turnoff_timeout_legend": "Night Turn-off Timeout",
-    "day_standby_timeout_legend": "Day Standby Timeout",
-    "timeout_5s": "5s",
-    "timeout_30s": "30s",
-    "timeout_120s": "120s",
-    "timeout_10min": "10 min",
-    "timeout_30min": "30 min",
-    "manual_update_legend": "Manual update",
-    "manual_update_desc": "Check manually for updates. You will be prompted for confirmation before the update.",
-    "check_for_updates": "Check for updates",
-    "auto_updates": "Auto updates",
-    "auto_updates_desc": "The device will check every few hours and on finding a new release it will update it immediately and restart.",
-    "beta_channel": "Beta channel",
-    "beta_channel_desc": "Enable beta versions for updates. This will allow you to test new features, but it may be unstable.",
-    "theme_legend": "Theme",
-    "theme_purple": "Purple",
-    "theme_blue": "Blue",
-    "theme_peach": "Peach",
-    "theme_orange": "Orange",
-    "theme_red": "Red",
-    "theme_forest": "Forest",
-    "exterior_temperature": "Temperature",
-    "exterior_humidity": "Humidity",
-    "exterior_weather_today": "Weather today",
-    "forecast_chart": "Chart",
-    "weekly_weather_forecast": "Weekly Weather Forecast",
-    "forecast_tooltip": "{name} </br> <strong>Temperature: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
-    "monday": "Monday",
-    "tuesday": "Tuesday",
-    "wednesday": "Wednesday",
-    "thursday": "Thursday",
-    "friday": "Friday",
-    "saturday": "Saturday",
-    "sunday": "Sunday",
-    "rainy": "rainy",
-    "sunny": "sunny",
-    "cloudy": "cloudy",
-    "settings": "Settings",
-    "account": "Account",
-    "logout": "Logout",
-    "network_manager": "Network Manager",
-    "no_new_release_found": "No new release found",
-    "ok": "OK",
-    "new_release_found": "New Release {version} found",
-    "install_release_question": "Do you want to install the release?",
-    "yes": "Yes",
-    "no": "No",
-    "on": "On",
-    "off": "Off",
-    "location_results": "Location results",
-    "set": "Set",
-    "logout_success": "Logged out successfully.",
-    "login_failed": "Login failed! Wrong username or password",
-    "motion_reg": "Motion registered",
-    "no_motion_reg": "No Motion registered",
-    "cant_disp_sensor_logs": "There are not enough logged values yet!",
-    "wlan_portal_help": "Connect to WLAN network '{ssid_name}' on your phone or pc, where you can select your network and enter your password. Press OK to start.",
-    "wlan_error_text": "Cannot start WLAN connection portal:",
-    "new_pw_text": "Username: {user_name} Password: \"{pw}\"",
-    "temperature_legend": "Temperature",
-    "enable_bme280": "Enable BME-280",
-    "enable_bmp280": "Enable BMP-280",
-    "dht_legend": "DHT-11/22",
-    "select_gpio_pin": "Select the pin (GPIO) where you connected the sensor.",
-    "disabled": "Disabled",
-    "air_quality_legend": "Air Quality",
-    "enable_mhz19": "Enable MH-Z19",
-    "enable_ccs811": "Enable CCS811",
-    "motion_sensor_legend": "Motion Sensor",
-    "enable_motion_sensor": "Enable Motion Sensor",
-    "motion_sensor_connection_legend": "Motion Sensor Connection",
-    "power_options": "Power Options",
-    "shutdown": "Shutdown",
-    "reboot": "Reboot",
-    "confirm_shutdown": "Confirm Shutdown",
-    "confirm_shutdown_text": "Are you sure you want to shutdown the device?",
-    "confirm_restart": "Confirm Restart",
-    "confirm_restart_text": "Are you sure you want to restart the device?",
-    "history_modal_title": "Data History",
-    "history_last_6_hours": "Last 6 hours",
-    "history_last_12_hours": "Last 12 hours",
-    "history_last_24_hours": "Last 24 hours",
-    "history_last_48_hours": "Last 48 hours",
-    "history_last_7_days": "Last 7 days",
-    "history_last_30_days": "Last 30 days",
-    "history_loading": "Loading data...",
-    "history_interior_temperature": "Interior Temperature History",
-    "history_interior_humidity": "Interior Humidity History",
-    "history_interior_co2": "Interior CO₂ History",
-    "history_interior_pressure": "Interior Pressure History",
-    "history_exterior_temperature": "Exterior Temperature History",
-    "history_exterior_humidity": "Exterior Humidity History",
-    "history_label_temperature": "Temperature",
-    "history_label_humidity": "Humidity",
-    "history_label_co2": "CO₂",
-    "history_label_pressure": "Pressure",
-    "history_axis_time": "Time"
-    },
-    "de": {
-    "network_manager_eth_disconnected": "Getrennt",
-    "network_manager_eth_connected": "Verbunden",
-    "network_manager_networks": "Netzwerke",
-    "network_manager_turn_off_wifi": "WLAN ausschalten",
-    "network_manager_turn_on_wifi": "WLAN einschalten",
-    "network_manager_rescan": "Erneut suchen",
-    "network_manager_ethernet": "Ethernet-01",
-    "network_manager_recheck": "Erneut prüfen",
-    "network_manager_disconnect": "Trennen",
-    "network_manager_connect": "Verbinden",
-    "network_manager_cancel": "Abbrechen",
-    "network_manager_next": "Weiter",
-    "network_manager_signal": "Signal",
-    "network_manager_security": "Sicherheit",
-    "settings_tab_general": "Allgemein",
-    "settings_tab_display": "Anzeige",
-    "settings_tab_hardware": "Hardware",
-    "settings_tab_theming": "Design",
-    "settings_tab_updates": "Updates",
-    "settings_tab_about": "Info",
-    "card_interior": "Innenraum",
-    "card_forecast": "Vorhersage",
-    "card_exterior": "Außen",
-    "interior_temperature": "Temperatur",
-    "interior_humidity": "Luftfeuchtigkeit",
-    "interior_co2": "CO₂",
-    "interior_pressure": "Luftdruck",
-    "regional_settings_legend": "Regionale Einstellungen",
-    "language_legend": "Sprache",
-    "location_legend": "Standort",
-    "location_set_hint": "Bitte diesen Wert setzen, damit alle standortspezifischen Funktionen funktionieren!",
-    "location_internet_hint": "Diese Funktion benötigt Internetzugang.",
-    "search": "Suche",
-    "sound_legend": "Ton",
-    "sound_enabled": "Ton aktiviert",
-    "sound_enabled_desc": "Globaler Schalter für alle Töne",
-    "startup_jingle": "Start-Jingle",
-    "startup_jingle_desc": "Jingle beim Start abspielen",
-    "danger_zone_legend": "Gefahrenzone",
-    "reset_password_legend": "Passwort zurücksetzen",
-    "reset_admin_password": "Admin-Passwort zurücksetzen",
-    "reset_remote_password": "Remote-Passwort zurücksetzen",
-    "confirm_reset": "Zurücksetzen bestätigen",
-    "close": "Schließen",
-    "about_running": "WeatherAirQualityDevice {version} läuft auf {platform}",
-    "about_used_software": "Verwendete Software:",
-    "about_weather_icons": "Weather Icons lizenziert unter",
-    "about_from": "von",
-    "about_on_github": "auf GitHub.",
-    "about_franzo_font": "Franzo Font unter",
-    "about_unsplash_images": "Bilder von Unsplash unter",
-    "about_further_software": "Weitere verwendete Software siehe",
-    "login_now": "Jetzt anmelden!",
-    "login_web_access": "WAQD-Webzugang für Fernanmeldung zur Überwachung aller Daten.",
-    "username": "Benutzername",
-    "password": "Passwort",
-    "login": "Anmelden",
-    "display_legend": "Anzeige",
-    "brightness_legend": "Helligkeit",
-    "night_mode_begin_legend": "Nachtmodus Beginn",
-    "night_mode_end_legend": "Nachtmodus Ende",
-    "motion_sensing_legend": "Bewegungserkennung",
-    "motion_sensing_desc": "Diese Einstellungen steuern, nach welcher Zeit bei Bewegungserkennung die Displayhelligkeit ändert.",
-    "night_turnoff_timeout_legend": "Nachtabschaltzeit",
-    "day_standby_timeout_legend": "Tag Standby-Zeit",
-    "timeout_5s": "5s",
-    "timeout_30s": "30s",
-    "timeout_120s": "120s",
-    "timeout_10min": "10 min",
-    "timeout_30min": "30 min",
-    "manual_update_legend": "Manuelles Update",
-    "manual_update_desc": "Manuell nach Updates suchen. Sie werden vor dem Update um Bestätigung gebeten.",
-    "check_for_updates": "Nach Updates suchen",
-    "auto_updates": "Automatische Updates",
-    "auto_updates_desc": "Das Gerät sucht alle paar Stunden nach neuen Versionen und aktualisiert sich bei Bedarf automatisch.",
-    "beta_channel": "Beta-Kanal",
-    "beta_channel_desc": "Beta-Versionen für Updates aktivieren. Damit können Sie neue Funktionen testen, aber es können Instabilitäten auftreten.",
-    "theme_legend": "Thema",
-    "theme_purple": "Lila",
-    "theme_blue": "Blau",
-    "theme_peach": "Pfirsich",
-    "theme_orange": "Orange",
-    "theme_red": "Rot",
-    "theme_forest": "Wald",
-    "exterior_temperature": "Temperatur",
-    "exterior_humidity": "Luftfeuchtigkeit",
-    "exterior_weather_today": "Wetter heute",
-    "forecast_chart": "Diagramm",
-    "weekly_weather_forecast": "Wöchentliche Wettervorhersage",
-    "forecast_tooltip": "{name} </br> <strong>Temperatur: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
-    "monday": "Montag",
-    "tuesday": "Dienstag",
-    "wednesday": "Mittwoch",
-    "thursday": "Donnerstag",
-    "friday": "Freitag",
-    "saturday": "Samstag",
-    "sunday": "Sonntag",
-    "rainy": "regnerisch",
-    "sunny": "sonnig",
-    "cloudy": "bewölkt",
-    "settings": "Einstellungen",
-    "account": "Konto",
-    "logout": "Abmelden",
-    "network_manager": "Netzwerkmanager",
-    "no_new_release_found": "Kein neues Update gefunden",
-    "ok": "OK",
-    "new_release_found": "Neue Version {version} gefunden",
-    "install_release_question": "Möchten Sie die Version installieren?",
-    "yes": "Ja",
-    "no": "Nein",
-    "on": "An",
-    "off": "Aus",
-    "location_results": "Standortergebnisse",
-    "set": "Setzen",
-    "logout_success": "Erfolgreich abgemeldet.",
-    "login_failed": "Anmeldung fehlgeschlagen! Falscher Benutzername oder Passwort",
-    "motion_reg": "Bewegung registriert",
-    "no_motion_reg": "Keine Bewegung registriert",
-    "cant_disp_sensor_logs": "Nicht genug Daten aufgezeichnet!",
-    "wlan_portal_help": "Mit WLAN '{ssid_name}' an einem PC oder Handy verbinden, um Nutzername und Passwort einzugeben. Zum Starten bitte OK drücken.",
-    "wlan_error_text": "WLAN Verbindungsportal kann nicht gestartet werden: ",
-    "new_pw_text": "Benutzername: {user_name} Passwort: \"{pw}\"",
-    "temperature_legend": "Temperatur",
-    "enable_bme280": "BME-280 aktivieren",
-    "enable_bmp280": "BMP-280 aktivieren",
-    "dht_legend": "DHT-11/22",
-    "select_gpio_pin": "Wählen Sie den GPIO-Pin, an den Sie den Sensor angeschlossen haben.",
-    "disabled": "Deaktiviert",
-    "air_quality_legend": "Luftqualität",
-    "enable_mhz19": "MH-Z19 aktivieren",
-    "enable_ccs811": "CCS811 aktivieren",
-    "motion_sensor_legend": "Bewegungssensor",
-    "enable_motion_sensor": "Bewegungssensor aktivieren",
-    "motion_sensor_connection_legend": "Anschluss des Bewegungssensors",
-    "power_options": "Energieoptionen",
-    "shutdown": "Herunterfahren",
-    "reboot": "Neustart",
-    "confirm_shutdown": "Herunterfahren bestätigen",
-    "confirm_shutdown_text": "Sind Sie sicher, dass Sie das Gerät herunterfahren möchten?",
-    "confirm_restart": "Neustart bestätigen",
-    "confirm_restart_text": "Sind Sie sicher, dass Sie das Gerät neu starten möchten?",
-    "history_modal_title": "Datenverlauf",
-    "history_last_6_hours": "Letzte 6 Stunden",
-    "history_last_12_hours": "Letzte 12 Stunden",
-    "history_last_24_hours": "Letzte 24 Stunden",
-    "history_last_48_hours": "Letzte 48 Stunden",
-    "history_last_7_days": "Letzte 7 Tage",
-    "history_last_30_days": "Letzte 30 Tage",
-    "history_loading": "Lade Daten...",
-    "history_interior_temperature": "Innentemperatur Verlauf",
-    "history_interior_humidity": "Innenlufeuchtigkeit Verlauf",
-    "history_interior_co2": "Innen CO₂ Verlauf",
-    "history_interior_pressure": "Innenlufudruck Verlauf",
-    "history_exterior_temperature": "Außentemperatur Verlauf",
-    "history_exterior_humidity": "Außenlufeuchtigkeit Verlauf",
-    "history_label_temperature": "Temperatur",
-    "history_label_humidity": "Luftfeuchtigkeit",
-    "history_label_co2": "CO₂",
-    "history_label_pressure": "Luftdruck",
-    "history_axis_time": "Zeit"
-    },
-    "hu": {
-    "network_manager_eth_disconnected": "Nincs csatlakoztatva",
-    "network_manager_eth_connected": "Csatlakoztatva",
-    "network_manager_networks": "Hálózatok",
-    "network_manager_turn_off_wifi": "Wifi kikapcsolása",
-    "network_manager_turn_on_wifi": "Wifi bekapcsolása",
-    "network_manager_rescan": "Újra keresés",
-    "network_manager_ethernet": "Ethernet-01",
-    "network_manager_recheck": "Újraellenőrzés",
-    "network_manager_disconnect": "Leválasztás",
-    "network_manager_connect": "Csatlakozás",
-    "network_manager_cancel": "Mégse",
-    "network_manager_next": "Következő",
-    "network_manager_signal": "Jel",
-    "network_manager_security": "Biztonság",
-    "settings_tab_general": "Általános",
-    "settings_tab_display": "Kijelző",
-    "settings_tab_hardware": "Hardver",
-    "settings_tab_theming": "Téma",
-    "settings_tab_updates": "Frissítések",
-    "settings_tab_about": "Névjegy",
-    "card_interior": "Belső",
-    "card_forecast": "Előrejelzés",
-    "card_exterior": "Külső",
-    "interior_temperature": "Hőmérséklet",
-    "interior_humidity": "Páratartalom",
-    "interior_co2": "CO₂",
-    "interior_pressure": "Légnyomás",
-    "regional_settings_legend": "Regionális beállítások",
-    "language_legend": "Nyelv",
-    "location_legend": "Hely",
-    "location_set_hint": "Kérjük, állítsa be ezt az értéket, hogy minden helyspecifikus funkció működjön!",
-    "location_internet_hint": "Ez a funkció internetkapcsolatot igényel.",
-    "search": "Keresés",
-    "sound_legend": "Hang",
-    "sound_enabled": "Hang bekapcsolva",
-    "sound_enabled_desc": "Minden hangot kapcsol",
-    "startup_jingle": "Indítási dallam",
-    "startup_jingle_desc": "Lejátszik egy dallamot indításkor",
-    "danger_zone_legend": "Veszélyzóna",
-    "reset_password_legend": "Jelszó visszaállítása",
-    "reset_admin_password": "Admin jelszó visszaállítása",
-    "reset_remote_password": "Távoli jelszó visszaállítása",
-    "confirm_reset": "Visszaállítás megerősítése",
-    "close": "Bezárás",
-    "about_running": "WeatherAirQualityDevice {version} {platform} platformon",
-    "about_used_software": "Felhasznált szoftverek:",
-    "about_weather_icons": "Weather Icons licencelve:",
-    "about_from": "forrás:",
-    "about_on_github": "a GitHubon.",
-    "about_franzo_font": "Franzo betűtípus licencelve:",
-    "about_unsplash_images": "Unsplash képek licencelve:",
-    "about_further_software": "További felhasznált szoftverek:",
-    "login_now": "Jelentkezzen be!",
-    "login_web_access": "WAQD webes elérés távoli bejelentkezéshez és adatok megtekintéséhez.",
-    "username": "Felhasználónév",
-    "password": "Jelszó",
-    "login": "Bejelentkezés",
-    "display_legend": "Kijelző",
-    "brightness_legend": "Fényerő",
-    "night_mode_begin_legend": "Éjszakai mód kezdete",
-    "night_mode_end_legend": "Éjszakai mód vége",
-    "motion_sensing_legend": "Mozgásérzékelés",
-    "motion_sensing_desc": "Ezek a beállítások szabályozzák, hogy mozgás érzékelése után mennyi idővel változzon a kijelző fényereje.",
-    "night_turnoff_timeout_legend": "Éjszakai kikapcsolási idő",
-    "day_standby_timeout_legend": "Nappali készenléti idő",
-    "timeout_5s": "5mp",
-    "timeout_30s": "30mp",
-    "timeout_120s": "120mp",
-    "timeout_10min": "10 perc",
-    "timeout_30min": "30 perc",
-    "manual_update_legend": "Kézi frissítés",
-    "manual_update_desc": "Kézi frissítés keresése. A frissítés előtt megerősítést kér a rendszer.",
-    "check_for_updates": "Frissítések keresése",
-    "auto_updates": "Automatikus frissítések",
-    "auto_updates_desc": "Az eszköz néhány óránként ellenőrzi az új verziókat, és szükség esetén automatikusan frissít.",
-    "beta_channel": "Béta csatorna",
-    "beta_channel_desc": "Béta verziók engedélyezése a frissítésekhez. Így új funkciókat tesztelhet, de instabil lehet.",
-    "theme_legend": "Téma",
-    "theme_purple": "Lila",
-    "theme_blue": "Kék",
-    "theme_peach": "Barack",
-    "theme_orange": "Narancs",
-    "theme_red": "Piros",
-    "theme_forest": "Erdő",
-    "exterior_temperature": "Hőmérséklet",
-    "exterior_humidity": "Páratartalom",
-    "exterior_weather_today": "Mai időjárás",
-    "forecast_chart": "Diagram",
-    "weekly_weather_forecast": "Heti időjárás-előrejelzés",
-    "forecast_tooltip": "{name} </br> <strong>Hőmérséklet: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
-    "monday": "Hétfő",
-    "tuesday": "Kedd",
-    "wednesday": "Szerda",
-    "thursday": "Csütörtök",
-    "friday": "Péntek",
-    "saturday": "Szombat",
-    "sunday": "Vasárnap",
-    "rainy": "esős",
-    "sunny": "napos",
-    "cloudy": "felhős",
-    "settings": "Beállítások",
-    "account": "Fiók",
-    "logout": "Kijelentkezés",
-    "network_manager": "Hálózatkezelő",
-    "no_new_release_found": "Nincs új frissítés",
-    "ok": "OK",
-    "new_release_found": "Új kiadás található: {version}",
-    "install_release_question": "Szeretné telepíteni a frissítést?",
-    "yes": "Igen",
-    "no": "Nem",
-    "on": "Be",
-    "off": "Ki",
-    "location_results": "Hely eredmények",
-    "set": "Beállít",
-    "logout_success": "Sikeres kijelentkezés.",
-    "login_failed": "Sikertelen bejelentkezés! Hibás felhasználónév vagy jelszó",
-    "motion_reg": "Mozgás felismerve",
-    "no_motion_reg": "Nincs mozgás",
-    "cant_disp_sensor_logs": "Nincs elég adat!",
-    "wlan_portal_help": "Az OK gomb megnyomás után a WLAN felhasználónév és jelszó megadásához csatlakozzon a '{ssid_name}' hálózathoz telefonon vagy számítógépen!",
-    "wlan_error_text": "Hiba a WLAN portál indítása közben:",
-    "new_pw_text": "Felhasználónév: {user_name} Jelszó: \"{pw}\"",
-    "temperature_legend": "Hőmérséklet",
-    "enable_bme280": "BME-280 engedélyezése",
-    "enable_bmp280": "BMP-280 engedélyezése",
-    "dht_legend": "DHT-11/22",
-    "select_gpio_pin": "Válassza ki a szenzorhoz csatlakoztatott GPIO lábat.",
-    "disabled": "Kikapcsolva",
-    "air_quality_legend": "Levegőminőség",
-    "enable_mhz19": "MH-Z19 engedélyezése",
-    "enable_ccs811": "CCS811 engedélyezése",
-    "motion_sensor_legend": "Mozgásérzékelő",
-    "enable_motion_sensor": "Mozgásérzékelő engedélyezése",
-    "motion_sensor_connection_legend": "Mozgásérzékelő csatlakoztatása",
-    "power_options": "Leállítás menü",
-    "shutdown": "Leállítás",
-    "reboot": "Újraindítás",
-    "confirm_shutdown": "Leállítás megerősítése",
-    "confirm_shutdown_text": "Biztosan le szeretné állítani az eszközt?",
-    "confirm_restart": "Újraindítás megerősítése",
-    "confirm_restart_text": "Biztosan újra szeretné indítani az eszközt?",
-    "history_modal_title": "Adat előzmények",
-    "history_last_6_hours": "Utolsó 6 óra",
-    "history_last_12_hours": "Utolsó 12 óra",
-    "history_last_24_hours": "Utolsó 24 óra",
-    "history_last_48_hours": "Utolsó 48 óra",
-    "history_last_7_days": "Utolsó 7 nap",
-    "history_last_30_days": "Utolsó 30 nap",
-    "history_loading": "Adatok betöltése...",
-    "history_interior_temperature": "Belső hőmérséklet előzmények",
-    "history_interior_humidity": "Belső páratartalom előzmények",
-    "history_interior_co2": "Belső CO₂ előzmények",
-    "history_interior_pressure": "Belső légnyomás előzmények",
-    "history_exterior_temperature": "Külső hőmérséklet előzmények",
-    "history_exterior_humidity": "Külső páratartalom előzmények",
-    "history_label_temperature": "Hőmérséklet",
-    "history_label_humidity": "Páratartalom",
-    "history_label_co2": "CO₂",
-    "history_label_pressure": "Légnyomás",
-    "history_axis_time": "Idő"
-    }
+  "about_franzo_font": {
+    "en": "Franzo Font under",
+    "de": "Franzo Font unter",
+    "hu": "Franzo betűtípus licencelve:"
+  },
+  "about_from": {
+    "en": "from",
+    "de": "von",
+    "hu": "forrás:"
+  },
+  "about_further_software": {
+    "en": "For further used software see",
+    "de": "Weitere verwendete Software siehe",
+    "hu": "További felhasznált szoftverek:"
+  },
+  "about_on_github": {
+    "en": "on GitHub.",
+    "de": "auf GitHub.",
+    "hu": "a GitHubon."
+  },
+  "about_running": {
+    "en": "WeatherAirQualityDevice {version} running on {platform}",
+    "de": "WeatherAirQualityDevice {version} läuft auf {platform}",
+    "hu": "WeatherAirQualityDevice {version} {platform} platformon"
+  },
+  "about_unsplash_images": {
+    "en": "Images from Unsplash under",
+    "de": "Bilder von Unsplash unter",
+    "hu": "Unsplash képek licencelve:"
+  },
+  "about_used_software": {
+    "en": "Used Software:",
+    "de": "Verwendete Software:",
+    "hu": "Felhasznált szoftverek:"
+  },
+  "about_weather_icons": {
+    "en": "Weather Icons licensed under",
+    "de": "Weather Icons lizenziert unter",
+    "hu": "Weather Icons licencelve:"
+  },
+  "account": {
+    "en": "Account",
+    "de": "Konto",
+    "hu": "Fiók"
+  },
+  "admin_controls": {
+    "en": "Admin controls",
+    "de": "Admin Steuerung",
+    "hu": "Admin vezérlés"
+  },
+  "air_quality_legend": {
+    "en": "Air Quality",
+    "de": "Luftqualität",
+    "hu": "Levegőminőség"
+  },
+  "auto_updates": {
+    "en": "Auto updates",
+    "de": "Automatische Updates",
+    "hu": "Automatikus frissítések"
+  },
+  "auto_updates_desc": {
+    "en": "The device will check every few hours and on finding a new release it will update it immediately and restart.",
+    "de": "Das Gerät sucht alle paar Stunden nach neuen Versionen und aktualisiert sich bei Bedarf automatisch.",
+    "hu": "Az eszköz néhány óránként ellenőrzi az új verziókat, és szükség esetén automatikusan frissít."
+  },
+  "beta_channel": {
+    "en": "Beta channel",
+    "de": "Beta-Kanal",
+    "hu": "Béta csatorna"
+  },
+  "beta_channel_desc": {
+    "en": "Enable beta versions for updates. This will allow you to test new features, but it may be unstable.",
+    "de": "Beta-Versionen für Updates aktivieren. Damit können Sie neue Funktionen testen, aber es können Instabilitäten auftreten.",
+    "hu": "Béta verziók engedélyezése a frissítésekhez. Így új funkciókat tesztelhet, de instabil lehet."
+  },
+  "brightness_legend": {
+    "en": "Brightness",
+    "de": "Helligkeit",
+    "hu": "Fényerő"
+  },
+  "cant_disp_sensor_logs": {
+    "en": "There are not enough logged values yet!",
+    "de": "Nicht genug Daten aufgezeichnet!",
+    "hu": "Nincs elég adat!"
+  },
+  "card_exterior": {
+    "en": "Exterior",
+    "de": "Außen",
+    "hu": "Külső"
+  },
+  "card_forecast": {
+    "en": "Forecast",
+    "de": "Vorhersage",
+    "hu": "Előrejelzés"
+  },
+  "card_interior": {
+    "en": "Interior",
+    "de": "Innenraum",
+    "hu": "Belső"
+  },
+  "check_for_updates": {
+    "en": "Check for updates",
+    "de": "Nach Updates suchen",
+    "hu": "Frissítések keresése"
+  },
+  "close": {
+    "en": "Close",
+    "de": "Schließen",
+    "hu": "Bezárás"
+  },
+  "cloudy": {
+    "en": "cloudy",
+    "de": "bewölkt",
+    "hu": "felhős"
+  },
+  "co2": {
+    "en": "CO₂",
+    "de": "CO₂",
+    "hu": "CO₂"
+  },
+  "confirm_reset": {
+    "en": "Confirm Reset",
+    "de": "Zurücksetzen bestätigen",
+    "hu": "Visszaállítás megerősítése"
+  },
+  "confirm_restart": {
+    "en": "Confirm Restart",
+    "de": "Neustart bestätigen",
+    "hu": "Újraindítás megerősítése"
+  },
+  "confirm_restart_text": {
+    "en": "Are you sure you want to restart the device?",
+    "de": "Sind Sie sicher, dass Sie das Gerät neu starten möchten?",
+    "hu": "Biztosan újra szeretné indítani az eszközt?"
+  },
+  "confirm_shutdown": {
+    "en": "Confirm Shutdown",
+    "de": "Herunterfahren bestätigen",
+    "hu": "Leállítás megerősítése"
+  },
+  "confirm_shutdown_text": {
+    "en": "Are you sure you want to shutdown the device?",
+    "de": "Sind Sie sicher, dass Sie das Gerät herunterfahren möchten?",
+    "hu": "Biztosan le szeretné állítani az eszközt?"
+  },
+  "danger_zone_legend": {
+    "en": "Danger Zone",
+    "de": "Gefahrenzone",
+    "hu": "Veszélyzóna"
+  },
+  "day_standby_timeout_legend": {
+    "en": "Day Standby Timeout",
+    "de": "Tag Standby-Zeit",
+    "hu": "Nappali készenléti idő"
+  },
+  "dht_legend": {
+    "en": "DHT-11/22",
+    "de": "DHT-11/22",
+    "hu": "DHT-11/22"
+  },
+  "disabled": {
+    "en": "Disabled",
+    "de": "Deaktiviert",
+    "hu": "Kikapcsolva"
+  },
+  "display_legend": {
+    "en": "Display",
+    "de": "Anzeige",
+    "hu": "Kijelző"
+  },
+  "enable_bme280": {
+    "en": "Enable BME-280",
+    "de": "BME-280 aktivieren",
+    "hu": "BME-280 engedélyezése"
+  },
+  "enable_bmp280": {
+    "en": "Enable BMP-280",
+    "de": "BMP-280 aktivieren",
+    "hu": "BMP-280 engedélyezése"
+  },
+  "enable_ccs811": {
+    "en": "Enable CCS811",
+    "de": "CCS811 aktivieren",
+    "hu": "CCS811 engedélyezése"
+  },
+  "enable_mhz19": {
+    "en": "Enable MH-Z19",
+    "de": "MH-Z19 aktivieren",
+    "hu": "MH-Z19 engedélyezése"
+  },
+  "enable_motion_sensor": {
+    "en": "Enable Motion Sensor",
+    "de": "Bewegungssensor aktivieren",
+    "hu": "Mozgásérzékelő engedélyezése"
+  },
+  "forecast_chart": {
+    "en": "Chart",
+    "de": "Diagramm",
+    "hu": "Diagram"
+  },
+  "forecast_tooltip": {
+    "en": "{name} </br> <strong>Temperature: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
+    "de": "{name} </br> <strong>Temperatur: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
+    "hu": "{name} </br> <strong>Hőmérséklet: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C"
+  },
+  "friday": {
+    "en": "Friday",
+    "de": "Freitag",
+    "hu": "Péntek"
+  },
+  "history_exterior_humidity": {
+    "en": "Exterior Humidity History",
+    "de": "Außenlufeuchtigkeit Verlauf",
+    "hu": "Külső páratartalom előzmények"
+  },
+  "history_exterior_temperature": {
+    "en": "Exterior Temperature History",
+    "de": "Außentemperatur Verlauf",
+    "hu": "Külső hőmérséklet előzmények"
+  },
+  "history_interior_co2": {
+    "en": "Interior CO₂ History",
+    "de": "Innen CO₂ Verlauf",
+    "hu": "Belső CO₂ előzmények"
+  },
+  "history_interior_humidity": {
+    "en": "Interior Humidity History",
+    "de": "Innenlufeuchtigkeit Verlauf",
+    "hu": "Belső páratartalom előzmények"
+  },
+  "history_interior_pressure": {
+    "en": "Interior Pressure History",
+    "de": "Innenlufudruck Verlauf",
+    "hu": "Belső légnyomás előzmények"
+  },
+  "history_interior_temperature": {
+    "en": "Interior Temperature History",
+    "de": "Innentemperatur Verlauf",
+    "hu": "Belső hőmérséklet előzmények"
+  },
+  "history_last_12_hours": {
+    "en": "Last 12 hours",
+    "de": "Letzte 12 Stunden",
+    "hu": "Utolsó 12 óra"
+  },
+  "history_last_24_hours": {
+    "en": "Last 24 hours",
+    "de": "Letzte 24 Stunden",
+    "hu": "Utolsó 24 óra"
+  },
+  "history_last_30_days": {
+    "en": "Last 30 days",
+    "de": "Letzte 30 Tage",
+    "hu": "Utolsó 30 nap"
+  },
+  "history_last_48_hours": {
+    "en": "Last 48 hours",
+    "de": "Letzte 48 Stunden",
+    "hu": "Utolsó 48 óra"
+  },
+  "history_last_6_hours": {
+    "en": "Last 6 hours",
+    "de": "Letzte 6 Stunden",
+    "hu": "Utolsó 6 óra"
+  },
+  "history_last_7_days": {
+    "en": "Last 7 days",
+    "de": "Letzte 7 Tage",
+    "hu": "Utolsó 7 nap"
+  },
+  "history_loading": {
+    "en": "Loading data...",
+    "de": "Lade Daten...",
+    "hu": "Adatok betöltése..."
+  },
+  "history_modal_title": {
+    "en": "Data History",
+    "de": "Datenverlauf",
+    "hu": "Adat előzmények"
+  },
+  "humidity": {
+    "en": "Humidity",
+    "de": "Luftfeuchtigkeit",
+    "hu": "Páratartalom"
+  },
+  "install_release_question": {
+    "en": "Do you want to install the release?",
+    "de": "Möchten Sie die Version installieren?",
+    "hu": "Szeretné telepíteni a frissítést?"
+  },
+  "language_legend": {
+    "en": "Language",
+    "de": "Sprache",
+    "hu": "Nyelv"
+  },
+  "location_internet_hint": {
+    "en": "This feature needs internet access to work.",
+    "de": "Diese Funktion benötigt Internetzugang.",
+    "hu": "Ez a funkció internetkapcsolatot igényel."
+  },
+  "location_legend": {
+    "en": "Location",
+    "de": "Standort",
+    "hu": "Hely"
+  },
+  "location_results": {
+    "en": "Location results",
+    "de": "Standortergebnisse",
+    "hu": "Hely eredmények"
+  },
+  "location_set_hint": {
+    "en": "Please set this value for all location specific functionality to work!",
+    "de": "Bitte diesen Wert setzen, damit alle standortspezifischen Funktionen funktionieren!",
+    "hu": "Kérjük, állítsa be ezt az értéket, hogy minden helyspecifikus funkció működjön!"
+  },
+  "login": {
+    "en": "Login",
+    "de": "Anmelden",
+    "hu": "Bejelentkezés"
+  },
+  "login_failed": {
+    "en": "Login failed! Wrong username or password",
+    "de": "Anmeldung fehlgeschlagen! Falscher Benutzername oder Passwort",
+    "hu": "Sikertelen bejelentkezés! Hibás felhasználónév vagy jelszó"
+  },
+  "login_now": {
+    "en": "Login now!",
+    "de": "Jetzt anmelden!",
+    "hu": "Jelentkezzen be!"
+  },
+  "login_web_access": {
+    "en": "WAQD web access for remote login to monitor all your data.",
+    "de": "WAQD-Webzugang für Fernanmeldung zur Überwachung aller Daten.",
+    "hu": "WAQD webes elérés távoli bejelentkezéshez és adatok megtekintéséhez."
+  },
+  "logout": {
+    "en": "Logout",
+    "de": "Abmelden",
+    "hu": "Kijelentkezés"
+  },
+  "logout_success": {
+    "en": "Logged out successfully.",
+    "de": "Erfolgreich abgemeldet.",
+    "hu": "Sikeres kijelentkezés."
+  },
+  "manual_update_desc": {
+    "en": "Check manually for updates. You will be prompted for confirmation before the update.",
+    "de": "Manuell nach Updates suchen. Sie werden vor dem Update um Bestätigung gebeten.",
+    "hu": "Kézi frissítés keresése. A frissítés előtt megerősítést kér a rendszer."
+  },
+  "manual_update_legend": {
+    "en": "Manual update",
+    "de": "Manuelles Update",
+    "hu": "Kézi frissítés"
+  },
+  "monday": {
+    "en": "Monday",
+    "de": "Montag",
+    "hu": "Hétfő"
+  },
+  "motion_reg": {
+    "en": "Motion registered",
+    "de": "Bewegung registriert",
+    "hu": "Mozgás felismerve"
+  },
+  "motion_sensing_desc": {
+    "en": "These settings control after which time on sensing movement the display brightness changes.",
+    "de": "Diese Einstellungen steuern, nach welcher Zeit bei Bewegungserkennung die Displayhelligkeit ändert.",
+    "hu": "Ezek a beállítások szabályozzák, hogy mozgás érzékelése után mennyi idővel változzon a kijelző fényereje."
+  },
+  "motion_sensing_legend": {
+    "en": "Motion sensing",
+    "de": "Bewegungserkennung",
+    "hu": "Mozgásérzékelés"
+  },
+  "motion_sensor_connection_legend": {
+    "en": "Motion Sensor Connection",
+    "de": "Anschluss des Bewegungssensors",
+    "hu": "Mozgásérzékelő csatlakoztatása"
+  },
+  "motion_sensor_legend": {
+    "en": "Motion Sensor",
+    "de": "Bewegungssensor",
+    "hu": "Mozgásérzékelő"
+  },
+  "network_manager": {
+    "en": "Network Manager",
+    "de": "Netzwerkmanager",
+    "hu": "Hálózatkezelő"
+  },
+  "network_manager_cancel": {
+    "en": "Cancel",
+    "de": "Abbrechen",
+    "hu": "Mégse"
+  },
+  "network_manager_connect": {
+    "en": "Connect",
+    "de": "Verbinden",
+    "hu": "Csatlakozás"
+  },
+  "network_manager_disconnect": {
+    "en": "Disconnect",
+    "de": "Trennen",
+    "hu": "Leválasztás"
+  },
+  "network_manager_eth_connected": {
+    "en": "Connected",
+    "de": "Verbunden",
+    "hu": "Csatlakoztatva"
+  },
+  "network_manager_eth_disconnected": {
+    "en": "Disconnected",
+    "de": "Getrennt",
+    "hu": "Nincs csatlakoztatva"
+  },
+  "network_manager_ethernet": {
+    "en": "Ethernet-01",
+    "de": "Ethernet-01",
+    "hu": "Ethernet-01"
+  },
+  "network_manager_networks": {
+    "en": "Networks",
+    "de": "Netzwerke",
+    "hu": "Hálózatok"
+  },
+  "network_manager_next": {
+    "en": "Next",
+    "de": "Weiter",
+    "hu": "Következő"
+  },
+  "network_manager_recheck": {
+    "en": "Recheck",
+    "de": "Erneut prüfen",
+    "hu": "Újraellenőrzés"
+  },
+  "network_manager_rescan": {
+    "en": "Rescan",
+    "de": "Erneut suchen",
+    "hu": "Újra keresés"
+  },
+  "network_manager_security": {
+    "en": "Security",
+    "de": "Sicherheit",
+    "hu": "Biztonság"
+  },
+  "network_manager_signal": {
+    "en": "Signal",
+    "de": "Signal",
+    "hu": "Jel"
+  },
+  "network_manager_turn_off_wifi": {
+    "en": "Turn Off Wifi",
+    "de": "WLAN ausschalten",
+    "hu": "Wifi kikapcsolása"
+  },
+  "network_manager_turn_on_wifi": {
+    "en": "Turn On Wifi",
+    "de": "WLAN einschalten",
+    "hu": "Wifi bekapcsolása"
+  },
+  "new_pw_text": {
+    "en": "Username: {user_name} Password: \"{pw}\"",
+    "de": "Benutzername: {user_name} Passwort: \"{pw}\"",
+    "hu": "Felhasználónév: {user_name} Jelszó: \"{pw}\""
+  },
+  "new_release_found": {
+    "en": "New Release {version} found",
+    "de": "Neue Version {version} gefunden",
+    "hu": "Új kiadás található: {version}"
+  },
+  "night_mode_begin_legend": {
+    "en": "Night Mode Begin",
+    "de": "Nachtmodus Beginn",
+    "hu": "Éjszakai mód kezdete"
+  },
+  "night_mode_end_legend": {
+    "en": "Night Mode End",
+    "de": "Nachtmodus Ende",
+    "hu": "Éjszakai mód vége"
+  },
+  "night_turnoff_timeout_legend": {
+    "en": "Night Turn-off Timeout",
+    "de": "Nachtabschaltzeit",
+    "hu": "Éjszakai kikapcsolási idő"
+  },
+  "no": {
+    "en": "No",
+    "de": "Nein",
+    "hu": "Nem"
+  },
+  "no_motion_reg": {
+    "en": "No Motion registered",
+    "de": "Keine Bewegung registriert",
+    "hu": "Nincs mozgás"
+  },
+  "no_new_release_found": {
+    "en": "No new release found",
+    "de": "Kein neues Update gefunden",
+    "hu": "Nincs új frissítés"
+  },
+  "off": {
+    "en": "Off",
+    "de": "Aus",
+    "hu": "Ki"
+  },
+  "ok": {
+    "en": "OK",
+    "de": "OK",
+    "hu": "OK"
+  },
+  "on": {
+    "en": "On",
+    "de": "An",
+    "hu": "Be"
+  },
+  "password": {
+    "en": "Password",
+    "de": "Passwort",
+    "hu": "Jelszó"
+  },
+  "power_options": {
+    "en": "Power Options",
+    "de": "Energieoptionen",
+    "hu": "Leállítás menü"
+  },
+  "pressure": {
+    "en": "Pressure",
+    "de": "Luftdruck",
+    "hu": "Légnyomás"
+  },
+  "rainy": {
+    "en": "rainy",
+    "de": "regnerisch",
+    "hu": "esős"
+  },
+  "reboot": {
+    "en": "Reboot",
+    "de": "Neustart",
+    "hu": "Újraindítás"
+  },
+  "regional_settings_legend": {
+    "en": "Regional settings",
+    "de": "Regionale Einstellungen",
+    "hu": "Regionális beállítások"
+  },
+  "reset_admin_password": {
+    "en": "Reset admin password",
+    "de": "Admin-Passwort zurücksetzen",
+    "hu": "Admin jelszó visszaállítása"
+  },
+  "reset_password_legend": {
+    "en": "Reset Password",
+    "de": "Passwort zurücksetzen",
+    "hu": "Jelszó visszaállítása"
+  },
+  "reset_remote_password": {
+    "en": "Reset remote password",
+    "de": "Remote-Passwort zurücksetzen",
+    "hu": "Távoli jelszó visszaállítása"
+  },
+  "saturday": {
+    "en": "Saturday",
+    "de": "Samstag",
+    "hu": "Szombat"
+  },
+  "search": {
+    "en": "Search",
+    "de": "Suche",
+    "hu": "Keresés"
+  },
+  "select_gpio_pin": {
+    "en": "Select the pin (GPIO) where you connected the sensor.",
+    "de": "Wählen Sie den GPIO-Pin, an den Sie den Sensor angeschlossen haben.",
+    "hu": "Válassza ki a szenzorhoz csatlakoztatott GPIO lábat."
+  },
+  "set": {
+    "en": "Set",
+    "de": "Setzen",
+    "hu": "Beállít"
+  },
+  "settings": {
+    "en": "Settings",
+    "de": "Einstellungen",
+    "hu": "Beállítások"
+  },
+  "settings_tab_about": {
+    "en": "About",
+    "de": "Info",
+    "hu": "Névjegy"
+  },
+  "settings_tab_display": {
+    "en": "Display",
+    "de": "Anzeige",
+    "hu": "Kijelző"
+  },
+  "settings_tab_general": {
+    "en": "General",
+    "de": "Allgemein",
+    "hu": "Általános"
+  },
+  "settings_tab_hardware": {
+    "en": "Hardware",
+    "de": "Hardware",
+    "hu": "Hardver"
+  },
+  "settings_tab_theming": {
+    "en": "Theming",
+    "de": "Design",
+    "hu": "Téma"
+  },
+  "settings_tab_updates": {
+    "en": "Updates",
+    "de": "Updates",
+    "hu": "Frissítések"
+  },
+  "shutdown": {
+    "en": "Shutdown",
+    "de": "Herunterfahren",
+    "hu": "Leállítás"
+  },
+  "sound_enabled": {
+    "en": "Sound Enabled",
+    "de": "Ton aktiviert",
+    "hu": "Hang bekapcsolva"
+  },
+  "sound_enabled_desc": {
+    "en": "Global switch for all sounds",
+    "de": "Globaler Schalter für alle Töne",
+    "hu": "Minden hangot kapcsol"
+  },
+  "sound_legend": {
+    "en": "Sound",
+    "de": "Ton",
+    "hu": "Hang"
+  },
+  "startup_jingle": {
+    "en": "Startup Jingle",
+    "de": "Start-Jingle",
+    "hu": "Indítási dallam"
+  },
+  "startup_jingle_desc": {
+    "en": "Play a jingle on startup",
+    "de": "Jingle beim Start abspielen",
+    "hu": "Lejátszik egy dallamot indításkor"
+  },
+  "sunday": {
+    "en": "Sunday",
+    "de": "Sonntag",
+    "hu": "Vasárnap"
+  },
+  "sunny": {
+    "en": "sunny",
+    "de": "sonnig",
+    "hu": "napos"
+  },
+  "temperature": {
+    "en": "Temperature",
+    "de": "Temperatur",
+    "hu": "Hőmérséklet"
+  },
+  "temperature_legend": {
+    "en": "Temperature",
+    "de": "Temperatur",
+    "hu": "Hőmérséklet"
+  },
+  "theme_blue": {
+    "en": "Blue",
+    "de": "Blau",
+    "hu": "Kék"
+  },
+  "theme_forest": {
+    "en": "Forest",
+    "de": "Wald",
+    "hu": "Erdő"
+  },
+  "theme_legend": {
+    "en": "Theme",
+    "de": "Thema",
+    "hu": "Téma"
+  },
+  "theme_orange": {
+    "en": "Orange",
+    "de": "Orange",
+    "hu": "Narancs"
+  },
+  "theme_peach": {
+    "en": "Peach",
+    "de": "Pfirsich",
+    "hu": "Barack"
+  },
+  "theme_purple": {
+    "en": "Purple",
+    "de": "Lila",
+    "hu": "Lila"
+  },
+  "theme_red": {
+    "en": "Red",
+    "de": "Rot",
+    "hu": "Piros"
+  },
+  "thursday": {
+    "en": "Thursday",
+    "de": "Donnerstag",
+    "hu": "Csütörtök"
+  },
+  "time": {
+    "en": "Time",
+    "de": "Zeit",
+    "hu": "Idő"
+  },
+  "timeout_10min": {
+    "en": "10 min",
+    "de": "10 min",
+    "hu": "10 perc"
+  },
+  "timeout_120s": {
+    "en": "120s",
+    "de": "120s",
+    "hu": "120mp"
+  },
+  "timeout_30min": {
+    "en": "30 min",
+    "de": "30 min",
+    "hu": "30 perc"
+  },
+  "timeout_30s": {
+    "en": "30s",
+    "de": "30s",
+    "hu": "30mp"
+  },
+  "timeout_5s": {
+    "en": "5s",
+    "de": "5s",
+    "hu": "5mp"
+  },
+  "tuesday": {
+    "en": "Tuesday",
+    "de": "Dienstag",
+    "hu": "Kedd"
+  },
+  "username": {
+    "en": "Username",
+    "de": "Benutzername",
+    "hu": "Felhasználónév"
+  },
+  "users": {
+    "en": "Users",
+    "de": "User",
+    "hu": "Felhasználók"
+  },
+  "permissions": {
+    "en": "Permissions",
+    "de": "Berechtigungen",
+    "hu": "Engedélyek"
+  },
+  "weather_today": {
+    "en": "Weather today",
+    "de": "Wetter heute",
+    "hu": "Mai időjárás"
+  },
+  "wednesday": {
+    "en": "Wednesday",
+    "de": "Mittwoch",
+    "hu": "Szerda"
+  },
+  "weekly_weather_forecast": {
+    "en": "Weekly Weather Forecast",
+    "de": "Wöchentliche Wettervorhersage",
+    "hu": "Heti időjárás előrejelzés"
+  },
+  "wlan_error_text": {
+    "en": "Cannot start WLAN connection portal:",
+    "de": "WLAN Verbindungsportal kann nicht gestartet werden: ",
+    "hu": "Hiba a WLAN portál indítása közben:"
+  },
+  "wlan_portal_help": {
+    "en": "Connect to WLAN network '{ssid_name}' on your phone or pc, where you can select your network and enter your password. Press OK to start.",
+    "de": "Mit WLAN '{ssid_name}' an einem PC oder Handy verbinden, um Nutzername und Passwort einzugeben. Zum Starten bitte OK drücken.",
+    "hu": "Az OK gomb megnyomás után a WLAN felhasználónév és jelszó megadásához csatlakozzon a '{ssid_name}' hálózathoz telefonon vagy számítógépen!"
+  },
+  "yes": {
+    "en": "Yes",
+    "de": "Ja",
+    "hu": "Igen"
+  }
 }

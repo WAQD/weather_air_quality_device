@@ -18,18 +18,21 @@ class Translation():
         id = asset_dir + "/" + asset_id
         if id not in self._resources.keys():
             dict_file = get_asset_file(asset_dir, asset_id)
-            # read filetoc.json
+            # read ui_dict.json
             with open(str(dict_file), encoding='utf-8') as f:
                 ts_dict = json.load(f)
             self._resources[id] = ts_dict
 
-        # get filetype and filelist
-        lang_dict = self._resources[id].get(lang, {})
-        if not lang_dict:
-            Logger().error(f"TL: Cannot find language string for {lang}")
+        # get the key and its translations
+        key_dict = self._resources[id].get(key, {})
+        if not key_dict:
+            Logger().error(f"TL: Cannot find resource id {key} in catalog")
             return ""
 
-        value = lang_dict.get(key)
+        value = key_dict.get(lang)
         if not value:
-            Logger().error("TL: Cannot find resource id %s in catalog", key)
+            # Fallback to English if translation not found
+            value = key_dict.get(LANG_ENGLISH, "")
+            if not value:
+                Logger().error(f"TL: Cannot find translation for {key} in {lang}")
         return value
