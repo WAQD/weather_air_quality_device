@@ -123,7 +123,7 @@ def render_main(
             current_path,
         )
     tpl = base_template(
-        "views/index.html",
+        "./index.html",
         {
             "menu_content": menu_content if menu else "",
             "content": content,

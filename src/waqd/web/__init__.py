@@ -78,7 +78,7 @@ def start_web_ui_firefox_kiosk_mode():  # start_web_ui_firefox_kiosk_mode():
             "--kiosk",
             "--profile",
             str(profile_path),
-            f"http://localhost:{LOCAL_SERVER_PORT}/login_admin.html",
+            "http://localhost/login_admin.html",
         ],
         env={**os.environ, "MOZ_DISABLE_CONTENT_SANDBOX": "1"},
     )
