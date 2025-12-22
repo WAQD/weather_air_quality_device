@@ -5,11 +5,12 @@
 /* Optional: global font to mirror your WAQD setup */
 @font-face {
   font-family: 'MyFranzo';
-  src: url('/Franzo-E4GA.woff') format('woff');
+  src: url('/static/font/Franzo-E4GA.woff') format('woff');
 }
 
 body {
   font-family: 'MyFranzo', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: oklch(var(--b3));
 }
 
 .hero-bg {
@@ -35,10 +36,5 @@ body {
   .card.image-full>figure img {
     filter: brightness(50%) !important;
   }
-
-  html {
-    background: no-repeat linear-gradient(180deg, var(--color-base-200) 0%, var(--color-base-300) 100%);
-  }
-
 }
 
