@@ -4,9 +4,11 @@ import bcrypt
 from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse
 
+import waqd
 import waqd.app as app
 from waqd import __version__ as WAQD_VERSION
 from waqd.base.file_logger import Logger
+from waqd.base.system import RuntimeSystem
 from waqd.components.weather.base_types import Location
 from waqd.components.weather.open_meteo import OpenMeteo
 from waqd.settings import (
@@ -124,3 +126,12 @@ async def reset_pw():
         return HTMLResponse(f"Username: {username} <br/> password: {pw}", status_code=200)
     except Exception as e:
         return HTMLResponse(f"Error: {e}", status_code=500)
+
+@rt.get("/about", response_class=HTMLResponse)
+async def about():
+    content = sub_template(
+        "about.html",
+        {"version": waqd.__version__, "platform": RuntimeSystem().platform},
+        current_path,
+    )
+    return content

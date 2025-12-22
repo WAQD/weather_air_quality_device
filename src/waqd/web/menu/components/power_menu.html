@@ -24,7 +24,7 @@
   </form>
   <div class="modal-box">
   <h3 class="font-bold text-3xl">{{ t('confirm_shutdown') }}</h3>
-  <p class="py-4 text-2xl">{{ t('confirm_shutdowntext') }}</p>
+  <p class="py-4 text-2xl">{{ t('confirm_shutdown_text') }}</p>
     <div class="modal-action">
       <form method="dialog">
   <button class="btn btn-xl btn-error" hx-post="/menu/shutdown" hx-swap="none">{{ t('yes') }}</button>
@@ -40,7 +40,7 @@
   </form>
   <div class="modal-box">
   <h3 class="font-bold text-3xl">{{ t('confirm_restart') }}</h3>
-  <p class="py-4 text-2xl">{{ t('confirm_restarttext') }}</p>
+  <p class="py-4 text-2xl">{{ t('confirm_restart_text') }}</p>
     <div class="modal-action">
       <form method="dialog">
   <button class="btn btn-xl btn-error" hx-post="/menu/restart" hx-swap="none">{{ t('yes') }}</button>
