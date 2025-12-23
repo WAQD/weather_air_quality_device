@@ -83,6 +83,7 @@ class OpenWeatherMap(WeatherProvider):
             current_info.get("clouds", {}).get("all", 0.0),
             current_info.get("main", {}).get("temp", 0.0),
             self._topo_data.get_altitude(coord.get("lat", 0.0), coord.get("lon", 0.0)),
+            -1 # no info
         )
         return self._current_weather
 
@@ -153,6 +154,7 @@ class OpenWeatherMap(WeatherProvider):
                 measurement_point.get("clouds").get("all"),
                 measurement_point.get("main").get("temp"),
                 current_weather.altitude,
+                -1,  # no info
             )
 
             if is_day:
@@ -232,6 +234,7 @@ class OpenWeatherMap(WeatherProvider):
                 overall_weather.clouds,
                 float(overall_weather.temp),
                 overall_weather.altitude,
+                -1,  # no info
             )
             self._five_day_forecast.append(daily_weather)
         # calculate min/max night and daytime temps

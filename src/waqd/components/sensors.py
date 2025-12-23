@@ -608,9 +608,7 @@ class DHT22(TempSensor, HumiditySensor, CyclicComponent):
         """
         Initialize sensor (simply save the module), no complicated init needed.
         """
-        from adafruit_dht import \
-            DHT22 as DHT22_drv  # pylint: disable=import-outside-toplevel
-
+        from adafruit_dht import DHT22 as DHT22_drv
         # driver uses pulseio - only one process can be open
         self._kill_libgpiod()
         self._sensor_driver = DHT22_drv(self._pin)
@@ -656,6 +654,7 @@ class DHT22(TempSensor, HumiditySensor, CyclicComponent):
         if self._sensor_driver:
             self._sensor_driver.exit()
             del self._sensor_driver
+            self._sensor_driver = None
             self._kill_libgpiod()
 
     def _kill_libgpiod(self):
