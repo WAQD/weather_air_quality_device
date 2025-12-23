@@ -28,7 +28,6 @@ from waqd.settings import (
     OW_API_KEY,
     REMOTE_MODE_URL,
     SOUND_ENABLED,
-    UPDATER_USER_BETA_CHANNEL,
     WAVESHARE_DISP_BRIGHTNESS_PIN,
     Settings,
 )
@@ -52,6 +51,7 @@ if TYPE_CHECKING:
         TextToSpeach,
         TvocSensor,
         WeatherProvider,
+        WAQDDeviceClient,
     )
 
 
@@ -184,14 +184,9 @@ class ComponentRegistry:
     @property
     def external_websocket_connection(self) -> "WAQDDeviceClient":
         """Access for WAQDDeviceClient singleton"""
-        from waqd.components.external_device import WAQDDeviceClient
-
-        SERVER_URL = "http://localhost:8000"  # Your server URL
-        DEVICE_ID = "waqd_device_001"
-        USER_TOKEN = "test_user_123"  # In production, this should be a proper auth token
-        return self._create_component_instance(
-            WAQDDeviceClient, [SERVER_URL, DEVICE_ID, USER_TOKEN]
-        )
+        from waqd.components import WAQDDeviceClient
+        SERVER_URL = "http://127.0.0.1:8000"  # Your server URL
+        return self._create_component_instance(WAQDDeviceClient, [SERVER_URL])
 
     @property
     def display(self) -> "Display":

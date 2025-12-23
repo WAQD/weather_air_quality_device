@@ -186,7 +186,6 @@ class EventHandler(Component):
             return
         self._lang = lang
         self._night_mode_end = night_mode_end
-        self.gui_background_update_sig: Optional["pyqtBoundSignal"] = None
         self._config_events_file = waqd.user_config_dir / "events.json"
         self._events = parse_event_file(self._config_events_file)
 
@@ -274,10 +273,6 @@ class EventHandler(Component):
 
         current_date_time = datetime.datetime.now()
         if "background" in event.actions:
-            # wait for gui signal to be registered
-            while not self.gui_background_update_sig:
-                time.sleep(1)
-            self.gui_background_update_sig.emit(event.actions.get("background"))
             self._logger.debug("EventHandler: Setting bgr to %s", event.actions.get("background"))
 
             # schedule internal reset event for the next day at midnight

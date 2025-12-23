@@ -114,7 +114,7 @@ class ComponentController:
                 component = self._components.get(comp_name)
                 if not component:
                     break
-                if issubclass(type(component), CyclicComponent):
+                if isinstance(component, CyclicComponent):
                     if (
                         component.is_ready
                         and not component.is_alive
