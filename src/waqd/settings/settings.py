@@ -48,7 +48,6 @@ from waqd.settings import (
     THEME_COLOR,
     UPDATER_USER_BETA_CHANNEL,
     USER_API_KEY,
-    USER_DEFAULT_PW,
     USER_SESSION_SECRET,
     WAVESHARE_DISP_BRIGHTNESS_PIN,
 )
@@ -146,7 +145,6 @@ class Settings:
             self._SECRET_SECTION_NAME: {
                 USER_SESSION_SECRET: secrets.token_hex(32),
                 USER_API_KEY: "",
-                USER_DEFAULT_PW: bcrypt.gensalt(4).decode("utf-8")[18:],
                 OW_API_KEY: "",
             },
         }

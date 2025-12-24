@@ -1,31 +1,34 @@
+import os
 from waqd.base.component import Component
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, TYPE_CHECKING
 import uuid
 import asyncio
 import json
 from datetime import datetime
+import threading
 
 from waqd.settings import USER_API_KEY
 import waqd.app as app
 
-try:
-    import websockets
-    from websockets.client import WebSocketClientProtocol
-except ImportError:
-    websockets = None
-    WebSocketClientProtocol = None
 
+import websockets
+
+from waqd.web.api.sensor.v1.connector import SensorRetrieval
+from waqd.web.api.sensor.v1.model import SensorApi_v1
 
 class WAQDDeviceClient(Component):
-    def __init__(self, server_url: str):
-        self._server_url = server_url
+    def __init__(self):
+        self._server_url = os.getenv("WAQD_WEBSITE_ADDRESS", "https://www.waqd.de")
         self._device_id = self.get_mac_address()
         self._user_api_key = app.settings.get_string(USER_API_KEY)
-        self._websocket: Optional[WebSocketClientProtocol] = None
-        self._ws_task: Optional[asyncio.Task] = None
+        self._websocket: Optional[Any] = None
+        self._ws_thread: Optional[threading.Thread] = None
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._running = False
         
         super().__init__()
+
+        self.start()
     
     @staticmethod
     def get_mac_address() -> str:
@@ -40,13 +43,9 @@ class WAQDDeviceClient(Component):
         Establish WebSocket connection to the server
         """
         if not self._user_api_key:
-            self._logger.error("Cannot connect: No API key available")
+            self._logger.error("WS: Cannot connect: No API key available")
             return
-        
-        if websockets is None:
-            self._logger.error("websockets library not installed")
-            return
-        
+
         # Construct WebSocket URL
         ws_url = self._server_url.replace("https://", "wss://").replace("http://", "ws://")
         ws_url = f"{ws_url}/ws/device/{self._device_id}"
@@ -58,9 +57,9 @@ class WAQDDeviceClient(Component):
         self._running = True
         
         try:
-            async with websockets.connect(ws_url, extra_headers=headers) as websocket:
+            async with websockets.connect(ws_url, additional_headers=headers) as websocket:
                 self._websocket = websocket
-                self._logger.info(f"Connected to server: {ws_url}")
+                self._logger.info("WS: Connected to server: %s", ws_url)
                 
                 # Send initial heartbeat
                 await self._send_heartbeat()
@@ -75,11 +74,11 @@ class WAQDDeviceClient(Component):
                         # Send heartbeat every 30 seconds
                         await self._send_heartbeat()
                     except Exception as e:
-                        self._logger.error(f"Error receiving message: {e}")
+                        self._logger.error("WS: Error receiving message: %s", e)
                         break
         
         except Exception as e:
-            self._logger.error(f"WebSocket connection error: {e}")
+            self._logger.error("WS: WebSocket connection error: %s", e)
         finally:
             self._websocket = None
             if self._running:
@@ -97,36 +96,28 @@ class WAQDDeviceClient(Component):
                     "timestamp": datetime.now().isoformat()
                 }))
             except Exception as e:
-                self._logger.error(f"Error sending heartbeat: {e}")
+                self._logger.error("WS: Error sending heartbeat: %s", e)
     
     async def _handle_server_message(self, message: Dict[str, Any]):
         """Handle incoming messages from server"""
         message_type = message.get("type")
         
         if message_type == "heartbeat_ack":
-            self._logger.debug("Heartbeat acknowledged")
-        
-        elif message_type == "command":
-            command = message.get("command")
-            parameters = message.get("parameters", {})
-            self._logger.info(f"Received command: {command} with params: {parameters}")
-            # TODO: Handle commands from server
-        
-        elif message_type == "pairing_request":
-            username = message.get("username")
-            session_id = message.get("session_id")
-            self._logger.info(f"Pairing request from user: {username}")
-            # TODO: Show confirmation dialog to user
-        
-        elif message_type == "pairing_complete":
-            if message.get("success") and message.get("approved"):
-                api_key = message.get("api_key")
-                user_info = message.get("user_info", {})
-                if api_key:
-                    self.on_pairing_success(api_key, user_info)
-        
+            self._logger.debug("WS: Heartbeat acknowledged")
+        elif message_type == "data_request":
+            # Server requesting immediate sensor data
+            await self._send_current_sensor_data()
+    
         else:
-            self._logger.warning(f"Unknown message type: {message_type}")
+            self._logger.warning("WS: Unknown message type: %s", message_type)
+    
+    async def _send_current_sensor_data(self):
+        """Collect and send current sensor data"""
+        try:
+            data = SensorRetrieval().get_interior_sensor_values()
+            await self.send_sensor_data(data.model_dump())
+        except Exception as e:
+            self._logger.error("WS: Error collecting/sending sensor data: %s", e)
     
     async def send_sensor_data(self, data: Dict[str, Any]):
         """Send sensor data to server"""
@@ -138,19 +129,34 @@ class WAQDDeviceClient(Component):
                     "timestamp": datetime.now().isoformat()
                 }))
             except Exception as e:
-                self._logger.error(f"Error sending sensor data: {e}")
+                self._logger.error("Error sending sensor data: %s", e)
+    
+    def _run_event_loop(self):
+        """Run the event loop in a separate thread"""
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
+        try:
+            self._loop.run_until_complete(self.connect_websocket())
+        except Exception as e:
+            self._logger.error("Event loop error: %s", e)
+        finally:
+            self._loop.close()
+            self._loop = None
     
     def start(self):
         """Start the WebSocket client"""
-        if self._user_api_key and not self._ws_task:
-            self._ws_task = asyncio.create_task(self.connect_websocket())
+        if self._user_api_key and not self._ws_thread:
+            self._ws_thread = threading.Thread(target=self._run_event_loop, daemon=True)
+            self._ws_thread.start()
     
     def stop(self):
         """Stop the WebSocket client"""
         self._running = False
-        if self._ws_task:
-            self._ws_task.cancel()
-            self._ws_task = None
+        if self._loop and self._loop.is_running():
+            self._loop.call_soon_threadsafe(self._loop.stop)
+        if self._ws_thread:
+            self._ws_thread.join(timeout=5)
+            self._ws_thread = None
 
     def on_pairing_success(self, api_key: str, user_info: Dict[str, Any]):
         """

@@ -1,8 +1,10 @@
 from pathlib import Path
+from typing import Dict, Any
 
+import asyncio
 import bcrypt
-from fastapi import APIRouter, Form
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Form, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
 
 import waqd
 import waqd.app as app
@@ -19,7 +21,6 @@ from waqd.settings import (
     LOCATION_LONGITUDE,
     LOCATION_NAME,
     LOCATION_STATE,
-    USER_DEFAULT_PW,
 )
 from waqd.web.templates import render_main, sub_template
 
@@ -117,16 +118,6 @@ async def set_location(
     except Exception as e:
         return HTMLResponse(f"Error: {e}", status_code=500)
 
-@rt.post("/reset_pw", response_class=HTMLResponse)
-async def reset_pw():
-    try:
-        pw = bcrypt.gensalt(4).decode("utf-8")[18:]
-        app.settings.set(USER_DEFAULT_PW, pw)
-        username = "remote_user"
-        return HTMLResponse(f"Username: {username} <br/> password: {pw}", status_code=200)
-    except Exception as e:
-        return HTMLResponse(f"Error: {e}", status_code=500)
-
 @rt.get("/about", response_class=HTMLResponse)
 async def about():
     content = sub_template(
@@ -135,3 +126,44 @@ async def about():
         current_path,
     )
     return content
+
+
+@rt.get("/device_info")
+async def device_info():
+    """Get device info for pairing - just returns server URL and device ID"""
+    try:
+        external_device = app.comp_ctrl.components.external_websocket_connection
+        
+        return JSONResponse({
+            "device_id": external_device._device_id,
+            "server_url": external_device._server_url,
+            "location": app.settings.get_string(LOCATION_NAME)
+        })
+    except Exception as e:
+        Logger().error(f"Error getting device info: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@rt.post("/pairing_complete")
+async def pairing_complete(pairing_data: Dict[str, Any]):
+    """Called by frontend when pairing is complete - notifies the component"""
+    try:
+        external_device = app.comp_ctrl.components.external_websocket_connection
+        
+        # Extract API key and user info from pairing data
+        api_key = pairing_data.get("api_key")
+        user_info = pairing_data.get("user_info", {})
+        
+        if not api_key:
+            return JSONResponse(
+                {"error": "API key is required"}, status_code=400
+            )
+        
+        # Pass API key to the component
+        external_device.on_pairing_success(api_key, user_info)
+        
+        return JSONResponse({"success": True})
+    except Exception as e:
+        Logger().error("Error handling pairing completion: %s", e)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
