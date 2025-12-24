@@ -6,6 +6,9 @@ services:
       dockerfile: src/waqd_website/Dockerfile
     image: waqd/waqd_website:latest
     container_name: waqd_website
+    environment:
+      DATABASE_PW: waqd_root_pw
+      MARIADB_URL: mariadb:3306
     ports:
       - "80:8080"
     depends_on:

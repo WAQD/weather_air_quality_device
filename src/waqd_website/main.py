@@ -6,6 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
+from waqd import DEBUG_LEVEL
+
 from .service.device_connection import (
     websocket_endpoint,
     user_device_stream,
@@ -68,9 +70,7 @@ web_app.include_router(device_router, prefix="/api/user")
 # Mount the Vue.js frontend under /ui.
 # - /ui/public/* stays unauthenticated (served as-is)
 # - everything else under /ui/* requires login (via user_redirect_check)
-SERVE_FRONTEND = os.getenv("SERVE_FRONTEND", "False").lower() == "true"
-if SERVE_FRONTEND:
-
+if DEBUG_LEVEL == 0:
     @web_app.get("/admin")
     async def admin_page(_check=admin_check):
         """Admin page - requires admin permissions"""
