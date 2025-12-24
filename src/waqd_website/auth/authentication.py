@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-import secrets
 from typing import Annotated, Optional
 
 import jwt
@@ -13,18 +12,21 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from waqd_website.database.db import User, get_user_by_username
+from waqd_website.database import User
+from waqd_website.database.config import get_or_create_jwt_secret
+from waqd_website.database.user import get_user_by_username
 
-USER_SESSION_SECRET = secrets.token_hex(32)
+# Load or create persistent JWT secret from database
+USER_SESSION_SECRET = get_or_create_jwt_secret()
+
 
 class RequiresLoginException(StarletteHTTPException):
     pass
 
 
-
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 30
-
+ACCESS_TOKEN_EXPIRE_DAYS = 1
+ADMIN_PERMISSION = "users:admin"
 
 class Token(BaseModel):
     access_token: str
@@ -36,7 +38,13 @@ class TokenData(BaseModel):
     expires: datetime | None = None
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__default_rounds=12,
+    bcrypt__min_rounds=10,
+)
+
 
 class OAuth2PasswordBearerWithCookie(OAuth2):
     def __init__(
@@ -114,27 +122,35 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expire = datetime.now(timezone.utc) + expires_delta
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode, USER_SESSION_SECRET, algorithm=ALGORITHM
-    )
+    encoded_jwt = jwt.encode(to_encode, USER_SESSION_SECRET, algorithm=ALGORITHM)
     return encoded_jwt
 
 
 @lru_cache(maxsize=None)
-def get_current_user(token):
-    if not token:
-        return None
+def decode_access_token(token: str) -> Optional[TokenData]:
     try:
-        payload = jwt.decode(
-            token, USER_SESSION_SECRET, algorithms=[ALGORITHM]
-        )
+        payload = jwt.decode(token, USER_SESSION_SECRET, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
             return None
         token_data = TokenData(
-            username=username, expires=datetime.fromtimestamp(payload.get("exp", 0))
+            username=username,
+            expires=datetime.fromtimestamp(payload.get("exp", 0), timezone.utc),
         )
+        return token_data
     except InvalidTokenError:
+        return None
+
+
+def get_current_user(token):
+    if not token:
+        return None
+
+    token_data = decode_access_token(token)
+    if token_data is None:
+        return None
+    # check validity
+    if token_data.expires is None or token_data.expires < datetime.now(timezone.utc):
         return None
     return get_user_from_token(token_data)
 
@@ -167,6 +183,7 @@ async def get_current_user_plain(token: Annotated[str, Depends(oauth2_scheme)]):
     user = get_current_user(token)
     return user
 
+
 class PermissionChecker:
     def __init__(self, required_permissions: list[str]) -> None:
         self.required_permissions = required_permissions
@@ -195,5 +212,4 @@ user_exception_check = Depends(get_current_user_with_exception)
 user_redirect_check = Depends(get_current_user_with_redirect)
 user_plain_check = Depends(get_current_user_plain)
 
-local_check = Depends(PermissionChecker(required_permissions=["users:local"]))
-admin_check = Depends(PermissionChecker(required_permissions=["users:admin"]))
+admin_check = Depends(PermissionChecker(required_permissions=[ADMIN_PERMISSION]))
