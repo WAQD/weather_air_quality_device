@@ -75,9 +75,11 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
+import { useUser } from '../composables/useUser'
 
 const router = useRouter()
 const { t } = useTranslation()
+const { fetchUserInfo } = useUser()
 
 const visibilityIconUrl = '/static/general_icons/visibility.svg#main'
 const cancelIconUrl = '/static/general_icons/cancel.svg#main'
@@ -122,9 +124,10 @@ function login() {
 
       return response.json()
     })
-    .then((data) => {
+    .then(async (data) => {
       console.log('Success:', data)
-      window.location.href = '/weather'
+      await fetchUserInfo()
+      router.push('/devices')
     })
     .catch((error) => {
       console.error('Error:', error)
@@ -135,8 +138,4 @@ function login() {
 }
 </script>
 
-<style scoped>
-.hero-bg {
-  background-image: url(/static/gui_base/pascal-debrunner-UjyUlxr1Yjo-unsplash.avif);
-}
-</style>
+

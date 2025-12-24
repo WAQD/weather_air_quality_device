@@ -1,37 +1,14 @@
-import os
-from sqlmodel import SQLModel, Field, create_engine, Session, select
-from passlib.context import CryptContext
-from typing import Optional, List
-from sqlalchemy import Column, JSON
+from typing import List, Optional
 
+from sqlmodel import Session, select
 
-password = os.getenv("DATABASE_PW", "waqd_root_pw")
-# DATABASE_URL = f"mariadb+mariadbconnector://root:{password}@localhost:3306/waqd_userdata"
-DATABASE_URL = "sqlite:///./waqd_userdata.db"  # SQLite for development
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(index=True, unique=True, max_length=255)
-    email: Optional[str] = Field(default=None, index=True, unique=True, max_length=255)
-    hashed_password: str = Field(default=None, max_length=255)
-    disabled: Optional[bool] = False
-    permissions: List[str] = Field(default_factory=list, sa_column=Column(JSON, default=[]))
-
-
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
-)
-SQLModel.metadata.create_all(engine)
+from waqd_website.database import User, engine
 
 
 def add_user(
     username: str,
     password: str,
     email: Optional[str] = None,
-    full_name: Optional[str] = None,
     permissions: Optional[List[str]] = None,
 ):
     from waqd_website.auth.authentication import get_password_hash
@@ -50,9 +27,27 @@ def add_user(
     return user
 
 
+def delete_user(username: str) -> bool:
+    with Session(engine) as session:
+        statement = select(User).where(User.username == username)
+        user = session.exec(statement).first()
+        if not user:
+            return False
+        session.delete(user)
+        session.commit()
+    return True
+
+
 def get_user_by_username(username: str) -> Optional[User]:
     with Session(engine) as session:
         statement = select(User).where(User.username == username)
+        user = session.exec(statement).first()
+        return user
+
+
+def get_user_by_id(user_id: int) -> Optional[User]:
+    with Session(engine) as session:
+        statement = select(User).where(User.id == user_id)
         user = session.exec(statement).first()
         return user
 
@@ -77,7 +72,3 @@ def update_user_password(username: str, new_password: str) -> bool:
         session.add(user)
         session.commit()
     return True
-
-
-# Uncomment to create admin user:
-# add_user("admin", "admin123", email="admin@admin.com", permissions=["users:admin", "users:local"])
