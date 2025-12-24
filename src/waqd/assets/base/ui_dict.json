@@ -84,6 +84,67 @@
     "de": "Läuft ab in",
     "hu": "Lejár"
   },
+  "pair_device":{
+    "en": "Pair Device",
+    "de": "Gerät koppeln",
+    "hu": "Eszköz párosítása"
+  },
+  "pairing_instructions_title":
+  {
+    "en": "Pairing Instructions",
+    "de": "Kopplungsanleitung",
+    "hu": "Párosítási utasítások"
+  },
+  "pairing_step_1": {
+    "en": "Go to the general settings page on the device and click 'Connect to Account'",
+    "de": "Gehen Sie zur allgemeinen Einstellungsseite des Geräts und klicken Sie auf 'Mit Konto verbinden'",
+    "hu": "Nyissa meg az eszköz általános beállítások oldalát, és kattintson a 'Fiókhoz kapcsolódás' gombra"
+  },
+  "pairing_step_2": {
+    "en": "Enter the pairing code displayed on the device",
+    "de": "Geben Sie den Kopplungscode ein, der auf dem Gerät angezeigt wird",
+    "hu": "Adja meg az eszközön megjelenített párosítási kódot"
+  },
+  "pairing_step_3": {
+    "en": "Confirm the connection on the device",
+    "de": "Bestätigen Sie die Verbindung auf dem Gerät",
+    "hu": "Erősítse meg a kapcsolatot az eszközön"
+  },
+  "enter_passphrase": {
+    "en": "Enter Passphrase",
+    "de": "Passphrase eingeben",
+    "hu": "Adja meg a jelszót"
+  },
+  "passphrase_case_insensitive": {
+    "en": "The passphrase is case insensitive.",
+    "de": "Die Passphrase ist nicht Klein- und Großschreibungsempfindlich.",
+    "hu": "A jelszó nem érzékeny a kis- és nagybetűkre."
+  },
+  "or_scan_qr_code": {
+    "en": "Or scan the QR code below:",
+    "de": "Oder scannen Sie den QR-Code unten:",
+    "hu": "Vagy olvassa be az alábbi QR-kódot:"
+  },
+  "claim_device": {
+    "en": "Claim Device",
+    "de": "Gerät anmelden",
+    "hu": "Eszköz kapcsolása"
+  },
+  "waiting_for_device_confirmation": {
+    "en": "Waiting for confirmation on device...",
+    "de": "Warte auf Bestätigung auf dem Gerät...",
+    "hu": "Várakozás a megerősítésre az eszközön..."
+  },
+  "check_device_screen": {
+    "en": "Please check the device screen to confirm the connection.",
+    "de": "Bitte überprüfen Sie den Bildschirm des Geräts, um die Verbindung zu bestätigen.",
+    "hu": "Kérjük, ellenőrizze az eszköz képernyőjét a kapcsolat megerősítéséhez."
+  },
+  "try_again": {
+    "en": "Try Again",
+    "de": "Erneut versuchen",
+    "hu": "Próbálja újra"
+  },
   "pairing_code_entered": {
     "en": "Pairing Code Entered!",
     "de": "Kopplungscode eingegeben!",
@@ -464,27 +525,17 @@
     "de": "Netzwerkmanager",
     "hu": "Hálózatkezelő"
   },
-  "network_manager_cancel": {
-    "en": "Cancel",
-    "de": "Abbrechen",
-    "hu": "Mégse"
-  },
-  "network_manager_connect": {
-    "en": "Connect",
-    "de": "Verbinden",
-    "hu": "Csatlakozás"
-  },
-  "network_manager_disconnect": {
+  "disconnect": {
     "en": "Disconnect",
     "de": "Trennen",
     "hu": "Leválasztás"
   },
-  "network_manager_eth_connected": {
+  "connected": {
     "en": "Connected",
     "de": "Verbunden",
     "hu": "Csatlakoztatva"
   },
-  "network_manager_eth_disconnected": {
+  "disconnected": {
     "en": "Disconnected",
     "de": "Getrennt",
     "hu": "Nincs csatlakoztatva"
@@ -1093,5 +1144,60 @@
     "en": "Yes",
     "de": "Ja",
     "hu": "Igen"
+  },
+  "back_to_devices": {
+    "en": "Back to Devices",
+    "de": "Zurück zu Geräten",
+    "hu": "Vissza az eszközökhöz"
+  },
+  "loading": {
+    "en": "Loading...",
+    "de": "Lädt...",
+    "hu": "Betöltés..."
+  },
+  "online": {
+    "en": "Online",
+    "de": "Online",
+    "hu": "Online"
+  },
+  "offline": {
+    "en": "Offline",
+    "de": "Offline",
+    "hu": "Offline"
+  },
+  "last_updated": {
+    "en": "Last updated",
+    "de": "Zuletzt aktualisiert",
+    "hu": "Utolsó frissítés"
+  },
+  "connection_error": {
+    "en": "Connection error occurred",
+    "de": "Verbindungsfehler aufgetreten",
+    "hu": "Kapcsolódási hiba történt"
+  },
+  "device_information": {
+    "en": "Device Information",
+    "de": "Geräteinformationen",
+    "hu": "Eszköz információk"
+  },
+  "last_update": {
+    "en": "Last Update",
+    "de": "Letzte Aktualisierung",
+    "hu": "Utolsó frissítés"
+  },
+  "connection_status": {
+    "en": "Connection Status",
+    "de": "Verbindungsstatus",
+    "hu": "Kapcsolat állapota"
+  },
+  "device_added_to_list": {
+    "en": "Your device has been added to your list",
+    "de": "Ihr Gerät wurde Ihrer Liste hinzugefügt",
+    "hu": "Az eszköz hozzáadva a listához"
+  },
+  "device_paired_successfully": {
+    "en": "Device paired successfully!",
+    "de": "Gerät erfolgreich gekoppelt!",
+    "hu": "Eszköz sikeresen párosítva!"
   }
 }

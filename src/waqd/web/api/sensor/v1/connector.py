@@ -1,3 +1,4 @@
+from datetime import datetime
 import html
 from typing import Optional
 
@@ -7,7 +8,7 @@ import waqd.app as app
 from waqd.web.helper import format_unit_disp_value
 from waqd.components.sensors import SensorValueLogger
 
-from .model import SensorApi_v1, SensorDataPoint, SensorHistoryResponse, TempHumSensorApi_v1
+from .model import SensorApi_v1, SensorApi_v1_1, SensorDataPoint, SensorHistoryResponse
 
 
 class SensorRetrieval:
@@ -15,7 +16,7 @@ class SensorRetrieval:
         assert app.comp_ctrl
         self._comps = app.comp_ctrl.components
 
-    def get_exterior_sensor_values(self, units=False):
+    def get_exterior_sensor_values(self, units=False) -> SensorApi_v1_1:
         temp = self._comps.remote_exterior_sensor.get_temperature()
         hum = self._comps.remote_exterior_sensor.get_humidity()
 
@@ -27,7 +28,7 @@ class SensorRetrieval:
         temp = self._format_sensor_disp_value(temp, units)
         hum = self._format_sensor_disp_value(hum, units, 0)
 
-        data = TempHumSensorApi_v1(
+        data = SensorApi_v1_1(
             temp=temp,
             hum=hum,
         )
@@ -37,7 +38,7 @@ class SensorRetrieval:
         disp_value = format_unit_disp_value(quantity, unit, precision)
         return html.escape(disp_value)
 
-    def get_interior_sensor_values(self, units=False):
+    def get_interior_sensor_values(self, units=False) -> SensorApi_v1_1:
         temp = self._comps.temp_sensor.get_temperature()
         hum = self._comps.humidity_sensor.get_humidity()
         pres = self._comps.pressure_sensor.get_pressure()
@@ -48,19 +49,16 @@ class SensorRetrieval:
         pres = self._format_sensor_disp_value(pres, units, 0)
         co2 = self._format_sensor_disp_value(co2, units, 0)
 
-        return SensorApi_v1(
-            temp=temp_disp,
-            hum=hum,
-            baro=pres,
-            co2=co2,
+        return SensorApi_v1_1(
+            temp=temp_disp, hum=hum, baro=pres, co2=co2, timestamp=datetime.utcnow().isoformat()
         )
-    
+
     def get_sensor_history(
         self, sensor_location: str, sensor_type: str, hours: int
     ) -> SensorHistoryResponse:
         """
         Retrieve historical sensor data from InfluxDB.
-        
+
         Args:
             sensor_location: Location type (e.g., 'interior', 'exterior')
             sensor_type: Sensor measurement type (e.g., 'temp_degC', 'humidity_%')
@@ -70,7 +68,7 @@ class SensorRetrieval:
         time_value_pairs = SensorValueLogger.get_sensor_values(
             sensor_location, sensor_type, minutes_to_read=minutes
         )
-        
+
         # Determine unit from sensor_type
         unit_map = {
             "temp_degC": "°C",
@@ -82,30 +80,27 @@ class SensorRetrieval:
             "light_lux": "lux",
         }
         unit = unit_map.get(sensor_type, "")
-        
+
         # Convert to response format
         data_points = [
-            SensorDataPoint(
-                timestamp=dt.isoformat(),
-                value=float(value)
-            )
+            SensorDataPoint(timestamp=dt.isoformat(), value=float(value))
             for dt, value in time_value_pairs
         ]
-        
+
         return SensorHistoryResponse(
             sensor_location=sensor_location,
             sensor_type=sensor_type,
             unit=unit,
-            data=data_points
+            data=data_points,
         )
 
-    
-class SensorWriter():
+
+class SensorWriter:
     def __init__(self) -> None:
         assert app.comp_ctrl
         self._comps = app.comp_ctrl.components
 
-    def write_sensor_values(self, value: SensorApi_v1):
+    def write_sensor_values(self, value: SensorApi_v1_1 | SensorApi_v1):
         self._comps.remote_exterior_sensor.read_callback(
             value.temp, value.hum, value.baro, value.co2
         )

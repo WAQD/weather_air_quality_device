@@ -169,7 +169,7 @@ class ComponentRegistry:
             self.pressure_sensor,
             self.co2_sensor,
             self.motion_detection_sensor,
-            # self.external_websocket_connection,
+            self.external_websocket_connection,
         ]
         if not waqd.HEADLESS_MODE:
             comps_non_headless = [
@@ -185,8 +185,7 @@ class ComponentRegistry:
     def external_websocket_connection(self) -> "WAQDDeviceClient":
         """Access for WAQDDeviceClient singleton"""
         from waqd.components import WAQDDeviceClient
-        SERVER_URL = "http://127.0.0.1:8000"  # Your server URL
-        return self._create_component_instance(WAQDDeviceClient, [SERVER_URL])
+        return self._create_component_instance(WAQDDeviceClient)
 
     @property
     def display(self) -> "Display":
