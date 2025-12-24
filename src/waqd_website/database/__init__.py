@@ -7,8 +7,12 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel, create_engine
 
 password = os.getenv("DATABASE_PW", "waqd_root_pw")
-# DATABASE_URL = f"mariadb+mariadbconnector://root:{password}@localhost:3306/waqd_userdata"
-DATABASE_URL = "sqlite:///./waqd_userdata.db"  # SQLite for development
+if MARIADB_URL := os.getenv("MARIADB_URL"):
+    DATABASE_URL = (
+        f"mariadb+mariadbconnector://root:{password}@{MARIADB_URL}/waqd_userdata"
+    )
+else:
+    DATABASE_URL = "sqlite:///./waqd_userdata.db"  # SQLite for development
 
 engine = create_engine(
     DATABASE_URL,
