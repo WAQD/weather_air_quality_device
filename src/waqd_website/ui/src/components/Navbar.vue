@@ -1,7 +1,7 @@
 <template>
   <div class="navbar bg-base-100 shadow-sm rounded-b p-4 md:p-0 lg:p-2">
     <!-- Toast Container -->
-    <div class="toast toast-top toast-end z-50">
+    <div class="toast toast-bottom toast-end z-50">
       <div v-if="showLogoutToast" class="alert alert-success">
         <span>{{ t('logout_success') }}</span>
         <button class="btn btn-square btn-success" @click="showLogoutToast = false">

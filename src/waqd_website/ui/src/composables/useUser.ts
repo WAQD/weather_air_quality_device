@@ -33,8 +33,17 @@ export function useUser() {
     }
   }
 
-  function logout() {
-    userInfo.value = null
+  async function logout() {
+    try {
+      await fetch('/api/public/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Failed to logout:', error)
+    } finally {
+      userInfo.value = null
+    }
   }
 
   return {
