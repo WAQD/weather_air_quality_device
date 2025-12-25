@@ -5,7 +5,7 @@
 groups = ["default", "dev", "test", "waqd", "website"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:eebb7aea3deb1d742b4fa1d4f52847c160d49396288e148bb54667b81071b45c"
+content_hash = "sha256:f46ce4df5ec49ec655d1b41a86d33e9272c8bf1e9ae4066595290a48e7c85efa"
 
 [[metadata.targets]]
 requires_python = ">=3.13"
@@ -961,21 +961,6 @@ dependencies = [
 files = [
     {file = "jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe"},
     {file = "jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d"},
-]
-
-[[package]]
-name = "mariadb"
-version = "1.1.14"
-summary = ""
-dependencies = [
-    "packaging",
-]
-files = [
-    {file = "mariadb-1.1.14-cp313-cp313-win32.whl", hash = "sha256:3d2c795cde606f4e12c0d73282b062433f414cae035675b0d81f2d65c9b79ac5"},
-    {file = "mariadb-1.1.14-cp313-cp313-win_amd64.whl", hash = "sha256:7fd603c5cf23c47ef0d28fdc2b4b79919ee7f75d00ed070d3cd1054dcf816aeb"},
-    {file = "mariadb-1.1.14-cp314-cp314-win32.whl", hash = "sha256:1a50b4612c0dd5b69690cebb34cef552a7f64dcadeb5aa91d70cd99bf01bc5b3"},
-    {file = "mariadb-1.1.14-cp314-cp314-win_amd64.whl", hash = "sha256:6659725837e48fa6af05e20128fb525029f706f1921d5dbf639a25b2f80b9f93"},
-    {file = "mariadb-1.1.14.tar.gz", hash = "sha256:e6d702a53eccf20922e47f2f45cfb5c7a0c2c6c0a46e4ee2d8a80d0ff4a52f34"},
 ]
 
 [[package]]
@@ -1945,7 +1930,7 @@ files = [
 
 [[package]]
 name = "typer"
-version = "0.20.1"
+version = "0.21.0"
 summary = ""
 dependencies = [
     "click",
@@ -1954,8 +1939,8 @@ dependencies = [
     "typing-extensions",
 ]
 files = [
-    {file = "typer-0.20.1-py3-none-any.whl", hash = "sha256:4b3bde918a67c8e03d861aa02deca90a95bbac572e71b1b9be56ff49affdb5a8"},
-    {file = "typer-0.20.1.tar.gz", hash = "sha256:68585eb1b01203689c4199bc440d6be616f0851e9f0eb41e4a778845c5a0fd5b"},
+    {file = "typer-0.21.0-py3-none-any.whl", hash = "sha256:c79c01ca6b30af9fd48284058a7056ba0d3bf5cf10d0ff3d0c5b11b68c258ac6"},
+    {file = "typer-0.21.0.tar.gz", hash = "sha256:c87c0d2b6eee3b49c5c64649ec92425492c14488096dfbc8a0c2799b2f6f9c53"},
 ]
 
 [[package]]
