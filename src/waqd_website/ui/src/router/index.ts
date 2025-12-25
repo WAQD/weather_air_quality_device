@@ -52,11 +52,16 @@ const router = createRouter({
 
 // Navigation guard to protect routes
 router.beforeEach(async (to, from, next) => {
-  const { isLoggedIn, isAdmin, fetchUserInfo, isLoading } = useUser()
+  const { isLoggedIn, isAdmin, fetchUserInfo, isLoading, userInfo } = useUser()
   
-  // Fetch user info if not already loaded
-  if (!isLoggedIn.value && !isLoading.value) {
+  // Fetch user info if not already loaded and not currently loading
+  if (!userInfo.value && !isLoading.value) {
     await fetchUserInfo()
+  }
+  
+  // Wait for loading to complete
+  while (isLoading.value) {
+    await new Promise(resolve => setTimeout(resolve, 10))
   }
   
   // Check if route requires authentication
