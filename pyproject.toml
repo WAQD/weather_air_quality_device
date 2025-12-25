@@ -43,8 +43,9 @@ build-backend = "pdm.backend"
 [tool.setuptools.packages.find]
 where = ["src"] # list of folders that contain the packages (["."] by default)
 include = [
-    "waqd*",
-] # package names should match these glob patterns (["*"] by default)
+    "waqd",
+    "waqd_assets"
+]
 namespaces = true # to disable scanning PEP 420 namespaces (true by default)
 
 [tool.setuptools.package-data]
@@ -54,10 +55,8 @@ namespaces = true # to disable scanning PEP 420 namespaces (true by default)
     "**/*.ini",
     "**assets/**/*.*",
     "**/*.in",
-    "ui/**/*.ui",
     "ui/**/*.in",
     "ui/web/**/*.*",
-    "ui/qt/**/*.qm",
 ]
 
 [project.scripts]

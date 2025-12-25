@@ -60,7 +60,7 @@ def customize_splash_screen(inverted_display: bool):
     os.makedirs("/usr/share/plymouth/themes/pix", exist_ok=True)
     try:
         logging.info("Customizing splash screen")
-        src_image = f"{str(installer_root_dir)}/src/waqd/assets/gui_base/loading_screen.png"
+        src_image = f"{str(installer_root_dir)}/src/waqd_assets/gui_base/loading_screen.png"
         if inverted_display:
             rotate_and_overwrite_image(src_image, 180)
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
@@ -76,7 +76,7 @@ def set_wallpaper(install_path: Path, inverted_display=False):
     lib_paths = (install_path / "lib").iterdir()  # TODO does not work anymore
     for lib_path in lib_paths:
         if "python" in lib_path.name:
-            image = lib_path / "site-packages/waqd/assets/gui_base/pre_loading_screen.png"
+            image = lib_path / "site-packages/waqd_assets/gui_base/pre_loading_screen.png"
             if inverted_display:
                 rotate_and_overwrite_image(image, 180)
             try:

@@ -36,17 +36,29 @@
           <router-link to="/public/login" class="btn btn-secondary btn-lg">Get Started</router-link>
         </div>
       </div>
+
+      <!-- Scroll Indicator -->
+      <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+        <div class="flex flex-col items-center text-white opacity-80">
+          <span class="text-sm mb-2">Scroll for more</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
     </div>
 
     <!-- Features Hero Section -->
     <div class="hero hero-bg-features min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-2/5 flex justify-center">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+        <div class="w-full lg:w-2/5 flex justify-center">
           <img :src="mainGuiImg" alt="WAQD Main Interface"
             class="rounded-lg shadow-2xl max-w-md w-full" />
         </div>
-        <div class="w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-3xl font-bold mb-4">Full-Featured Display</h2>
           <ul class="space-y-2 text-base">
             <li class="flex items-start">
@@ -77,12 +89,12 @@
     <!-- Hardware Hero Section -->
     <div class="hero hero-bg-hardware min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-1/3 flex justify-center">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+        <div class="w-full lg:w-1/3 flex justify-center">
           <img :src="waqdStationImg" alt="WAQD Station"
             class="rounded-lg shadow-2xl max-w-xs w-full" />
         </div>
-        <div class="w-2/3 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="w-full lg:w-2/3 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-3xl font-bold mb-4">Easy Assembly</h2>
           <p class="text-base mb-3">
             Built with readily available components and a recommended case design for clean cable
@@ -106,10 +118,6 @@
               <p class="text-sm">SmartiPi Touch 2 recommended</p>
             </div>
           </div>
-          <p href="https://github.com/WAQD/weather_air_quality_device/wiki/Assembly-and-Software-Setup-Guide"
-            target="_blank" class="link font-semibold ml-1 mt-4 inline-block">
-            View full assembly guide
-          </p>
         </div>
       </div>
     </div>
@@ -117,12 +125,12 @@
     <!-- 3D Printable Case Hero Section -->
     <div class="hero hero-bg-3dprint min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-2/5 flex justify-center">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+        <div class="w-full lg:w-2/5 flex justify-center">
           <img :src="sensorCaseImg" alt="3D Printable Sensor Case"
             class="rounded-lg shadow-2xl max-w-sm w-full" />
         </div>
-        <div class="w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-3xl font-bold mb-4">3D Printable Sensor Case</h2>
           <p class="text-base mb-3">
             Custom designed sensor housing that mounts perfectly on the back of the SmartiPi Touch 2
@@ -156,11 +164,11 @@
     <!-- Customization Hero Section -->
     <div class="hero hero-bg-custom min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-2/5 flex justify-center">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+        <div class="w-full lg:w-2/5 flex justify-center">
           <img :src="optionsImg" alt="WAQD Options" class="rounded-lg shadow-2xl max-w-md w-full" />
         </div>
-        <div class="w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-3xl font-bold mb-4">Fully Customizable</h2>
           <p class="text-base mb-4">
             Tailor your weather station to your preferences with extensive configuration options.
@@ -205,6 +213,15 @@
             Build your own weather station and register for remote monitoring today!
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="https://github.com/WAQD/weather_air_quality_device/wiki/Assembly-and-Software-Setup-Guide"
+              target="_blank" class="btn btn-secondary btn-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              View Assembly Guide
+            </a>
             <a href="https://github.com/goszpeti/weather_air_quality_device" target="_blank"
               class="btn btn-secondary btn-lg">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 24 24"
@@ -244,8 +261,8 @@ const optionsImg = '/static/doc_images/options.png'
 <style scoped>
 .scroll-container {
   scroll-snap-type: y mandatory;
-  overflow-y: scroll;
-  height: 100vh;
+  overflow-y: auto;
+  height: calc(100vh - 4rem);
 }
 
 .snap-section {
@@ -293,5 +310,18 @@ const optionsImg = '/static/doc_images/options.png'
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
 }
 </style>

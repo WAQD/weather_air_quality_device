@@ -118,3 +118,25 @@ def set_access_token_cookie(
     return response
 
 
+@rt.post("/logout", response_class=JSONResponse)
+async def logout(request: Request):
+    """Logout endpoint that deletes the session cookie"""
+    response = JSONResponse(
+        {"detail": "Logged out successfully"}, status_code=status.HTTP_200_OK
+    )
+    
+    secure = is_https(request)
+    # Optional: override for debugging
+    if waqd.DEBUG_LEVEL > 0:
+        secure = False
+    
+    # Delete the Authorization cookie
+    response.delete_cookie(
+        key="Authorization",
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+    )
+    return response
+
+
