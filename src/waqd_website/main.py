@@ -54,6 +54,9 @@ web_app.add_middleware(
 )
 
 web_app.mount("/static", StaticFiles(directory=str(ASSETS_PATH)), name="static")
+web_app.mount(
+    "/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets"
+)
 
 # Device connection routes
 web_app.websocket("/ws/device/{device_id}")(websocket_endpoint)
@@ -71,15 +74,8 @@ async def root():
     """Redirect root to /public/home"""
     return RedirectResponse(url="/public/home")
 
-# Mount the Vue.js frontend under /ui.
-# - /public/* stays unauthenticated (served as-is)
-# - everything else requires login (via user_redirect_check)
+# Mount the Vue.js frontend
 if DEBUG_LEVEL == 0:
-    # Static assets from dist - must come before catch-all
-    @web_app.get("/assets/{full_path:path}")
-    async def assets(full_path: str):
-        return resolve_path("assets/" + full_path)
-
     # Catch-all route - must come last
     @web_app.get("/{full_path:path}")
     async def root_files(full_path: str):
