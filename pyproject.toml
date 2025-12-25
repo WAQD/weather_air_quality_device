@@ -95,6 +95,7 @@ website = [
     # Web & UI
     "sqlalchemy>=2.0.41",
     "sqlmodel>=0.0.24",
+    "pymysql>=1.1.0",
     "mariadb>=1.1.13",
     "websockets>=15.0.1",
 ]

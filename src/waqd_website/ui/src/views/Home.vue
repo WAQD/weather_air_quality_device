@@ -13,7 +13,7 @@
           </a>
           devices and monitor your data remotely.
         </p>
-        <router-link to="/devices" class="btn btn-secondary btn-lg">
+        <router-link to="/rest/devices" class="btn btn-secondary btn-lg">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
           </svg>
@@ -32,7 +32,7 @@
           </a>
           device and monitor your data remotely.
         </p>
-        <router-link to="/login" class="btn btn-secondary btn-lg">Get Started</router-link>
+        <router-link to="/public/login" class="btn btn-secondary btn-lg">Get Started</router-link>
       </div>
 
       <div class="card bg-base-100/90 backdrop-blur-sm w-full shadow-2xl mt-8">
@@ -45,7 +45,7 @@
             </a>
           </p>
           <div class="flex justify-center mt-4">
-            <router-link to="/about" class="btn btn-outline btn-primary">
+            <router-link to="/public/about" class="btn btn-outline btn-primary">
               {{ t('settings_tab_about') }}
             </router-link>
           </div>

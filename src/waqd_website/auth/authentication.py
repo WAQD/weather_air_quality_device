@@ -190,6 +190,7 @@ class PermissionChecker:
 
     def __call__(self, _user: User = Depends(get_current_user_plain), exception=True) -> bool:
         # update from db
+        assert _user is not None
         user = get_user_from_name(_user.username)
         assert user is not None
         if self.check_permissions(user):

@@ -8,9 +8,7 @@ from sqlmodel import Field, Relationship, SQLModel, create_engine
 
 password = os.getenv("DATABASE_PW", "waqd_root_pw")
 if MARIADB_URL := os.getenv("MARIADB_URL"):
-    DATABASE_URL = (
-        f"mariadb+mariadbconnector://root:{password}@{MARIADB_URL}/waqd_userdata"
-    )
+    DATABASE_URL = f"mariadb+pymysql://root:{password}@{MARIADB_URL}/waqd_userdata"
 else:
     DATABASE_URL = "sqlite:///./waqd_userdata.db"  # SQLite for development
 

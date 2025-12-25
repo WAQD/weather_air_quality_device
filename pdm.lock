@@ -5,7 +5,7 @@
 groups = ["default", "dev", "test", "waqd", "website"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:38fc39fd2c9034e0a53f13424da37204d82199182e207e9ea0f4bd256dfd527a"
+content_hash = "sha256:eebb7aea3deb1d742b4fa1d4f52847c160d49396288e148bb54667b81071b45c"
 
 [[metadata.targets]]
 requires_python = ">=3.13"
@@ -1291,6 +1291,15 @@ dependencies = [
 files = [
     {file = "PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb"},
     {file = "pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953"},
+]
+
+[[package]]
+name = "pymysql"
+version = "1.1.2"
+summary = ""
+files = [
+    {file = "pymysql-1.1.2-py3-none-any.whl", hash = "sha256:e6b1d89711dd51f8f74b1631fe08f039e7d76cf67a42a323d3178f0f25762ed9"},
+    {file = "pymysql-1.1.2.tar.gz", hash = "sha256:4961d3e165614ae65014e361811a724e2044ad3ea3739de9903ae7c21f539f03"},
 ]
 
 [[package]]
