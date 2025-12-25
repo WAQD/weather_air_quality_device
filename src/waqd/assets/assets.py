@@ -47,7 +47,8 @@ def get_asset_file(rsc_dir: str, rsc_id: str) -> Path:
         file_name = filelist.get(rsc_id, "")
         if not file_name:
             logger.debug(
-                f"Cannot find resource id {rsc_id} in catalog, fallback to real filename."
+                "Cannot find resource id %s in catalog, fallback to real filename.",
+                rsc_id,
             )
             file_name = rsc_id
         # append filetype, if applicable

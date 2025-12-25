@@ -1,0 +1,1203 @@
+{
+  "about_franzo_font": {
+    "en": "Franzo Font under",
+    "de": "Franzo Font unter",
+    "hu": "Franzo betűtípus licencelve:"
+  },
+  "about_from": {
+    "en": "from",
+    "de": "von",
+    "hu": "forrás:"
+  },
+  "about_further_software": {
+    "en": "For further used software see",
+    "de": "Weitere verwendete Software siehe",
+    "hu": "További felhasznált szoftverek:"
+  },
+  "about_on_github": {
+    "en": "on GitHub.",
+    "de": "auf GitHub.",
+    "hu": "a GitHubon."
+  },
+  "about_running": {
+    "en": "WeatherAirQualityDevice {version} running on {platform}",
+    "de": "WeatherAirQualityDevice {version} läuft auf {platform}",
+    "hu": "WeatherAirQualityDevice {version} {platform} platformon"
+  },
+  "about_unsplash_images": {
+    "en": "Images from Unsplash under",
+    "de": "Bilder von Unsplash unter",
+    "hu": "Unsplash képek licencelve:"
+  },
+  "about_used_software": {
+    "en": "Used Software:",
+    "de": "Verwendete Software:",
+    "hu": "Felhasznált szoftverek:"
+  },
+  "about_weather_icons": {
+    "en": "Weather Icons licensed under",
+    "de": "Weather Icons lizenziert unter",
+    "hu": "Weather Icons licencelve:"
+  },
+  "account": {
+    "en": "Account",
+    "de": "Konto",
+    "hu": "Fiók"
+  },
+  "account_connection_legend": {
+    "en": "Account Connection",
+    "de": "Kontoverknüpfung",
+    "hu": "Fiók kapcsolat"
+  },
+  "account_connection_description": {
+    "en": "Connect this device to your cloud account to access it remotely and view data from anywhere.",
+    "de": "Verbinden Sie dieses Gerät mit Ihrem Cloud-Konto, um von überall darauf zugreifen und Daten anzeigen zu können.",
+    "hu": "Csatlakoztassa ezt az eszközt a felhő fiókjához, hogy távolról is hozzáférjen és bárhonnan megtekinthesse az adatokat."
+  },
+  "connect_to_account": {
+    "en": "Connect to Account",
+    "de": "Mit Konto verbinden",
+    "hu": "Fiókhoz kapcsolódás"
+  },
+  "pairing_device_instructions": {
+    "en": "To connect this device to your account:",
+    "de": "Um dieses Gerät mit Ihrem Konto zu verbinden:",
+    "hu": "Az eszköz fiókhoz való csatlakoztatásához:"
+  },
+  "pairing_device_web_instruction": {
+    "en": "1. A pairing code will be displayed below\n2. Go to the Devices page on the website or app\n3. Click 'Add Device' and enter the code\n4. Confirm the connection on this screen",
+    "de": "1. Ein Kopplungscode wird unten angezeigt\n2. Gehen Sie zur Geräteseite auf der Website oder App\n3. Klicken Sie auf 'Gerät hinzufügen' und geben Sie den Code ein\n4. Bestätigen Sie die Verbindung auf diesem Bildschirm",
+    "hu": "1. Egy párosítási kód jelenik meg alább\n2. Nyissa meg az Eszközök oldalt a weboldalon vagy alkalmazásban\n3. Kattintson a 'Eszköz hozzáadása' gombra és adja meg a kódot\n4. Erősítse meg a kapcsolatot ezen a képernyőn"
+  },
+  "generating_pairing_code": {
+    "en": "Generating pairing code...",
+    "de": "Kopplungscode wird generiert...",
+    "hu": "Párosítási kód generálása..."
+  },
+  "your_pairing_code": {
+    "en": "Your Pairing Code:",
+    "de": "Ihr Kopplungscode:",
+    "hu": "Az Ön párosítási kódja:"
+  },
+  "expires_in": {
+    "en": "Expires in",
+    "de": "Läuft ab in",
+    "hu": "Lejár"
+  },
+  "pair_device":{
+    "en": "Pair Device",
+    "de": "Gerät koppeln",
+    "hu": "Eszköz párosítása"
+  },
+  "pairing_instructions_title":
+  {
+    "en": "Pairing Instructions",
+    "de": "Kopplungsanleitung",
+    "hu": "Párosítási utasítások"
+  },
+  "pairing_step_1": {
+    "en": "Go to the general settings page on the device and click 'Connect to Account'",
+    "de": "Gehen Sie zur allgemeinen Einstellungsseite des Geräts und klicken Sie auf 'Mit Konto verbinden'",
+    "hu": "Nyissa meg az eszköz általános beállítások oldalát, és kattintson a 'Fiókhoz kapcsolódás' gombra"
+  },
+  "pairing_step_2": {
+    "en": "Enter the pairing code displayed on the device",
+    "de": "Geben Sie den Kopplungscode ein, der auf dem Gerät angezeigt wird",
+    "hu": "Adja meg az eszközön megjelenített párosítási kódot"
+  },
+  "pairing_step_3": {
+    "en": "Confirm the connection on the device",
+    "de": "Bestätigen Sie die Verbindung auf dem Gerät",
+    "hu": "Erősítse meg a kapcsolatot az eszközön"
+  },
+  "enter_passphrase": {
+    "en": "Enter Passphrase",
+    "de": "Passphrase eingeben",
+    "hu": "Adja meg a jelszót"
+  },
+  "passphrase_case_insensitive": {
+    "en": "The passphrase is case insensitive.",
+    "de": "Die Passphrase ist nicht Klein- und Großschreibungsempfindlich.",
+    "hu": "A jelszó nem érzékeny a kis- és nagybetűkre."
+  },
+  "or_scan_qr_code": {
+    "en": "Or scan the QR code below:",
+    "de": "Oder scannen Sie den QR-Code unten:",
+    "hu": "Vagy olvassa be az alábbi QR-kódot:"
+  },
+  "claim_device": {
+    "en": "Claim Device",
+    "de": "Gerät anmelden",
+    "hu": "Eszköz kapcsolása"
+  },
+  "waiting_for_device_confirmation": {
+    "en": "Waiting for confirmation on device...",
+    "de": "Warte auf Bestätigung auf dem Gerät...",
+    "hu": "Várakozás a megerősítésre az eszközön..."
+  },
+  "check_device_screen": {
+    "en": "Please check the device screen to confirm the connection.",
+    "de": "Bitte überprüfen Sie den Bildschirm des Geräts, um die Verbindung zu bestätigen.",
+    "hu": "Kérjük, ellenőrizze az eszköz képernyőjét a kapcsolat megerősítéséhez."
+  },
+  "try_again": {
+    "en": "Try Again",
+    "de": "Erneut versuchen",
+    "hu": "Próbálja újra"
+  },
+  "pairing_code_entered": {
+    "en": "Pairing Code Entered!",
+    "de": "Kopplungscode eingegeben!",
+    "hu": "Párosítási kód beírva!"
+  },
+  "waiting_for_user_confirmation": {
+    "en": "Waiting for confirmation from",
+    "de": "Warte auf Bestätigung von",
+    "hu": "Megerősítésre vár"
+  },
+  "pairing_successful": {
+    "en": "Pairing Successful!",
+    "de": "Kopplung erfolgreich!",
+    "hu": "Párosítás sikeres!"
+  },
+  "device_connected_to_account": {
+    "en": "This device is now connected to your account.",
+    "de": "Dieses Gerät ist jetzt mit Ihrem Konto verbunden.",
+    "hu": "Ez az eszköz most csatlakozik a fiókjához."
+  },
+  "pairing_failed": {
+    "en": "Pairing Failed",
+    "de": "Kopplung fehlgeschlagen",
+    "hu": "Párosítás sikertelen"
+  },
+  "admin_controls": {
+    "en": "Admin controls",
+    "de": "Admin Steuerung",
+    "hu": "Admin vezérlés"
+  },
+  "air_quality_legend": {
+    "en": "Air Quality",
+    "de": "Luftqualität",
+    "hu": "Levegőminőség"
+  },
+  "auto_updates": {
+    "en": "Auto updates",
+    "de": "Automatische Updates",
+    "hu": "Automatikus frissítések"
+  },
+  "auto_updates_desc": {
+    "en": "The device will check every few hours and on finding a new release it will update it immediately and restart.",
+    "de": "Das Gerät sucht alle paar Stunden nach neuen Versionen und aktualisiert sich bei Bedarf automatisch.",
+    "hu": "Az eszköz néhány óránként ellenőrzi az új verziókat, és szükség esetén automatikusan frissít."
+  },
+  "beta_channel": {
+    "en": "Beta channel",
+    "de": "Beta-Kanal",
+    "hu": "Béta csatorna"
+  },
+  "beta_channel_desc": {
+    "en": "Enable beta versions for updates. This will allow you to test new features, but it may be unstable.",
+    "de": "Beta-Versionen für Updates aktivieren. Damit können Sie neue Funktionen testen, aber es können Instabilitäten auftreten.",
+    "hu": "Béta verziók engedélyezése a frissítésekhez. Így új funkciókat tesztelhet, de instabil lehet."
+  },
+  "brightness_legend": {
+    "en": "Brightness",
+    "de": "Helligkeit",
+    "hu": "Fényerő"
+  },
+  "cant_disp_sensor_logs": {
+    "en": "There are not enough logged values yet!",
+    "de": "Nicht genug Daten aufgezeichnet!",
+    "hu": "Nincs elég adat!"
+  },
+  "card_exterior": {
+    "en": "Exterior",
+    "de": "Außen",
+    "hu": "Külső"
+  },
+  "card_forecast": {
+    "en": "Forecast",
+    "de": "Vorhersage",
+    "hu": "Előrejelzés"
+  },
+  "card_interior": {
+    "en": "Interior",
+    "de": "Innenraum",
+    "hu": "Belső"
+  },
+  "check_for_updates": {
+    "en": "Check for updates",
+    "de": "Nach Updates suchen",
+    "hu": "Frissítések keresése"
+  },
+  "close": {
+    "en": "Close",
+    "de": "Schließen",
+    "hu": "Bezárás"
+  },
+  "confirm": {
+    "en": "Confirm",
+    "de": "Bestätigen",
+    "hu": "Megerősítés"
+  },
+  "reject": {
+    "en": "Reject",
+    "de": "Ablehnen",
+    "hu": "Elutasítás"
+  },
+  "cloudy": {
+    "en": "cloudy",
+    "de": "bewölkt",
+    "hu": "felhős"
+  },
+  "co2": {
+    "en": "CO₂",
+    "de": "CO₂",
+    "hu": "CO₂"
+  },
+  "confirm_reset": {
+    "en": "Confirm Reset",
+    "de": "Zurücksetzen bestätigen",
+    "hu": "Visszaállítás megerősítése"
+  },
+  "confirm_restart": {
+    "en": "Confirm Restart",
+    "de": "Neustart bestätigen",
+    "hu": "Újraindítás megerősítése"
+  },
+  "confirm_restart_text": {
+    "en": "Are you sure you want to restart the device?",
+    "de": "Sind Sie sicher, dass Sie das Gerät neu starten möchten?",
+    "hu": "Biztosan újra szeretné indítani az eszközt?"
+  },
+  "confirm_shutdown": {
+    "en": "Confirm Shutdown",
+    "de": "Herunterfahren bestätigen",
+    "hu": "Leállítás megerősítése"
+  },
+  "confirm_shutdown_text": {
+    "en": "Are you sure you want to shutdown the device?",
+    "de": "Sind Sie sicher, dass Sie das Gerät herunterfahren möchten?",
+    "hu": "Biztosan le szeretné állítani az eszközt?"
+  },
+  "danger_zone_legend": {
+    "en": "Danger Zone",
+    "de": "Gefahrenzone",
+    "hu": "Veszélyzóna"
+  },
+  "day_standby_timeout_legend": {
+    "en": "Day Standby Timeout",
+    "de": "Tag Standby-Zeit",
+    "hu": "Nappali készenléti idő"
+  },
+  "dht_legend": {
+    "en": "DHT-11/22",
+    "de": "DHT-11/22",
+    "hu": "DHT-11/22"
+  },
+  "disabled": {
+    "en": "Disabled",
+    "de": "Deaktiviert",
+    "hu": "Kikapcsolva"
+  },
+  "display_legend": {
+    "en": "Display",
+    "de": "Anzeige",
+    "hu": "Kijelző"
+  },
+  "enable_bme280": {
+    "en": "Enable BME-280",
+    "de": "BME-280 aktivieren",
+    "hu": "BME-280 engedélyezése"
+  },
+  "enable_bmp280": {
+    "en": "Enable BMP-280",
+    "de": "BMP-280 aktivieren",
+    "hu": "BMP-280 engedélyezése"
+  },
+  "enable_ccs811": {
+    "en": "Enable CCS811",
+    "de": "CCS811 aktivieren",
+    "hu": "CCS811 engedélyezése"
+  },
+  "enable_mhz19": {
+    "en": "Enable MH-Z19",
+    "de": "MH-Z19 aktivieren",
+    "hu": "MH-Z19 engedélyezése"
+  },
+  "enable_motion_sensor": {
+    "en": "Enable Motion Sensor",
+    "de": "Bewegungssensor aktivieren",
+    "hu": "Mozgásérzékelő engedélyezése"
+  },
+  "forecast_chart": {
+    "en": "Chart",
+    "de": "Diagramm",
+    "hu": "Diagram"
+  },
+  "forecast_tooltip": {
+    "en": "{name} </br> <strong>Temperature: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
+    "de": "{name} </br> <strong>Temperatur: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C",
+    "hu": "{name} </br> <strong>Hőmérséklet: </strong> </br> Min: {y[0]} °C, Max: {y[1]} °C"
+  },
+  "friday": {
+    "en": "Friday",
+    "de": "Freitag",
+    "hu": "Péntek"
+  },
+  "history_exterior_humidity": {
+    "en": "Exterior Humidity History",
+    "de": "Außenlufeuchtigkeit Verlauf",
+    "hu": "Külső páratartalom előzmények"
+  },
+  "history_exterior_temperature": {
+    "en": "Exterior Temperature History",
+    "de": "Außentemperatur Verlauf",
+    "hu": "Külső hőmérséklet előzmények"
+  },
+  "history_interior_co2": {
+    "en": "Interior CO₂ History",
+    "de": "Innen CO₂ Verlauf",
+    "hu": "Belső CO₂ előzmények"
+  },
+  "history_interior_humidity": {
+    "en": "Interior Humidity History",
+    "de": "Innenlufeuchtigkeit Verlauf",
+    "hu": "Belső páratartalom előzmények"
+  },
+  "history_interior_pressure": {
+    "en": "Interior Pressure History",
+    "de": "Innenlufudruck Verlauf",
+    "hu": "Belső légnyomás előzmények"
+  },
+  "history_interior_temperature": {
+    "en": "Interior Temperature History",
+    "de": "Innentemperatur Verlauf",
+    "hu": "Belső hőmérséklet előzmények"
+  },
+  "history_last_12_hours": {
+    "en": "Last 12 hours",
+    "de": "Letzte 12 Stunden",
+    "hu": "Utolsó 12 óra"
+  },
+  "history_last_24_hours": {
+    "en": "Last 24 hours",
+    "de": "Letzte 24 Stunden",
+    "hu": "Utolsó 24 óra"
+  },
+  "history_last_30_days": {
+    "en": "Last 30 days",
+    "de": "Letzte 30 Tage",
+    "hu": "Utolsó 30 nap"
+  },
+  "history_last_48_hours": {
+    "en": "Last 48 hours",
+    "de": "Letzte 48 Stunden",
+    "hu": "Utolsó 48 óra"
+  },
+  "history_last_6_hours": {
+    "en": "Last 6 hours",
+    "de": "Letzte 6 Stunden",
+    "hu": "Utolsó 6 óra"
+  },
+  "history_last_7_days": {
+    "en": "Last 7 days",
+    "de": "Letzte 7 Tage",
+    "hu": "Utolsó 7 nap"
+  },
+  "history_loading": {
+    "en": "Loading data...",
+    "de": "Lade Daten...",
+    "hu": "Adatok betöltése..."
+  },
+  "history_modal_title": {
+    "en": "Data History",
+    "de": "Datenverlauf",
+    "hu": "Adat előzmények"
+  },
+  "humidity": {
+    "en": "Humidity",
+    "de": "Luftfeuchtigkeit",
+    "hu": "Páratartalom"
+  },
+  "install_release_question": {
+    "en": "Do you want to install the release?",
+    "de": "Möchten Sie die Version installieren?",
+    "hu": "Szeretné telepíteni a frissítést?"
+  },
+  "language_legend": {
+    "en": "Language",
+    "de": "Sprache",
+    "hu": "Nyelv"
+  },
+  "location_internet_hint": {
+    "en": "This feature needs internet access to work.",
+    "de": "Diese Funktion benötigt Internetzugang.",
+    "hu": "Ez a funkció internetkapcsolatot igényel."
+  },
+  "location_legend": {
+    "en": "Location",
+    "de": "Standort",
+    "hu": "Hely"
+  },
+  "location_results": {
+    "en": "Location results",
+    "de": "Standortergebnisse",
+    "hu": "Hely eredmények"
+  },
+  "location_set_hint": {
+    "en": "Please set this value for all location specific functionality to work!",
+    "de": "Bitte diesen Wert setzen, damit alle standortspezifischen Funktionen funktionieren!",
+    "hu": "Kérjük, állítsa be ezt az értéket, hogy minden helyspecifikus funkció működjön!"
+  },
+  "login": {
+    "en": "Login",
+    "de": "Anmelden",
+    "hu": "Bejelentkezés"
+  },
+  "login_failed": {
+    "en": "Login failed! Wrong username or password",
+    "de": "Anmeldung fehlgeschlagen! Falscher Benutzername oder Passwort",
+    "hu": "Sikertelen bejelentkezés! Hibás felhasználónév vagy jelszó"
+  },
+  "login_now": {
+    "en": "Login now!",
+    "de": "Jetzt anmelden!",
+    "hu": "Jelentkezzen be!"
+  },
+  "login_web_access": {
+    "en": "WAQD web access for remote login to monitor all your data.",
+    "de": "WAQD-Webzugang für Fernanmeldung zur Überwachung aller Daten.",
+    "hu": "WAQD webes elérés távoli bejelentkezéshez és adatok megtekintéséhez."
+  },
+  "logout": {
+    "en": "Logout",
+    "de": "Abmelden",
+    "hu": "Kijelentkezés"
+  },
+  "logout_success": {
+    "en": "Logged out successfully.",
+    "de": "Erfolgreich abgemeldet.",
+    "hu": "Sikeres kijelentkezés."
+  },
+  "manual_update_desc": {
+    "en": "Check manually for updates. You will be prompted for confirmation before the update.",
+    "de": "Manuell nach Updates suchen. Sie werden vor dem Update um Bestätigung gebeten.",
+    "hu": "Kézi frissítés keresése. A frissítés előtt megerősítést kér a rendszer."
+  },
+  "manual_update_legend": {
+    "en": "Manual update",
+    "de": "Manuelles Update",
+    "hu": "Kézi frissítés"
+  },
+  "monday": {
+    "en": "Monday",
+    "de": "Montag",
+    "hu": "Hétfő"
+  },
+  "motion_reg": {
+    "en": "Motion registered",
+    "de": "Bewegung registriert",
+    "hu": "Mozgás felismerve"
+  },
+  "motion_sensing_desc": {
+    "en": "These settings control after which time on sensing movement the display brightness changes.",
+    "de": "Diese Einstellungen steuern, nach welcher Zeit bei Bewegungserkennung die Displayhelligkeit ändert.",
+    "hu": "Ezek a beállítások szabályozzák, hogy mozgás érzékelése után mennyi idővel változzon a kijelző fényereje."
+  },
+  "motion_sensing_legend": {
+    "en": "Motion sensing",
+    "de": "Bewegungserkennung",
+    "hu": "Mozgásérzékelés"
+  },
+  "motion_sensor_connection_legend": {
+    "en": "Motion Sensor Connection",
+    "de": "Anschluss des Bewegungssensors",
+    "hu": "Mozgásérzékelő csatlakoztatása"
+  },
+  "motion_sensor_legend": {
+    "en": "Motion Sensor",
+    "de": "Bewegungssensor",
+    "hu": "Mozgásérzékelő"
+  },
+  "network_manager": {
+    "en": "Network Manager",
+    "de": "Netzwerkmanager",
+    "hu": "Hálózatkezelő"
+  },
+  "disconnect": {
+    "en": "Disconnect",
+    "de": "Trennen",
+    "hu": "Leválasztás"
+  },
+  "connected": {
+    "en": "Connected",
+    "de": "Verbunden",
+    "hu": "Csatlakoztatva"
+  },
+  "disconnected": {
+    "en": "Disconnected",
+    "de": "Getrennt",
+    "hu": "Nincs csatlakoztatva"
+  },
+  "network_manager_ethernet": {
+    "en": "Ethernet-01",
+    "de": "Ethernet-01",
+    "hu": "Ethernet-01"
+  },
+  "network_manager_networks": {
+    "en": "Networks",
+    "de": "Netzwerke",
+    "hu": "Hálózatok"
+  },
+  "network_manager_next": {
+    "en": "Next",
+    "de": "Weiter",
+    "hu": "Következő"
+  },
+  "network_manager_recheck": {
+    "en": "Recheck",
+    "de": "Erneut prüfen",
+    "hu": "Újraellenőrzés"
+  },
+  "network_manager_rescan": {
+    "en": "Rescan",
+    "de": "Erneut suchen",
+    "hu": "Újra keresés"
+  },
+  "network_manager_security": {
+    "en": "Security",
+    "de": "Sicherheit",
+    "hu": "Biztonság"
+  },
+  "network_manager_signal": {
+    "en": "Signal",
+    "de": "Signal",
+    "hu": "Jel"
+  },
+  "network_manager_turn_off_wifi": {
+    "en": "Turn Off Wifi",
+    "de": "WLAN ausschalten",
+    "hu": "Wifi kikapcsolása"
+  },
+  "network_manager_turn_on_wifi": {
+    "en": "Turn On Wifi",
+    "de": "WLAN einschalten",
+    "hu": "Wifi bekapcsolása"
+  },
+  "new_pw_text": {
+    "en": "Username: {user_name} Password: \"{pw}\"",
+    "de": "Benutzername: {user_name} Passwort: \"{pw}\"",
+    "hu": "Felhasználónév: {user_name} Jelszó: \"{pw}\""
+  },
+  "new_release_found": {
+    "en": "New Release {version} found",
+    "de": "Neue Version {version} gefunden",
+    "hu": "Új kiadás található: {version}"
+  },
+  "night_mode_begin_legend": {
+    "en": "Night Mode Begin",
+    "de": "Nachtmodus Beginn",
+    "hu": "Éjszakai mód kezdete"
+  },
+  "night_mode_end_legend": {
+    "en": "Night Mode End",
+    "de": "Nachtmodus Ende",
+    "hu": "Éjszakai mód vége"
+  },
+  "night_turnoff_timeout_legend": {
+    "en": "Night Turn-off Timeout",
+    "de": "Nachtabschaltzeit",
+    "hu": "Éjszakai kikapcsolási idő"
+  },
+  "no": {
+    "en": "No",
+    "de": "Nein",
+    "hu": "Nem"
+  },
+  "no_motion_reg": {
+    "en": "No Motion registered",
+    "de": "Keine Bewegung registriert",
+    "hu": "Nincs mozgás"
+  },
+  "no_new_release_found": {
+    "en": "No new release found",
+    "de": "Kein neues Update gefunden",
+    "hu": "Nincs új frissítés"
+  },
+  "off": {
+    "en": "Off",
+    "de": "Aus",
+    "hu": "Ki"
+  },
+  "ok": {
+    "en": "OK",
+    "de": "OK",
+    "hu": "OK"
+  },
+  "on": {
+    "en": "On",
+    "de": "An",
+    "hu": "Be"
+  },
+  "password": {
+    "en": "Password",
+    "de": "Passwort",
+    "hu": "Jelszó"
+  },
+  "power_options": {
+    "en": "Power Options",
+    "de": "Energieoptionen",
+    "hu": "Leállítás menü"
+  },
+  "pressure": {
+    "en": "Pressure",
+    "de": "Luftdruck",
+    "hu": "Légnyomás"
+  },
+  "rainy": {
+    "en": "rainy",
+    "de": "regnerisch",
+    "hu": "esős"
+  },
+  "reboot": {
+    "en": "Reboot",
+    "de": "Neustart",
+    "hu": "Újraindítás"
+  },
+  "regional_settings_legend": {
+    "en": "Regional settings",
+    "de": "Regionale Einstellungen",
+    "hu": "Regionális beállítások"
+  },
+  "reset_admin_password": {
+    "en": "Reset admin password",
+    "de": "Admin-Passwort zurücksetzen",
+    "hu": "Admin jelszó visszaállítása"
+  },
+  "reset_password_legend": {
+    "en": "Reset Password",
+    "de": "Passwort zurücksetzen",
+    "hu": "Jelszó visszaállítása"
+  },
+  "reset_remote_password": {
+    "en": "Reset remote password",
+    "de": "Remote-Passwort zurücksetzen",
+    "hu": "Távoli jelszó visszaállítása"
+  },
+  "saturday": {
+    "en": "Saturday",
+    "de": "Samstag",
+    "hu": "Szombat"
+  },
+  "search": {
+    "en": "Search",
+    "de": "Suche",
+    "hu": "Keresés"
+  },
+  "select_gpio_pin": {
+    "en": "Select the pin (GPIO) where you connected the sensor.",
+    "de": "Wählen Sie den GPIO-Pin, an den Sie den Sensor angeschlossen haben.",
+    "hu": "Válassza ki a szenzorhoz csatlakoztatott GPIO lábat."
+  },
+  "set": {
+    "en": "Set",
+    "de": "Setzen",
+    "hu": "Beállít"
+  },
+  "settings": {
+    "en": "Settings",
+    "de": "Einstellungen",
+    "hu": "Beállítások"
+  },
+  "settings_tab_about": {
+    "en": "About",
+    "de": "Info",
+    "hu": "Névjegy"
+  },
+  "settings_tab_display": {
+    "en": "Display",
+    "de": "Anzeige",
+    "hu": "Kijelző"
+  },
+  "settings_tab_general": {
+    "en": "General",
+    "de": "Allgemein",
+    "hu": "Általános"
+  },
+  "settings_tab_hardware": {
+    "en": "Hardware",
+    "de": "Hardware",
+    "hu": "Hardver"
+  },
+  "settings_tab_theming": {
+    "en": "Theming",
+    "de": "Design",
+    "hu": "Téma"
+  },
+  "settings_tab_updates": {
+    "en": "Updates",
+    "de": "Updates",
+    "hu": "Frissítések"
+  },
+  "shutdown": {
+    "en": "Shutdown",
+    "de": "Herunterfahren",
+    "hu": "Leállítás"
+  },
+  "sound_enabled": {
+    "en": "Sound Enabled",
+    "de": "Ton aktiviert",
+    "hu": "Hang bekapcsolva"
+  },
+  "sound_enabled_desc": {
+    "en": "Global switch for all sounds",
+    "de": "Globaler Schalter für alle Töne",
+    "hu": "Minden hangot kapcsol"
+  },
+  "sound_legend": {
+    "en": "Sound",
+    "de": "Ton",
+    "hu": "Hang"
+  },
+  "startup_jingle": {
+    "en": "Startup Jingle",
+    "de": "Start-Jingle",
+    "hu": "Indítási dallam"
+  },
+  "startup_jingle_desc": {
+    "en": "Play a jingle on startup",
+    "de": "Jingle beim Start abspielen",
+    "hu": "Lejátszik egy dallamot indításkor"
+  },
+  "sunday": {
+    "en": "Sunday",
+    "de": "Sonntag",
+    "hu": "Vasárnap"
+  },
+  "sunny": {
+    "en": "sunny",
+    "de": "sonnig",
+    "hu": "napos"
+  },
+  "temperature": {
+    "en": "Temperature",
+    "de": "Temperatur",
+    "hu": "Hőmérséklet"
+  },
+  "temperature_legend": {
+    "en": "Temperature",
+    "de": "Temperatur",
+    "hu": "Hőmérséklet"
+  },
+  "theme_blue": {
+    "en": "Blue",
+    "de": "Blau",
+    "hu": "Kék"
+  },
+  "theme_forest": {
+    "en": "Forest",
+    "de": "Wald",
+    "hu": "Erdő"
+  },
+  "theme_legend": {
+    "en": "Theme",
+    "de": "Thema",
+    "hu": "Téma"
+  },
+  "theme_orange": {
+    "en": "Orange",
+    "de": "Orange",
+    "hu": "Narancs"
+  },
+  "theme_peach": {
+    "en": "Peach",
+    "de": "Pfirsich",
+    "hu": "Barack"
+  },
+  "theme_purple": {
+    "en": "Purple",
+    "de": "Lila",
+    "hu": "Lila"
+  },
+  "theme_red": {
+    "en": "Red",
+    "de": "Rot",
+    "hu": "Piros"
+  },
+  "thursday": {
+    "en": "Thursday",
+    "de": "Donnerstag",
+    "hu": "Csütörtök"
+  },
+  "time": {
+    "en": "Time",
+    "de": "Zeit",
+    "hu": "Idő"
+  },
+  "timeout_10min": {
+    "en": "10 min",
+    "de": "10 min",
+    "hu": "10 perc"
+  },
+  "timeout_120s": {
+    "en": "120s",
+    "de": "120s",
+    "hu": "120mp"
+  },
+  "timeout_30min": {
+    "en": "30 min",
+    "de": "30 min",
+    "hu": "30 perc"
+  },
+  "timeout_30s": {
+    "en": "30s",
+    "de": "30s",
+    "hu": "30mp"
+  },
+  "timeout_5s": {
+    "en": "5s",
+    "de": "5s",
+    "hu": "5mp"
+  },
+  "tuesday": {
+    "en": "Tuesday",
+    "de": "Dienstag",
+    "hu": "Kedd"
+  },
+  "username": {
+    "en": "Username",
+    "de": "Benutzername",
+    "hu": "Felhasználónév"
+  },
+  "users": {
+    "en": "Users",
+    "de": "User",
+    "hu": "Felhasználók"
+  },
+  "permissions": {
+    "en": "Permissions",
+    "de": "Berechtigungen",
+    "hu": "Engedélyek"
+  },
+  "actions": {
+    "en": "Actions",
+    "de": "Aktionen",
+    "hu": "Műveletek"
+  },
+  "add_user": {
+    "en": "Add User",
+    "de": "Benutzer hinzufügen",
+    "hu": "Felhasználó hozzáadása"
+  },
+  "add": {
+    "en": "Add",
+    "de": "Hinzufügen",
+    "hu": "Hozzáadás"
+  },
+  "my_devices": {
+    "en": "My Devices",
+    "de": "Meine Geräte",
+    "hu": "Eszközeim"
+  },
+  "add_device": {
+    "en": "Add Device",
+    "de": "Gerät hinzufügen",
+    "hu": "Eszköz hozzáadása"
+  },
+  "no_devices_yet": {
+    "en": "No devices yet",
+    "de": "Noch keine Geräte",
+    "hu": "Még nincsenek eszközök"
+  },
+  "add_your_first_device": {
+    "en": "Add your first device to get started",
+    "de": "Fügen Sie Ihr erstes Gerät hinzu, um zu beginnen",
+    "hu": "Adja hozzá az első eszközt a kezdéshez"
+  },
+  "device_name": {
+    "en": "Device Name",
+    "de": "Gerätename",
+    "hu": "Eszköz neve"
+  },
+  "device_name_placeholder": {
+    "en": "e.g. Living Room",
+    "de": "z.B. Wohnzimmer",
+    "hu": "pl. Nappali"
+  },
+  "device_id": {
+    "en": "Device ID",
+    "de": "Geräte-ID",
+    "hu": "Eszköz azonosító"
+  },
+  "device_id_placeholder": {
+    "en": "e.g. WAQD-001",
+    "de": "z.B. WAQD-001",
+    "hu": "pl. WAQD-001"
+  },
+  "location": {
+    "en": "Location",
+    "de": "Standort",
+    "hu": "Hely"
+  },
+  "location_placeholder": {
+    "en": "e.g. Living Room, Main Floor",
+    "de": "z.B. Wohnzimmer, Hauptetage",
+    "hu": "pl. Nappali, Főemelet"
+  },
+  "no_location": {
+    "en": "No location",
+    "de": "Kein Standort",
+    "hu": "Nincs hely megadva"
+  },
+  "optional": {
+    "en": "optional",
+    "de": "optional",
+    "hu": "opcionális"
+  },
+  "connect": {
+    "en": "Connect",
+    "de": "Verbinden",
+    "hu": "Csatlakozás"
+  },
+  "delete_device": {
+    "en": "Delete Device",
+    "de": "Gerät löschen",
+    "hu": "Eszköz törlése"
+  },
+  "delete_device_confirmation": {
+    "en": "Are you sure you want to delete device",
+    "de": "Möchten Sie das Gerät wirklich löschen",
+    "hu": "Biztosan törölni szeretné az eszközt"
+  },
+  "device_added_successfully": {
+    "en": "Device added successfully",
+    "de": "Gerät erfolgreich hinzugefügt",
+    "hu": "Eszköz sikeresen hozzáadva"
+  },
+  "device_deleted_successfully": {
+    "en": "Device deleted successfully",
+    "de": "Gerät erfolgreich gelöscht",
+    "hu": "Eszköz sikeresen törölve"
+  },
+  "error_loading_devices": {
+    "en": "Error loading devices",
+    "de": "Fehler beim Laden der Geräte",
+    "hu": "Hiba az eszközök betöltésekor"
+  },
+  "error_adding_device": {
+    "en": "Error adding device",
+    "de": "Fehler beim Hinzufügen des Geräts",
+    "hu": "Hiba az eszköz hozzáadásakor"
+  },
+  "error_deleting_device": {
+    "en": "Error deleting device",
+    "de": "Fehler beim Löschen des Geräts",
+    "hu": "Hiba az eszköz törlésekor"
+  },
+  "last_seen": {
+    "en": "Last seen",
+    "de": "Zuletzt gesehen",
+    "hu": "Utoljára látva"
+  },
+  "just_now": {
+    "en": "just now",
+    "de": "gerade eben",
+    "hu": "éppen most"
+  },
+  "minutes_ago": {
+    "en": "minutes ago",
+    "de": "Minuten her",
+    "hu": "perce"
+  },
+  "hours_ago": {
+    "en": "hours ago",
+    "de": "Stunden her",
+    "hu": "órája"
+  },
+  "days_ago": {
+    "en": "days ago",
+    "de": "Tagen her",
+    "hu": "napja"
+  },
+  "cancel": {
+    "en": "Cancel",
+    "de": "Abbrechen",
+    "hu": "Mégsem"
+  },
+  "change_password": {
+    "en": "Change Password",
+    "de": "Passwort ändern",
+    "hu": "Jelszó módosítása"
+  },
+  "delete_user": {
+    "en": "Delete User",
+    "de": "Benutzer löschen",
+    "hu": "Felhasználó törlése"
+  },
+  "delete": {
+    "en": "Delete",
+    "de": "Löschen",
+    "hu": "Törlés"
+  },
+  "enter_username": {
+    "en": "Enter username",
+    "de": "Benutzername eingeben",
+    "hu": "Felhasználónév megadása"
+  },
+  "changing_password_for": {
+    "en": "Changing password for",
+    "de": "Passwort ändern für",
+    "hu": "Jelszó módosítása a következő felhasználóhoz"
+  },
+  "new_password": {
+    "en": "New Password",
+    "de": "Neues Passwort",
+    "hu": "Új jelszó"
+  },
+  "confirm_password": {
+    "en": "Confirm Password",
+    "de": "Passwort bestätigen",
+    "hu": "Jelszó megerősítése"
+  },
+  "enter_new_password": {
+    "en": "Enter new password",
+    "de": "Neues Passwort eingeben",
+    "hu": "Új jelszó megadása"
+  },
+  "confirm_new_password": {
+    "en": "Confirm new password",
+    "de": "Neues Passwort bestätigen",
+    "hu": "Új jelszó megerősítése"
+  },
+  "confirm_delete_user": {
+    "en": "Are you sure you want to delete user",
+    "de": "Sind Sie sicher, dass Sie den Benutzer löschen möchten",
+    "hu": "Biztosan törölni szeretné a következő felhasználót"
+  },
+  "admin_access_denied": {
+    "en": "Admin access denied. Redirecting...",
+    "de": "Admin-Zugriff verweigert. Umleitung...",
+    "hu": "Admin hozzáférés megtagadva. Átirányítás..."
+  },
+  "failed_to_load_users": {
+    "en": "Failed to load users",
+    "de": "Fehler beim Laden der Benutzer",
+    "hu": "Nem sikerült betölteni a felhasználókat"
+  },
+  "failed_to_add_user": {
+    "en": "Failed to add user",
+    "de": "Fehler beim Hinzufügen des Benutzers",
+    "hu": "Nem sikerült hozzáadni a felhasználót"
+  },
+  "failed_to_delete_user": {
+    "en": "Failed to delete user",
+    "de": "Fehler beim Löschen des Benutzers",
+    "hu": "Nem sikerült törölni a felhasználót"
+  },
+  "failed_to_change_password": {
+    "en": "Failed to change password",
+    "de": "Fehler beim Ändern des Passworts",
+    "hu": "Nem sikerült módosítani a jelszót"
+  },
+  "username_required": {
+    "en": "Username is required",
+    "de": "Benutzername ist erforderlich",
+    "hu": "Felhasználónév kötelező"
+  },
+  "passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "de": "Passwörter stimmen nicht überein",
+    "hu": "A jelszavak nem egyeznek"
+  },
+  "password_too_short": {
+    "en": "Password must be at least 6 characters",
+    "de": "Passwort muss mindestens 6 Zeichen lang sein",
+    "hu": "A jelszónak legalább 6 karakterből kell állnia"
+  },
+  "weather_today": {
+    "en": "Weather today",
+    "de": "Wetter heute",
+    "hu": "Mai időjárás"
+  },
+  "wednesday": {
+    "en": "Wednesday",
+    "de": "Mittwoch",
+    "hu": "Szerda"
+  },
+  "weekly_weather_forecast": {
+    "en": "Weekly Weather Forecast",
+    "de": "Wöchentliche Wettervorhersage",
+    "hu": "Heti időjárás előrejelzés"
+  },
+  "wlan_error_text": {
+    "en": "Cannot start WLAN connection portal:",
+    "de": "WLAN Verbindungsportal kann nicht gestartet werden: ",
+    "hu": "Hiba a WLAN portál indítása közben:"
+  },
+  "wlan_portal_help": {
+    "en": "Connect to WLAN network '{ssid_name}' on your phone or pc, where you can select your network and enter your password. Press OK to start.",
+    "de": "Mit WLAN '{ssid_name}' an einem PC oder Handy verbinden, um Nutzername und Passwort einzugeben. Zum Starten bitte OK drücken.",
+    "hu": "Az OK gomb megnyomás után a WLAN felhasználónév és jelszó megadásához csatlakozzon a '{ssid_name}' hálózathoz telefonon vagy számítógépen!"
+  },
+  "yes": {
+    "en": "Yes",
+    "de": "Ja",
+    "hu": "Igen"
+  },
+  "back_to_devices": {
+    "en": "Back to Devices",
+    "de": "Zurück zu Geräten",
+    "hu": "Vissza az eszközökhöz"
+  },
+  "loading": {
+    "en": "Loading...",
+    "de": "Lädt...",
+    "hu": "Betöltés..."
+  },
+  "online": {
+    "en": "Online",
+    "de": "Online",
+    "hu": "Online"
+  },
+  "offline": {
+    "en": "Offline",
+    "de": "Offline",
+    "hu": "Offline"
+  },
+  "last_updated": {
+    "en": "Last updated",
+    "de": "Zuletzt aktualisiert",
+    "hu": "Utolsó frissítés"
+  },
+  "connection_error": {
+    "en": "Connection error occurred",
+    "de": "Verbindungsfehler aufgetreten",
+    "hu": "Kapcsolódási hiba történt"
+  },
+  "device_information": {
+    "en": "Device Information",
+    "de": "Geräteinformationen",
+    "hu": "Eszköz információk"
+  },
+  "last_update": {
+    "en": "Last Update",
+    "de": "Letzte Aktualisierung",
+    "hu": "Utolsó frissítés"
+  },
+  "connection_status": {
+    "en": "Connection Status",
+    "de": "Verbindungsstatus",
+    "hu": "Kapcsolat állapota"
+  },
+  "device_added_to_list": {
+    "en": "Your device has been added to your list",
+    "de": "Ihr Gerät wurde Ihrer Liste hinzugefügt",
+    "hu": "Az eszköz hozzáadva a listához"
+  },
+  "device_paired_successfully": {
+    "en": "Device paired successfully!",
+    "de": "Gerät erfolgreich gekoppelt!",
+    "hu": "Eszköz sikeresen párosítva!"
+  }
+}
