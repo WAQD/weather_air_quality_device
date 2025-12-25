@@ -113,6 +113,10 @@ export default defineConfig({
           dest: 'static/general_icons'
         },
         {
+          src: '../../waqd_assets/weather_icons/**/*.svg',
+          dest: 'static/weather_icons'
+        },
+        {
           src: '../../waqd_assets/font/**/*.{woff,woff2,ttf,otf}',
           dest: 'static/font'
         },
