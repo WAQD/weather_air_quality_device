@@ -127,7 +127,7 @@ function login() {
     .then(async (data) => {
       console.log('Success:', data)
       await fetchUserInfo()
-      router.push('/devices')
+      router.push('/rest/devices')
     })
     .catch((error) => {
       console.error('Error:', error)
