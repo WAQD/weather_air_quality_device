@@ -1199,5 +1199,230 @@
     "en": "Device paired successfully!",
     "de": "Gerät erfolgreich gekoppelt!",
     "hu": "Eszköz sikeresen párosítva!"
+  },
+  "home_welcome_back": {
+    "en": "Welcome back, {username}!",
+    "de": "Willkommen zurück, {username}!",
+    "hu": "Üdvözöljük újra, {username}!"
+  },
+  "home_manage_devices": {
+    "en": "Manage your",
+    "de": "Verwalten Sie Ihre",
+    "hu": "Kezelje a"
+  },
+  "home_manage_devices_desc": {
+    "en": "devices and monitor your data remotely.",
+    "de": "Geräte und überwachen Sie Ihre Daten aus der Ferne.",
+    "hu": "eszközöket és figyelje adatait távolról."
+  },
+  "home_go_to_devices": {
+    "en": "Go to My Devices",
+    "de": "Zu meinen Geräten",
+    "hu": "Eszközeimhez"
+  },
+  "home_build_station": {
+    "en": "Build Your Own Weather Station!",
+    "de": "Bauen Sie Ihre eigene Wetterstation!",
+    "hu": "Építsen saját időjárás állomást!"
+  },
+  "home_create_professional": {
+    "en": "Create a professional indoor weather and air quality monitoring station with Raspberry Pi",
+    "de": "Erstellen Sie eine professionelle Indoor-Wetter- und Luftqualitätsüberwachungsstation mit Raspberry Pi",
+    "hu": "Hozzon létre egy professzionális beltéri időjárás- és légszennyezettség-figyelő állomást Raspberry Pi-vel"
+  },
+  "home_get_started": {
+    "en": "Get Started",
+    "de": "Loslegen",
+    "hu": "Kezdje el"
+  },
+  "home_scroll_more": {
+    "en": "Scroll for more",
+    "de": "Scrollen Sie für mehr",
+    "hu": "Görgessen tovább"
+  },
+  "home_full_featured": {
+    "en": "Full-Featured Display",
+    "de": "Vollausgestattetes Display",
+    "hu": "Teljesen felszerelt kijelző"
+  },
+  "home_realtime_clock": {
+    "en": "Real-time clock and date display",
+    "de": "Echtzeit-Uhr und Datumsanzeige",
+    "hu": "Valós idejű óra és dátum megjelenítés"
+  },
+  "home_interior_temp": {
+    "en": "Interior temperature, humidity, and pressure from sensors",
+    "de": "Innentemperatur, Luftfeuchtigkeit und Druck von Sensoren",
+    "hu": "Belső hőmérséklet, páratartalom és nyomás az érzékelőktől"
+  },
+  "home_exterior_weather": {
+    "en": "Exterior weather from online services or remote sensors",
+    "de": "Außenwetter von Online-Diensten oder entfernten Sensoren",
+    "hu": "Külső időjárás online szolgáltatásokból vagy távoli érzékelőkből"
+  },
+  "home_forecast_3day": {
+    "en": "3-day weather forecast at a glance",
+    "de": "3-Tage-Wettervorhersage auf einen Blick",
+    "hu": "3 napos időjárás előrejelzés egy pillantásra"
+  },
+  "home_air_quality": {
+    "en": "Air quality monitoring (CO2, TVOC)",
+    "de": "Luftqualitätsüberwachung (CO2, TVOC)",
+    "hu": "Levegőminőség figyelés (CO2, TVOC)"
+  },
+  "home_easy_assembly": {
+    "en": "Easy Assembly",
+    "de": "Einfache Montage",
+    "hu": "Könnyű összeszerelés"
+  },
+  "home_assembly_desc": {
+    "en": "Built with readily available components and a recommended case design for clean cable management.",
+    "de": "Gebaut mit leicht verfügbaren Komponenten und einem empfohlenen Gehäusedesign für sauberes Kabelmanagement.",
+    "hu": "Könnyen beszerezhető alkatrészekből és ajánlott tokkal az esztétikus kábelkezeléshez."
+  },
+  "home_raspberry_pi": {
+    "en": "Raspberry Pi",
+    "de": "Raspberry Pi",
+    "hu": "Raspberry Pi"
+  },
+  "home_raspberry_versions": {
+    "en": "All versions supporting ARMv7 64-bit",
+    "de": "Alle Versionen mit ARMv7 64-Bit-Unterstützung",
+    "hu": "Minden ARMv7 64-bites verziót támogat"
+  },
+  "home_display": {
+    "en": "Display",
+    "de": "Anzeige",
+    "hu": "Kijelző"
+  },
+  "home_display_types": {
+    "en": "Raspberry Pi 7\" touchscreen or Waveshare 5\"",
+    "de": "Raspberry Pi 7\" Touchscreen oder Waveshare 5\"",
+    "hu": "Raspberry Pi 7\" érintőképernyő vagy Waveshare 5\""
+  },
+  "home_sensors": {
+    "en": "Sensors",
+    "de": "Sensoren",
+    "hu": "Érzékelők"
+  },
+  "home_sensor_types": {
+    "en": "BME280, MH-Z19, CCS811, DHT22, PIR501",
+    "de": "BME280, MH-Z19, CCS811, DHT22, PIR501",
+    "hu": "BME280, MH-Z19, CCS811, DHT22, PIR501"
+  },
+  "home_case": {
+    "en": "Case",
+    "de": "Gehäuse",
+    "hu": "Tok"
+  },
+  "home_case_recommended": {
+    "en": "SmartiPi Touch 2 recommended",
+    "de": "SmartiPi Touch 2 empfohlen",
+    "hu": "SmartiPi Touch 2 ajánlott"
+  },
+  "home_3d_printable": {
+    "en": "3D Printable Sensor Case",
+    "de": "3D-druckbares Sensorgehäuse",
+    "hu": "3D nyomtatható érzékelőház"
+  },
+  "home_3d_desc": {
+    "en": "Custom designed sensor housing that mounts perfectly on the back of the SmartiPi Touch 2 case.",
+    "de": "Individuell gestaltetes Sensorgehäuse, das perfekt auf der Rückseite des SmartiPi Touch 2 Gehäuses montiert werden kann.",
+    "hu": "Egyedi tervezett érzékelőház, amely tökéletesen illeszkedik a SmartiPi Touch 2 tok hátoldalára."
+  },
+  "home_3d_sensors": {
+    "en": "Holds up to 4 sensors with optimized spacing",
+    "de": "Platz für bis zu 4 Sensoren mit optimiertem Abstand",
+    "hu": "Akár 4 érzékelő befogadása optimalizált távolsággal"
+  },
+  "home_3d_ventilation": {
+    "en": "Ventilation slits for accurate air quality readings",
+    "de": "Belüftungsschlitze für präzise Luftqualitätsmessungen",
+    "hu": "Szellőzőnyílások a pontos levegőminőség méréséhez"
+  },
+  "home_3d_cable": {
+    "en": "Cable routing holes for clean installation",
+    "de": "Kabelführungslöcher für saubere Installation",
+    "hu": "Kábelvezetési nyílások a tiszta telepítéshez"
+  },
+  "home_3d_screws": {
+    "en": "Requires just 4 M3x30 screws for mounting",
+    "de": "Benötigt nur 4 M3x30 Schrauben für die Montage",
+    "hu": "Mindössze 4 M3x30 csavar szükséges a rögzítéshez"
+  },
+  "home_3d_stl": {
+    "en": "STL files available in the project repository",
+    "de": "STL-Dateien verfügbar im Projekt-Repository",
+    "hu": "STL fájlok elérhetők a projekt tárolóban"
+  },
+  "home_customizable": {
+    "en": "Fully Customizable",
+    "de": "Vollständig anpassbar",
+    "hu": "Teljesen testreszabható"
+  },
+  "home_customizable_desc": {
+    "en": "Tailor your weather station to your preferences with extensive configuration options.",
+    "de": "Passen Sie Ihre Wetterstation mit umfangreichen Konfigurationsoptionen an Ihre Vorlieben an.",
+    "hu": "Szabja személyre az időjárás állomást kiterjedt konfigurációs lehetőségekkel."
+  },
+  "home_location": {
+    "en": "Location",
+    "de": "Standort",
+    "hu": "Helyszín"
+  },
+  "home_location_desc": {
+    "en": "Set your location for accurate forecasts",
+    "de": "Legen Sie Ihren Standort für präzise Vorhersagen fest",
+    "hu": "Állítsa be a helyszínt a pontos előrejelzéshez"
+  },
+  "home_display_settings": {
+    "en": "Brightness, sleep mode, themes",
+    "de": "Helligkeit, Schlafmodus, Themen",
+    "hu": "Fényerő, alvó mód, témák"
+  },
+  "home_language": {
+    "en": "Language",
+    "de": "Sprache",
+    "hu": "Nyelv"
+  },
+  "home_language_desc": {
+    "en": "Multiple language support",
+    "de": "Mehrsprachige Unterstützung",
+    "hu": "Többnyelvű támogatás"
+  },
+  "home_weather": {
+    "en": "Weather",
+    "de": "Wetter",
+    "hu": "Időjárás"
+  },
+  "home_weather_desc": {
+    "en": "Online weather service settings",
+    "de": "Online-Wetterdiensteinstellungen",
+    "hu": "Online időjárás szolgáltatás beállítások"
+  },
+  "home_ready_building": {
+    "en": "Ready to Start Building?",
+    "de": "Bereit zum Bauen?",
+    "hu": "Kész az építésre?"
+  },
+  "home_build_register": {
+    "en": "Build your own weather station and register for remote monitoring today!",
+    "de": "Bauen Sie Ihre eigene Wetterstation und registrieren Sie sich noch heute für die Fernüberwachung!",
+    "hu": "Építsen saját időjárás állomást és regisztráljon távoli felügyeletre még ma!"
+  },
+  "home_view_assembly": {
+    "en": "View Assembly Guide",
+    "de": "Montageanleitung ansehen",
+    "hu": "Összeszerelési útmutató megtekintése"
+  },
+  "home_view_github": {
+    "en": "View on GitHub",
+    "de": "Auf GitHub ansehen",
+    "hu": "Megtekintés GitHubon"
+  },
+  "home_open_source": {
+    "en": "Open Source Project under AGPL-3.0 License",
+    "de": "Open-Source-Projekt unter AGPL-3.0-Lizenz",
+    "hu": "Nyílt forráskódú projekt AGPL-3.0 licenc alatt"
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col justify-center align-middle items-center min-h-[80vh] p-8">
     <img :src="iconUrl" class="h-28 mx-auto py-3" alt="WAQD Icon">
-    <div class="p-4 text-xl">WeatherAirQualityDevice Device Access</div>
+    <div class="p-4 text-xl">WeatherAirQualityDevice Website</div>
     <h2 class="text-2xl p-2">{{ t('about_used_software') }}</h2>
     
     <ul class="text-xl p-2 flex flex-col space-y-2 max-w-4xl">

@@ -14,17 +14,17 @@
 
     <div class="hero hero-bg rounded-box min-h-[95vh]">
       <div class="hero-overlay"></div>
-      <div class="hero-content flex-col lg:flex-row">
-      <div class="text-center lg:text-left glass rounded-box p-4 bg-primary">
-        <h1 class="text-5xl font-bold">{{ t('login_now') }}</h1>
-        <p class="py-6 text-lg">
+      <div class="hero-content flex-col lg:flex-row px-2 sm:px-4 lg:px-8 max-w-full">
+      <div class="text-center lg:text-left glass rounded-box p-3 sm:p-4 bg-primary w-full lg:w-auto">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold">{{ t('login_now') }}</h1>
+        <p class="py-4 sm:py-6 text-base sm:text-lg">
           {{ t('login_web_access') }}
         </p>
       </div>
       <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-        <div class="card-body">
-          <fieldset class="fieldset text-2xl">
-            <label class="label">{{ t('username') }}</label>
+        <div class="card-body p-4 sm:p-8">
+          <fieldset class="fieldset text-lg sm:text-2xl">
+            <label class="label text-sm sm:text-base">{{ t('username') }}</label>
             <input
               type="text"
               id="username"
@@ -32,34 +32,34 @@
               name="username"
               autocomplete="username"
               :placeholder="t('username')"
-              class="input input-bordered"
+              class="input input-bordered text-sm sm:text-base"
               @keyup.enter="login"
             />
 
-            <label class="label">{{ t('password') }}</label>
+            <label class="label text-sm sm:text-base">{{ t('password') }}</label>
 
             <div class="flex items-center">
               <input
                 :type="passwordVisible ? 'text' : 'password'"
                 id="password"
                 v-model="password"
-                class="input input-bordered flex-grow"
+                class="input input-bordered flex-grow text-sm sm:text-base"
                 autocomplete="password"
                 :placeholder="t('password')"
                 @keyup.enter="login"
               />
               <button
                 type="button"
-                :class="['btn btn-square ml-2', { 'btn-active btn-primary': passwordVisible }]"
+                :class="['btn btn-square ml-1 sm:ml-2 min-h-0 h-12', { 'btn-active btn-primary': passwordVisible }]"
                 @click="togglePasswordVisibility"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24">
                   <use :href="visibilityIconUrl" fill="white" />
                 </svg>
               </button>
             </div>
             <!-- <div><a class="link link-hover">Forgot password?</a></div> -->
-            <button class="btn btn-primary mt-4 text-lg" @click="login">
+            <button class="btn btn-primary mt-4 text-base sm:text-lg" @click="login">
               {{ t('login') }}
               <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
             </button>
