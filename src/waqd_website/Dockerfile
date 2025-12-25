@@ -3,12 +3,6 @@ FROM python:3.13-alpine3.22 AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies
-# RUN apk add --no-cache --virtual .build-deps \
-#     mariadb-connector-c-dev \
-#     mariadb-dev \
-#     build-base
-
 RUN adduser -D waqd
 
 USER waqd
@@ -28,11 +22,6 @@ RUN . pdm-venv/bin/activate && \
 
 COPY --chown=waqd:waqd src/waqd src/waqd
 COPY --chown=waqd:waqd src/waqd_website src/waqd_website
-
-# Switch back to root to uninstall build dependencies and install runtime ones
-USER root
-RUN apk del .build-deps && \
-    apk add --no-cache mariadb-connector-c
 
 USER waqd
 
