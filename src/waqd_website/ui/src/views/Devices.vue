@@ -482,7 +482,7 @@ async function deleteDevice() {
 
 function connectToDevice(device: Device) {
   // Navigate to device detail page
-  router.push(`/device/${device.id}`)
+  router.push(`/rest/device/${device.id}`)
 }
 
 function formatDate(dateString: string) {
