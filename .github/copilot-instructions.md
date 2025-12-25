@@ -1,0 +1,1 @@
+Keep explanations short. Don't repeat the done modifications. Use Tailwind with DaisyUI components.  In Vite, when using external URLs that should be treated as runtime paths (not bundled), we need to store them in variables. 

@@ -165,7 +165,6 @@ export default defineConfig({
     },
     proxy: {
       // proxy API calls to your Python backend
-      '/public': 'http://localhost:8000',
       '/api': 'http://localhost:8000',
       // proxy WebSocket connections
       '/ws': {
