@@ -1,4 +1,3 @@
-from functools import lru_cache
 import os
 from pathlib import Path
 from fastapi import FastAPI
@@ -18,8 +17,6 @@ from .service.device_connection import (
 from .auth.authentication import (
     ADMIN_PERMISSION,
     RequiresLoginException,
-    user_redirect_check,
-    admin_check,
 )
 from .api.public.routes import rt as public_router
 from .api.user.routes import rt as user_router
