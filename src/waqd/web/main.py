@@ -33,6 +33,7 @@ web_app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost",
+        "https://waqd.de",
     ],
     allow_credentials=True,
     allow_methods=["*"],
