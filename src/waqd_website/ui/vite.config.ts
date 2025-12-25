@@ -94,14 +94,14 @@ export default defineConfig({
     }),
 
     // Copy assets from src/waqd/assets during build
-    viteStaticCopy({
-      targets: [
-        {
-          src: '../../waqd/assets/**/*',
-          dest: 'static'
-        }
-      ]
-    }),
+    // viteStaticCopy({
+    //   targets: [
+    //     {
+    //       src: '../../waqd/assets/**/*',
+    //       dest: 'static'
+    //     }
+    //   ]
+    // }),
 
     // Dev-only middleware to serve /static from src/waqd/assets
     {

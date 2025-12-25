@@ -5,41 +5,69 @@ import About from '../views/About.vue'
 import Admin from '../views/Admin.vue'
 import Devices from '../views/Devices.vue'
 import Device from '../views/Device.vue'
+import { useUser } from '../composables/useUser'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/public/home',
       name: 'home',
       component: Home
     },
     {
-      path: '/login',
+      path: '/public/login',
       name: 'login',
       component: Login
     },
     {
-      path: '/devices',
+      path: '/rest/devices',
       name: 'devices',
-      component: Devices
+      component: Devices,
+      meta: { requiresAuth: true }
     },
     {
-      path: '/device/:id',
+      path: '/rest/device/:id',
       name: 'device',
-      component: Device
+      component: Device,
+      meta: { requiresAuth: true }
     },
     {
-      path: '/about',
+      path: '/public/about',
       name: 'about',
       component: About
     },
     {
       path: '/admin',
       name: 'admin',
-      component: Admin
+      component: Admin,
+      meta: { requiresAuth: true, requiresAdmin: true }
     }
   ]
+})
+
+// Navigation guard to protect routes
+router.beforeEach(async (to, from, next) => {
+  const { isLoggedIn, isAdmin, fetchUserInfo, isLoading } = useUser()
+  
+  // Fetch user info if not already loaded
+  if (!isLoggedIn.value && !isLoading.value) {
+    await fetchUserInfo()
+  }
+  
+  // Check if route requires authentication
+  if (to.meta.requiresAuth && !isLoggedIn.value) {
+    next('/public/login')
+    return
+  }
+  
+  // Check if route requires admin
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    next('/public/home')
+    return
+  }
+  
+  next()
 })
 
 export default router

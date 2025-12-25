@@ -1,7 +1,8 @@
+from functools import lru_cache
 import os
 from pathlib import Path
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
@@ -44,7 +45,7 @@ web_app = FastAPI(
 
 @web_app.exception_handler(RequiresLoginException)
 async def exception_handler(request, exc):
-    return RedirectResponse(url="/login")
+    return RedirectResponse(url="/public/login")
 
 
 web_app.add_middleware(
@@ -67,34 +68,28 @@ web_app.include_router(public_router, prefix="/api/public")
 web_app.include_router(user_router, prefix="/api/user")
 web_app.include_router(device_router, prefix="/api/user")
 
+# Root redirect - register early
+@web_app.get("/", response_class=HTMLResponse)
+async def root():
+    """Redirect root to /public/home"""
+    return RedirectResponse(url="/public/home")
+
 # Mount the Vue.js frontend under /ui.
-# - /ui/public/* stays unauthenticated (served as-is)
-# - everything else under /ui/* requires login (via user_redirect_check)
+# - /public/* stays unauthenticated (served as-is)
+# - everything else requires login (via user_redirect_check)
 if DEBUG_LEVEL == 0:
-    @web_app.get("/admin")
-    async def admin_page(_check=admin_check):
-        """Admin page - requires admin permissions"""
-        return FileResponse(FRONTEND_DIST_DIR / "index.html")
+    # Static assets from dist - must come before catch-all
+    @web_app.get("/assets/{full_path:path}")
+    async def assets(full_path: str):
+        return resolve_path("assets/" + full_path)
 
-    @web_app.get("/public/{full_path:path}")
-    async def public_ui(full_path: str):
-        candidate_path = (FRONTEND_DIST_DIR / full_path).resolve()
-
-        # Prevent traversal: only serve from dist_dir
-        dist_dir_resolved = FRONTEND_DIST_DIR.resolve()
-        if (
-            dist_dir_resolved not in candidate_path.parents
-            and candidate_path != dist_dir_resolved
-        ):
-            return FileResponse(FRONTEND_DIST_DIR / "index.html")
-
-        if candidate_path.is_file():
-            return FileResponse(candidate_path)
-
-        return FileResponse(FRONTEND_DIST_DIR / "index.html")
-
+    # Catch-all route - must come last
     @web_app.get("/{full_path:path}")
-    async def ui_spa(full_path: str, _check=user_redirect_check):
+    async def root_files(full_path: str):
+        """Serve static files or SPA"""
+        return resolve_path(full_path)
+
+    def resolve_path(full_path: str):
         dist_dir = FRONTEND_DIST_DIR
         candidate_path = (dist_dir / full_path).resolve()
 

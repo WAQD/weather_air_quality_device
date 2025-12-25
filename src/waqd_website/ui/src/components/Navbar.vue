@@ -14,9 +14,9 @@
 
     <div class="navbar-start">
       <!-- Mobile Menu -->
-      <a href="/" class="btn btn-neutral text-xl md:text-3xl font-bold mx-2 md:mx-4">
+      <router-link to="/public/home" class="btn btn-neutral text-xl md:text-3xl font-bold mx-2 md:mx-4">
         WAQD
-      </a>
+      </router-link>
     </div>
     <div class="navbar-center hidden md:flex"></div>
     <div class="navbar-end flex gap-1 md:gap-0">
@@ -43,10 +43,10 @@
             <span>{{ username }}</span>
           </li>
           <li v-if="!isLoggedIn">
-            <router-link to="/login" class="btn btn-ghost btn-sm">{{ t('login') }}</router-link>
+            <router-link to="/public/login" class="btn btn-ghost btn-sm">{{ t('login') }}</router-link>
           </li>
           <li v-if="isLoggedIn">
-            <router-link to="/devices" class="btn btn-ghost btn-sm ">{{ t('my_devices') }}</router-link>
+            <router-link to="/rest/devices" class="btn btn-ghost btn-sm ">{{ t('my_devices') }}</router-link>
           </li>
           <li v-if="isLoggedIn && isAdmin">
             <router-link to="/admin" class="btn btn-ghost btn-sm">{{ t('admin_controls') }}</router-link>
