@@ -381,7 +381,7 @@ function showHistory(sensorType: string) {
 }
 
 function goBack() {
-  router.push('/devices')
+  router.push('/rest/devices')
 }
 
 function formatTime(date: Date): string {
