@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Toast Container -->
-    <div class="toast toast-top toast-end z-50">
+    <div class="toast toast-bottom toast-end z-50">
       <div v-if="showLoginFailedToast" class="alert alert-error">
         <span>{{ t('login_failed') }}</span>
         <button class="btn btn-square btn-error" @click="showLoginFailedToast = false">

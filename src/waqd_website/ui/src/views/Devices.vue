@@ -3,7 +3,7 @@
     <h1 class="text-4xl font-bold mb-8">{{ t('my_devices') }}</h1>
     
     <!-- Toast Container -->
-    <div class="toast toast-top toast-end z-50">
+    <div class="toast toast-bottom toast-end z-50">
       <div v-if="showSuccessToast" class="alert alert-success">
         <span>{{ toastMessage }}</span>
         <button class="btn btn-square btn-success" @click="showSuccessToast = false">
