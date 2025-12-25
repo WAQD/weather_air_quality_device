@@ -21,7 +21,7 @@ chmod +x $CURRENT_DIR/exec_install.sh
 
 if [ "$USE_ZENITY" = true ]; then
     # show update background screen
-    feh -F -x $SRC_DIR/waqd/assets/gui_base/update_screen.png &
+    feh -F -x $SRC_DIR/waqd_assets/gui_base/update_screen.png &
 
     # start Updater function and pass output to zenity. Echos starting with '#' wil be visible in the dialog.
     # Pulsating means, that we have a bouncing loading bar, without actually displaying progress.

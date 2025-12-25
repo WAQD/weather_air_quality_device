@@ -46,7 +46,6 @@ def target_mockup_fixture():
 def base_fixture(request):
     # yield "base_fixture"  # return after setup
     paths = PathSetup()
-    waqd.assets_path = paths.base_path / "src" / "waqd" / "assets"
     waqd.user_config_dir = Path(gettempdir()) / "waqd_test"
     shutil.rmtree(waqd.user_config_dir, ignore_errors=True)
 

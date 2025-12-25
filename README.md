@@ -1,4 +1,4 @@
-# <img src="./doc/images/loading_screen.jpg" width="300">
+# <img src="./src/waqd_assets/doc_images/loading_screen.jpg" width="300">
 
 # Weather and Air Quality Device - based on Raspberry Pi
 
@@ -16,14 +16,14 @@ native desktop mode in a new merged Web Ui. The device will start the ui in a ki
 
 ## Features
 
-# <img src="./doc/images/main_gui.png" width="600">
+# <img src="./src/waqd_assets/doc_images/main_gui.png" width="600">
 
 * Info pane witch clock and date
 * Interior with sensor display
 * Exterior with online or remote sensor temperature
 * 3 day forecast
 
-# <img src="./doc/images/options.png" width="600">
+# <img src="./src/waqd_assets/doc_images/options.png" width="600">
 
 * Options for
   * location
@@ -44,7 +44,7 @@ native desktop mode in a new merged Web Ui. The device will start the ui in a ki
 
 * recommended because of cable management and supports all RPi Versions up to RPi4.
 
-# <img src="./doc/images/waqd_station.jpg" width="300">
+# <img src="./src/waqd_assets/doc_images/waqd_station.jpg" width="300">
 
 ##### Sensor holding case:
 
@@ -52,7 +52,7 @@ There is a 3D-printable sensor case for holding up to 4 sensors, which is optimi
 You will need 4 M3x30 screws, and they will fit exactly on the back of the SmartiPi Touch 2 case.
 
 
-# <img src="./doc/images/sensor_case.png" width="400">
+# <img src="./src/waqd_assets/doc_images/sensor_case.png" width="400">
 
 ### Touchscreen
 

@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
-from waqd import DEBUG_LEVEL
+from waqd import DEBUG_LEVEL, assets_path as waqd_assets
 
 from .service.device_connection import (
     websocket_endpoint,
@@ -24,7 +24,6 @@ from .api.device.routes import rt as device_router
 from .database.user import add_user, get_all_users
 
 BASE_PATH = Path(__file__).parent.resolve()
-ASSETS_PATH = BASE_PATH.parent / "waqd" / "assets"
 FRONTEND_DIST_DIR = BASE_PATH / "ui" / "dist"
 
 # Generate default admin user if not exists
@@ -51,11 +50,6 @@ web_app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-web_app.mount("/static", StaticFiles(directory=str(ASSETS_PATH)), name="static")
-web_app.mount(
-    "/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets"
 )
 
 # Device connection routes
@@ -97,6 +91,51 @@ async def readiness():
 
 # Mount the Vue.js frontend
 if DEBUG_LEVEL == 0:
+    static_path = FRONTEND_DIST_DIR / "static"
+    
+    # Mount static files BEFORE catch-all routes
+    web_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+    web_app.mount(
+        "/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets"
+    )
+    
+    # Serve PWA-critical files explicitly
+    @web_app.get("/manifest.webmanifest")
+    async def serve_manifest():
+        """Serve PWA manifest"""
+        manifest_path = FRONTEND_DIST_DIR / "manifest.webmanifest"
+        if manifest_path.exists():
+            return FileResponse(manifest_path, media_type="application/manifest+json")
+        raise HTTPException(status_code=404, detail="Manifest not found")
+    
+    @web_app.get("/sw.js")
+    async def serve_service_worker():
+        """Serve service worker"""
+        sw_path = FRONTEND_DIST_DIR / "sw.js"
+        if sw_path.exists():
+            return FileResponse(sw_path, media_type="application/javascript", headers={
+                "Service-Worker-Allowed": "/",
+                "Cache-Control": "no-cache"
+            })
+        raise HTTPException(status_code=404, detail="Service worker not found")
+    
+    @web_app.get("/workbox-{filename:path}.js")
+    async def serve_workbox(filename: str):
+        """Serve workbox files"""
+        wb_path = FRONTEND_DIST_DIR / f"workbox-{filename}.js"
+        if wb_path.exists():
+            return FileResponse(wb_path, media_type="application/javascript")
+        raise HTTPException(status_code=404, detail="Workbox file not found")
+    
+    @web_app.get("/{filename}.png")
+    async def serve_pwa_icons(filename: str):
+        """Serve PWA icons (pwa-192x192.png, pwa-512x512.png)"""
+        if filename.startswith("pwa-"):
+            icon_path = FRONTEND_DIST_DIR / f"{filename}.png"
+            if icon_path.exists():
+                return FileResponse(icon_path, media_type="image/png")
+        raise HTTPException(status_code=404, detail="Icon not found")
+    
     # Catch-all route - must come last
     @web_app.get("/{full_path:path}")
     async def root_files(full_path: str):
@@ -119,3 +158,10 @@ if DEBUG_LEVEL == 0:
             return FileResponse(candidate_path)
 
         return FileResponse(dist_dir / "index.html")
+else:
+    static_path = waqd_assets
+    # Mount static files for development
+    web_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+    web_app.mount(
+        "/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets"
+    )

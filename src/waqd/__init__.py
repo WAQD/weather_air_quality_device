@@ -42,6 +42,6 @@ WEATHER_DATA_PROVIDER = 2
 
 # paths to find folders
 base_path = Path(__file__).absolute().parent
-assets_path = base_path / "assets"
+assets_path = base_path.parent / "waqd_assets"
 user_config_dir = Path().home() / ".waqd"
 user_config_dir.mkdir(parents=True, exist_ok=True)

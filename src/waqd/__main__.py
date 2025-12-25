@@ -12,7 +12,7 @@ def setup_on_non_target_system():
     import logging
 
     logging.getLogger("root").info(
-        "System: Using mockups from %s" % str(mockup_path)
+        "System: Using mockups from %s", str(mockup_path)
     )  # don't use logger yet
 
 

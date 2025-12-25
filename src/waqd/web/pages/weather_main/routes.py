@@ -76,19 +76,24 @@ async def interior():
 @rt.get("/exterior")
 async def exterior():
     ext_values = SensorRetrieval().get_exterior_sensor_values(units=True)
-    current_weather = WeatherRetrieval().get_current_weather()
-    forecast = WeatherRetrieval().get_5_day_forecast()
-    if not current_weather:
-        return JSONResponse(content=ExteriorView().model_dump())
-
-    weather_bgr = get_asset_file_relative(current_weather.get_background_image())
+    # if not ext_values.temp or hum
+    assert ext_values.hum is not None and ext_values.temp is not None
     response_data = ExteriorView(
-        background=weather_bgr,
         temp=ext_values.temp,
         hum=ext_values.hum,
-        weather_icon=get_asset_file_relative(current_weather.get_icon()),
-        weather_day_min_max=f"{forecast[0].temp_min}°/{forecast[0].temp_max}°",
-        weather_night_min_max=f"{forecast[0].temp_night_min}°/{forecast[0].temp_night_max}°",
+    )
+    current_weather = WeatherRetrieval().get_current_weather()
+    if not current_weather:
+        return JSONResponse(response_data.model_dump())
+
+    weather_bgr = get_asset_file_relative(current_weather.get_background_image())
+    forecast = WeatherRetrieval().get_5_day_forecast()
+
+    response_data.background = weather_bgr
+    response_data.weather_icon = get_asset_file_relative(current_weather.get_icon())
+    response_data.weather_day_min_max = f"{forecast[0].temp_min}°/{forecast[0].temp_max}°"
+    response_data.weather_night_min_max = (
+        f"{forecast[0].temp_night_min}°/{forecast[0].temp_night_max}°"
     )
 
     return JSONResponse(content=response_data.model_dump())
@@ -127,4 +132,3 @@ async def forecast():
     )
 
     return JSONResponse(content=response_data.model_dump())
-

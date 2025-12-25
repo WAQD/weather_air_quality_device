@@ -23,7 +23,7 @@ export default defineConfig({
     // PWA Configuration
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico'],
+      includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'WAQD - Weather & Air Quality Device',
         short_name: 'WAQD',
@@ -55,8 +55,12 @@ export default defineConfig({
           }
         ]
       },
+      injectRegister: 'auto',
+      strategies: 'generateSW',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        cleanupOutdatedCaches: true,
+        sourcemap: false,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -93,22 +97,38 @@ export default defineConfig({
       }
     }),
 
-    // Copy assets from src/waqd/assets during build
-    // viteStaticCopy({
-    //   targets: [
-    //     {
-    //       src: '../../waqd/assets/**/*',
-    //       dest: 'static'
-    //     }
-    //   ]
-    // }),
+    // Copy assets from src/waqd_assets during build (excluding Python files)
+    viteStaticCopy({
+      targets: [
+        {
+          src: '../../waqd_assets/gui_base/**/*.{avif,jpg,jpeg,png,svg}',
+          dest: 'static/gui_base'
+        },
+        {
+          src: '../../waqd_assets/doc_images/**/*.{avif,jpg,jpeg,png,svg}',
+          dest: 'static/doc_images'
+        },
+        {
+          src: '../../waqd_assets/general_icons/**/*.svg',
+          dest: 'static/general_icons'
+        },
+        {
+          src: '../../waqd_assets/font/**/*.{woff,woff2,ttf,otf}',
+          dest: 'static/font'
+        },
+        {
+          src: '../../waqd_assets/base/ui_dict.json',
+          dest: 'static/base'
+        }
+      ]
+    }),
 
-    // Dev-only middleware to serve /static from src/waqd/assets
+    // Dev-only middleware to serve /static from src/waqd_assets
     {
       name: 'waqd-static-dev',
       apply: 'serve',
       configureServer(server) {
-        const staticRoot = resolve(__dirname, '../../waqd/assets')
+        const staticRoot = resolve(__dirname, '../../waqd_assets')
         
         server.middlewares.use((req, res, next) => {
           if (!req.url?.startsWith('/static/')) {
@@ -150,9 +170,23 @@ export default defineConfig({
 
   assetsInclude: ['**/*.svg', '**/*.avif'],
 
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          // Keep static assets in their original paths
+          if (assetInfo.name?.includes('static/')) {
+            return assetInfo.name;
+          }
+          return 'assets/[name]-[hash][extname]';
+        },
+      },
+    },
+  },
+
   resolve: {
     alias: {
-      '@static': resolve(__dirname, '../../waqd/assets'),
+      '@static': resolve(__dirname, '../../waqd_assets'),
     },
   },
 
@@ -160,7 +194,7 @@ export default defineConfig({
     fs: {
       allow: [
         __dirname,
-        resolve(__dirname, '../../waqd/assets'),
+        resolve(__dirname, '../../waqd_assets'),
       ],
     },
     proxy: {
