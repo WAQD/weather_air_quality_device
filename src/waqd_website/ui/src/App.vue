@@ -1,6 +1,6 @@
 <template>
   <Navbar />
-  <div class="bg-gradient-to-b from-base-200 to-base-300">
+  <div class="bg-gradient-to-b from-base-200 to-base-300 overflow-x-hidden">
     <router-view />
   </div>
 </template>

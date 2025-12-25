@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="overflow-x-hidden">
     <!-- Toast Container -->
     <div class="toast toast-bottom toast-end z-50">
       <div v-if="showLoginFailedToast" class="alert alert-error">
@@ -12,17 +12,17 @@
       </div>
     </div>
 
-    <div class="hero hero-bg rounded-box min-h-[95vh]">
+    <div class="hero hero-bg min-h-[95vh]">
       <div class="hero-overlay"></div>
-      <div class="hero-content flex-col lg:flex-row px-2 sm:px-4 lg:px-8 max-w-full">
-      <div class="text-center lg:text-left glass rounded-box p-3 sm:p-4 bg-primary w-full lg:w-auto">
+      <div class="hero-content flex-col lg:flex-row px-2 sm:px-6 lg:px-8 w-full max-w-full gap-4 sm:gap-8">
+      <div class="text-center lg:text-left glass rounded-box p-3 sm:p-4 bg-primary w-full max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] lg:w-auto lg:max-w-none">
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold">{{ t('login_now') }}</h1>
         <p class="py-4 sm:py-6 text-base sm:text-lg">
           {{ t('login_web_access') }}
         </p>
       </div>
-      <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-        <div class="card-body p-4 sm:p-8">
+      <div class="card bg-base-100 w-full max-w-[calc(100vw-1rem)] sm:max-w-sm shrink-0 shadow-2xl">
+        <div class="card-body p-3 sm:p-6 lg:p-8">
           <fieldset class="fieldset text-lg sm:text-2xl">
             <label class="label text-sm sm:text-base">{{ t('username') }}</label>
             <input
@@ -138,4 +138,13 @@ function login() {
 }
 </script>
 
+<style scoped>
+/* Override DaisyUI hero-content min-width on mobile */
+@media (max-width: 640px) {
+  .hero-content {
+    min-width: auto !important;
+    max-width: 100vw !important;
+  }
+}
+</style>
 
