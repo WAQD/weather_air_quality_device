@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div class="hero hero-bg rounded-box min-h-[85vh]">
+    <div class="hero hero-bg rounded-box min-h-[95vh]">
       <div class="hero-overlay"></div>
       <div class="hero-content flex-col lg:flex-row">
       <div class="text-center lg:text-left glass rounded-box p-4 bg-primary">
@@ -50,7 +50,7 @@
               />
               <button
                 type="button"
-                class="btn btn-square ml-2"
+                :class="['btn btn-square ml-2', { 'btn-active btn-primary': passwordVisible }]"
                 @click="togglePasswordVisibility"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24">

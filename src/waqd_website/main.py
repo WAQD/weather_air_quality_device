@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,6 +73,27 @@ web_app.include_router(device_router, prefix="/api/user")
 async def root():
     """Redirect root to /public/home"""
     return RedirectResponse(url="/public/home")
+
+
+@web_app.get("/health/live")
+async def liveness():
+    """Liveness probe - simple OK response to indicate the app is running."""
+    return {"status": "alive"}
+
+
+@web_app.get("/health/ready")
+async def readiness():
+    """Readiness probe - verifies essential dependencies are available.
+
+    Currently checks that the user database can be read. Return 503 if
+    a dependency check fails so orchestrators can retry.
+    """
+    try:
+        # simple sanity check: can we read users from the database?
+        _ = get_all_users()
+        return {"status": "ready"}
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"not ready: {exc}")
 
 # Mount the Vue.js frontend
 if DEBUG_LEVEL == 0:
