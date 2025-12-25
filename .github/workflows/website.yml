@@ -15,7 +15,7 @@ on:
 
 jobs:
   build:
-    runs-on: ARM64
+    runs-on: ubuntu-latest
     outputs:
       version_comment: ${{ steps.set_tag.outputs.version_comment }}
     steps:
