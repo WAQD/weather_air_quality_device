@@ -40,16 +40,24 @@ issues = "https://github.com/goszpeti/weather_air_quality_device/issues"
 requires = ["pdm-backend", "pdm-build-locked"]
 build-backend = "pdm.backend"
 
-[tool.setuptools.packages.find]
-where = ["src"] # list of folders that contain the packages (["."] by default)
-include = [
-    "waqd",
-    "waqd_assets"
+[tool.pdm.build]
+includes = [
+    "src/waqd",
+    "src/waqd_assets"
 ]
-namespaces = true # to disable scanning PEP 420 namespaces (true by default)
+source-includes = []
 
 [tool.setuptools.package-data]
 "waqd" = [
+    "**/*.pyi",
+    "**/*.html",
+    "**/*.ini",
+    "**assets/**/*.*",
+    "**/*.in",
+    "ui/**/*.in",
+    "ui/web/**/*.*",
+]
+"waqd_assets" = [
     "**/*.pyi",
     "**/*.html",
     "**/*.ini",

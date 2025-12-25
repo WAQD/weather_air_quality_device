@@ -1,6 +1,6 @@
 import os
 from waqd.base.component import Component
-from typing import Dict, Any, Optional, TYPE_CHECKING
+from typing import Dict, Any, Optional
 import uuid
 import asyncio
 import json
@@ -14,11 +14,10 @@ import waqd.app as app
 import websockets
 
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
-from waqd.web.api.sensor.v1.model import SensorApi_v1
 
 class WAQDDeviceClient(Component):
     def __init__(self):
-        self._server_url = os.getenv("WAQD_WEBSITE_ADDRESS", "https://www.waqd.de")
+        self._server_url = os.getenv("WAQD_WEBSITE_ADDRESS", "https://waqd.de")
         self._device_id = self.get_mac_address()
         self._user_api_key = app.settings.get_string(USER_API_KEY)
         self._websocket: Optional[Any] = None
