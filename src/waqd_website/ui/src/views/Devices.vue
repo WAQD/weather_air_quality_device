@@ -103,6 +103,22 @@
                 {{ t('connect') }}
               </button>
               <button 
+                class="btn btn-sm btn-ghost"
+                @click="openEditModal(device)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+              </button>
+              <button 
+                class="btn btn-sm btn-ghost"
+                @click="openShareModal(device)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                </svg>
+              </button>
+              <button 
                 class="btn btn-sm btn-error"
                 @click="openDeleteModal(device)"
               >
@@ -219,6 +235,80 @@
       </form>
     </dialog>
 
+    <!-- Edit Device Modal -->
+    <dialog ref="editModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">{{ t('edit_device') }}</h3>
+        <div class="space-y-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">{{ t('device_name') }}</span>
+            </label>
+            <input
+              v-model="editDeviceName"
+              type="text"
+              class="input input-bordered"
+              :placeholder="deviceToEdit?.name || t('device_name')"
+            />
+          </div>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">{{ t('location') }}</span>
+            </label>
+            <input
+              v-model="editDeviceLocation"
+              type="text"
+              class="input input-bordered"
+              :placeholder="deviceToEdit?.location || t('location')"
+            />
+          </div>
+        </div>
+        <div class="modal-action">
+          <button class="btn" @click="closeEditModal">{{ t('cancel') }}</button>
+          <button class="btn btn-primary" @click="saveDeviceEdit" :disabled="savingEdit">
+            <span v-if="savingEdit" class="loading loading-spinner loading-sm mr-2"></span>
+            {{ t('save') }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button @click="closeEditModal">close</button>
+      </form>
+    </dialog>
+
+    <!-- Share Device Modal -->
+    <dialog ref="shareModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">{{ t('share_device') }}</h3>
+        <p class="text-sm opacity-70 mb-4">{{ t('share_device_description') }}</p>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">{{ t('username') }}</span>
+          </label>
+          <input
+            v-model="shareUsername"
+            type="text"
+            class="input input-bordered"
+            :placeholder="t('enter_username')"
+          />
+        </div>
+        <div class="modal-action">
+          <button class="btn" @click="closeShareModal">{{ t('cancel') }}</button>
+          <button 
+            class="btn btn-primary" 
+            @click="shareDeviceWithUser" 
+            :disabled="!shareUsername || sharingDevice"
+          >
+            <span v-if="sharingDevice" class="loading loading-spinner loading-sm mr-2"></span>
+            {{ t('share') }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button @click="closeShareModal">close</button>
+      </form>
+    </dialog>
+
     <!-- Delete Device Modal -->
     <dialog ref="deleteModal" class="modal">
       <div class="modal-box">
@@ -265,8 +355,17 @@ const loading = ref(true)
 const devices = ref<Device[]>([])
 const pairingModal = ref<HTMLDialogElement | null>(null)
 const deleteModal = ref<HTMLDialogElement | null>(null)
+const editModal = ref<HTMLDialogElement | null>(null)
+const shareModal = ref<HTMLDialogElement | null>(null)
 const deviceToDelete = ref<Device | null>(null)
+const deviceToEdit = ref<Device | null>(null)
+const deviceToShare = ref<Device | null>(null)
 const deletingDevice = ref(false)
+const savingEdit = ref(false)
+const sharingDevice = ref(false)
+const editDeviceName = ref('')
+const editDeviceLocation = ref('')
+const shareUsername = ref('')
 const showSuccessToast = ref(false)
 const showErrorToast = ref(false)
 const toastMessage = ref('')
@@ -519,6 +618,102 @@ async function deleteDevice() {
     showToast('error', t('error_deleting_device') || 'Failed to delete device')
   } finally {
     deletingDevice.value = false
+  }
+}
+
+function openEditModal(device: Device) {
+  deviceToEdit.value = device
+  editDeviceName.value = device.name || ''
+  editDeviceLocation.value = device.location || ''
+  editModal.value?.showModal()
+}
+
+function closeEditModal() {
+  editModal.value?.close()
+  deviceToEdit.value = null
+  editDeviceName.value = ''
+  editDeviceLocation.value = ''
+}
+
+async function saveDeviceEdit() {
+  if (!deviceToEdit.value) return
+  
+  savingEdit.value = true
+  try {
+    const response = await fetch(`/api/user/devices/${deviceToEdit.value.device_id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: editDeviceName.value || null,
+        location: editDeviceLocation.value || null,
+      }),
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to update device')
+    }
+    
+    const data = await response.json()
+    
+    // Update the device in the list
+    const deviceIndex = devices.value.findIndex(d => d.id === deviceToEdit.value?.id)
+    if (deviceIndex !== -1 && data.device) {
+      const updatedDevice = devices.value[deviceIndex]
+      if (updatedDevice) {
+        updatedDevice.name = data.device.name
+        updatedDevice.location = data.device.location
+      }
+    }
+    
+    showToast('success', t('device_updated_successfully') || 'Device updated successfully')
+    closeEditModal()
+  } catch (error) {
+    console.error('Error updating device:', error)
+    showToast('error', t('error_updating_device') || 'Failed to update device')
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+function openShareModal(device: Device) {
+  deviceToShare.value = device
+  shareUsername.value = ''
+  shareModal.value?.showModal()
+}
+
+function closeShareModal() {
+  shareModal.value?.close()
+  deviceToShare.value = null
+  shareUsername.value = ''
+}
+
+async function shareDeviceWithUser() {
+  if (!deviceToShare.value || !shareUsername.value) return
+  
+  sharingDevice.value = true
+  try {
+    const response = await fetch(`/api/user/devices/${deviceToShare.value.device_id}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        username: shareUsername.value,
+      }),
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || 'Failed to share device')
+    }
+    
+    showToast('success', t('device_shared_successfully') || `Device shared successfully with ${shareUsername.value}`)
+    closeShareModal()
+  } catch (error) {
+    console.error('Error sharing device:', error)
+    showToast('error', error instanceof Error ? error.message : t('error_sharing_device') || 'Failed to share device')
+  } finally {
+    sharingDevice.value = false
   }
 }
 

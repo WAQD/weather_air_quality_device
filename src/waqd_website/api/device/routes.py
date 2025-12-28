@@ -19,7 +19,12 @@ from waqd_website.database.device_reg import (
     get_session_by_id,
 )
 from waqd_website.database.devices import delete_device as db_delete_device
-from waqd_website.database.devices import get_devices_for_user, update_device_status
+from waqd_website.database.devices import (
+    get_devices_for_user,
+    update_device_status,
+    update_device as db_update_device,
+    add_device_owner,
+)
 from waqd_website.database import User
 from waqd_website.database.user import get_user_by_id
 
@@ -135,6 +140,78 @@ async def delete_device(device_id: str, current_user: User = user_exception_chec
         )
 
     return {"success": True, "message": "Device deleted successfully"}
+
+
+class UpdateDeviceRequest(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+
+
+@rt.put("/devices/{device_id}")
+async def update_device(
+    device_id: str, 
+    request: UpdateDeviceRequest,
+    current_user: User = user_exception_check
+):
+    """
+    Update device name and/or location
+    """
+    updated_device = db_update_device(
+        device_id=device_id,
+        username=current_user.username,
+        name=request.name,
+        location=request.location
+    )
+
+    if not updated_device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found or you don't have permission to update it",
+        )
+
+    return {
+        "success": True,
+        "message": "Device updated successfully",
+        "device": DeviceResponse(
+            id=updated_device.id or 0,
+            device_id=updated_device.device_id,
+            name=updated_device.name,
+            location=updated_device.location,
+            status=updated_device.status,
+            last_seen=updated_device.last_seen,
+        )
+    }
+
+
+class AddDeviceOwnerRequest(BaseModel):
+    username: str
+
+
+@rt.post("/devices/{device_id}/share")
+async def share_device(
+    device_id: str,
+    request: AddDeviceOwnerRequest,
+    current_user: User = user_exception_check
+):
+    """
+    Share a device with another user by adding them as an owner
+    """
+    success = add_device_owner(
+        device_id=device_id,
+        new_owner_username=request.username,
+        current_owner_username=current_user.username
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to share device. User may not exist or device not found.",
+        )
+
+    return {
+        "success": True,
+        "message": f"Device successfully shared with {request.username}"
+    }
 
 
 # Pairing routines

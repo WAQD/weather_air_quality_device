@@ -1424,5 +1424,50 @@
     "en": "Open Source Project under AGPL-3.0 License",
     "de": "Open-Source-Projekt unter AGPL-3.0-Lizenz",
     "hu": "Nyílt forráskódú projekt AGPL-3.0 licenc alatt"
+  },
+  "edit_device": {
+    "en": "Edit Device",
+    "de": "Gerät bearbeiten",
+    "hu": "Eszköz szerkesztése"
+  },
+  "save": {
+    "en": "Save",
+    "de": "Speichern",
+    "hu": "Mentés"
+  },
+  "share_device": {
+    "en": "Share Device",
+    "de": "Gerät teilen",
+    "hu": "Eszköz megosztása"
+  },
+  "share_device_description": {
+    "en": "Enter the username of the person you want to share this device with",
+    "de": "Geben Sie den Benutzernamen der Person ein, mit der Sie dieses Gerät teilen möchten",
+    "hu": "Adja meg annak a személynek a felhasználónevét, akivel meg szeretné osztani ezt az eszközt"
+  },
+  "share": {
+    "en": "Share",
+    "de": "Teilen",
+    "hu": "Megosztás"
+  },
+  "device_updated_successfully": {
+    "en": "Device updated successfully",
+    "de": "Gerät erfolgreich aktualisiert",
+    "hu": "Eszköz sikeresen frissítve"
+  },
+  "device_shared_successfully": {
+    "en": "Device shared successfully",
+    "de": "Gerät erfolgreich geteilt",
+    "hu": "Eszköz sikeresen megosztva"
+  },
+  "error_updating_device": {
+    "en": "Error updating device",
+    "de": "Fehler beim Aktualisieren des Geräts",
+    "hu": "Hiba az eszköz frissítésekor"
+  },
+  "error_sharing_device": {
+    "en": "Error sharing device",
+    "de": "Fehler beim Teilen des Geräts",
+    "hu": "Hiba az eszköz megosztásakor"
   }
 }
