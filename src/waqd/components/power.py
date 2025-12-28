@@ -2,7 +2,6 @@ import datetime
 import time
 from threading import Timer
 
-from pynput import mouse
 import waqd.app as app
 from waqd.base.component_reg import ComponentRegistry, CyclicComponent
 from waqd.settings import (
@@ -31,17 +30,20 @@ class ESaver(CyclicComponent):
     INIT_WAIT_TIME = 5
     UPDATE_TIME = 2
 
-    def __init__(self, components: ComponentRegistry, settings):
+    def __init__(self, components: ComponentRegistry, settings: Settings):
         super().__init__(components, settings)
-        self._settings: Settings
         self._comps: ComponentRegistry
+        self._settings: Settings
 
         self._night_mode_active = False
         self._is_awake = False
         self._sleep_timer = None
+        self._previous_state = ""
+
         self._start_update_loop(update_func=self._set_day_night_mode)
         self._ready = True
-        self._previous_state = ""
+
+        from pynput import mouse
         self._mouse_listener = mouse.Listener(
             on_move=ESaver._on_mouse_move,
         )

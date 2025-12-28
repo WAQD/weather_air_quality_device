@@ -25,15 +25,22 @@ CCS811_ENABLED = "ccs811_enabled"
 MH_Z19_ENABLED = "mh_z19_enabled"
 MH_Z19_VALUE_OFFSET = "mh_z19_value_offset"
 LOG_SENSOR_DATA = "log_sensor_data"
-USER_SESSION_SECRET = "user_session_secret"
+
+# WAQD Website
 USER_API_KEY = "user_api_key"
+# save mac address of the device for identification (could change, but still the saved one)
+MAC_ADDRESS = "mac_address"
+
+# Local remote mode
+REMOTE_MODE_URL = "remote_mode_url"
 REMOTE_API_KEY = "remote_api_key"
 
+# updater
 AUTO_UPDATER_ENABLED = "auto_updater_enabled"
 UPDATER_USER_BETA_CHANNEL = "updater_use_beta_channel"
 
+# saved sensor values
 LAST_TEMP_C_OUTSIDE = "last_temp_outside_value"  # TODO write
-REMOTE_MODE_URL = "remote_mode_url"
 
 # gui
 FORECAST_BG = "forecast_background"
