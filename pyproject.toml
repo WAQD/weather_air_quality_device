@@ -21,7 +21,7 @@ dependencies = [
     "frozendict==2.4.6",       # LGPLv3 - for frozen dicts
     "bcrypt==4.1.3",       # Apache License, Version 2.0 - Password hashing
     "typing_extensions",
-    "fastapi[standard]~=0.115.12", # MIT License
+    "fastapi[standard]~=0.128", # MIT License
     "Jinja2==3.1.6",               # BSD License
     "PyJWT==2.10.1",               # MIT License
     "passlib >=1.7.4, <2.0.0",     # BSD License - password hashing
