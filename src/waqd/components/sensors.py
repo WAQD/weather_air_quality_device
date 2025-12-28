@@ -9,7 +9,6 @@ import sys
 import threading
 import time
 from ast import literal_eval
-from nmcli import NetworkConnectivity
 from statistics import mean
 from subprocess import check_output
 from typing import TYPE_CHECKING, Optional
@@ -17,6 +16,7 @@ from typing import TYPE_CHECKING, Optional
 import board
 import requests
 import RPi.GPIO
+from nmcli import NetworkConnectivity
 from pint.facets.plain import PlainQuantity as Quantity
 
 from waqd import LOCAL_TIMEZONE
@@ -27,9 +27,13 @@ from waqd.base.db_logger import InfluxSensorLogger
 from waqd.base.file_logger import Logger, SensorFileLogger
 from waqd.base.network import Network
 from waqd.base.system import RuntimeSystem
-from waqd.settings import (LAST_TEMP_C_OUTSIDE, LOCATION_ALTITUDE_M,
-                           LOG_SENSOR_DATA, MH_Z19_VALUE_OFFSET,
-                           REMOTE_API_KEY, REMOTE_MODE_URL, Settings)
+from waqd.settings import (
+    LAST_TEMP_C_OUTSIDE,
+    LOCATION_ALTITUDE_M,
+    LOG_SENSOR_DATA,
+    MH_Z19_VALUE_OFFSET,
+    Settings,
+)
 from waqd.web.api.sensor.v1.model import SensorApi_v1
 
 if TYPE_CHECKING:
@@ -247,7 +251,7 @@ class TempSensor(SensorComponent):
         self,
         logging_enabled: bool,
         max_measure_points=DEFAULT_MAX_MEASURE_POINTS,
-        enabled=True,  # TODO add consts for "temp_degC"
+        enabled=True,
         log_location_type=SENSOR_INTERIOR_TYPE,
         log_measure_type="temp_degC",
         invalidation_time_s=DEFAULT_INVALIDATION_TIME_S,
@@ -609,6 +613,7 @@ class DHT22(TempSensor, HumiditySensor, CyclicComponent):
         Initialize sensor (simply save the module), no complicated init needed.
         """
         from adafruit_dht import DHT22 as DHT22_drv
+
         # driver uses pulseio - only one process can be open
         self._kill_libgpiod()
         self._sensor_driver = DHT22_drv(self._pin)
@@ -623,7 +628,7 @@ class DHT22(TempSensor, HumiditySensor, CyclicComponent):
         if not self._sensor_driver:
             self._disabled = True
             return
-        
+
         temperature = None
         humidity = None
         while not temperature and not humidity:
@@ -835,7 +840,7 @@ class MH_Z19(CO2Sensor, CyclicComponent):  # pylint: disable=invalid-name
                     cmd = [sys.executable, "-m", "mh_z19"]
                 output = check_output(cmd).decode("utf-8")
                 output.strip()
-                if not output or not "co2" in output.lower():
+                if not output or "co2" not in output.lower():
                     self._error_num += 1
                 else:
                     co2 = int(literal_eval(output).get("co2", ""))
@@ -1100,6 +1105,7 @@ class SR501(SensorComponent):  # pylint: disable=invalid-name
         """Initializer function, register the wake-up function to the configured pin."""
         try:
             from gpiozero import MotionSensor
+
             self._sensor_driver = MotionSensor(self._pin)
             self._sensor_driver.when_activated = self._wake_up_from_sensor
         except Exception as error:
@@ -1118,6 +1124,7 @@ class SR501(SensorComponent):  # pylint: disable=invalid-name
 
     def stop(self):
         self._sensor_driver.close()
+
 
 class WAQDRemoteSensor(TempSensor, HumiditySensor, BarometricSensor, CO2Sensor):
     """Remote sensor via WAQD HTTP service"""
@@ -1175,39 +1182,43 @@ class WAQDRemoteStation(
     INIT_WAIT_TIME = 2
     UPDATE_TIME = 10
 
-    def __init__(self, components: ComponentRegistry, settings: Settings):
-        log_values = bool(settings.get(LOG_SENSOR_DATA))
+    def __init__(
+        self, components: ComponentRegistry, log_sensor_data: bool, url: str, api_key: str
+    ):
+        self._url = url
+        self._api_key = api_key
+
         TempSensor.__init__(
             self,
-            log_values,
+            log_sensor_data,
             self.MEASURE_POINTS,
             log_location_type=SENSOR_INTERIOR_TYPE,
             invalidation_time_s=self.UPDATE_TIME * 6,
         )
         HumiditySensor.__init__(
             self,
-            log_values,
+            log_sensor_data,
             self.MEASURE_POINTS,
             log_location_type=SENSOR_INTERIOR_TYPE,
             invalidation_time_s=self.UPDATE_TIME * 6,
         )
         BarometricSensor.__init__(
             self,
-            log_values,
+            log_sensor_data,
             self.MEASURE_POINTS,
             log_location_type=SENSOR_INTERIOR_TYPE,
             invalidation_time_s=self.UPDATE_TIME * 6,
         )
         CO2Sensor.__init__(
             self,
-            log_values,
+            log_sensor_data,
             self.MEASURE_POINTS,
             log_location_type=SENSOR_INTERIOR_TYPE,
             invalidation_time_s=self.UPDATE_TIME * 6,
         )
-        CyclicComponent.__init__(self, components, settings, log_values)
+        CyclicComponent.__init__(self, components, enabled=log_sensor_data)
         self._start_update_loop(self._read_sensor, self._read_sensor)
-        self._url = settings.get_string(REMOTE_MODE_URL)
+
         self._readings_stabilized = (
             True  # init with stabilized values, we know nothing about it
         )
@@ -1219,7 +1230,7 @@ class WAQDRemoteStation(
             response = requests.get(
                 url,
                 headers={
-                    "Authorization": "Bearer " + self._settings.get_string(REMOTE_API_KEY)
+                    "Authorization": "Bearer " + self._api_key,
                 },
                 timeout=5,
             )

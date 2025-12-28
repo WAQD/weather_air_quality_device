@@ -5,7 +5,7 @@ Settings need to be already set up for usage.
 
 from waqd.components.display import Display
 from waqd.components.events import EventHandler
-from waqd.components.external_device import WAQDDeviceClient
+from waqd.components.website_service import WAQDDeviceClient
 from waqd.components.power import ESaver
 from waqd.components.sensors import (
     BH1750,

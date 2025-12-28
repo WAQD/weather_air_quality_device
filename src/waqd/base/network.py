@@ -1,5 +1,6 @@
 import re
 from time import sleep
+import uuid
 
 import nmcli
 from nmcli import NetworkConnectivity
@@ -36,6 +37,15 @@ class Network:
         self.is_connected_via_wlan()  # init _wlan_device
 
         self.wait_for_network()
+
+    @staticmethod
+    def get_mac_address() -> str:
+        """Get MAC address of the device to use as device_id"""
+        mac_num = uuid.getnode()
+        mac_hex = ":".join(
+            f"{(mac_num >> elements) & 0xFF:02x}" for elements in range(0, 8 * 6, 8)
+        )
+        return mac_hex
 
     def check_internet_connection(self):
         """

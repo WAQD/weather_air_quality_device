@@ -1,13 +1,12 @@
 import configparser
 import logging
 import os
-import secrets
 from pathlib import Path
 from typing import Dict, Union
 
-import bcrypt
 
 from waqd import PROG_NAME
+from waqd.base.network import Network
 from waqd.settings import (
     AUTO_UPDATER_ENABLED,
     BME_280_ENABLED,
@@ -33,6 +32,7 @@ from waqd.settings import (
     LOCATION_NAME,
     LOCATION_STATE,
     LOG_SENSOR_DATA,
+    MAC_ADDRESS,
     MH_Z19_ENABLED,
     MH_Z19_VALUE_OFFSET,
     MOTION_SENSOR_ENABLED,
@@ -48,7 +48,6 @@ from waqd.settings import (
     THEME_COLOR,
     UPDATER_USER_BETA_CHANNEL,
     USER_API_KEY,
-    USER_SESSION_SECRET,
     WAVESHARE_DISP_BRIGHTNESS_PIN,
 )
 
@@ -106,6 +105,7 @@ class Settings:
                 UPDATER_USER_BETA_CHANNEL: False,
                 LAST_TEMP_C_OUTSIDE: 23.5,
                 STARTUP_JINGLE: True,
+                MAC_ADDRESS: Network.get_mac_address(),
             },
             self._THEMING_SECTION_NAME: {
                 INTERIOR_BG: "background_s8.jpg",
@@ -143,7 +143,6 @@ class Settings:
                 LOG_SENSOR_DATA: True,
             },
             self._SECRET_SECTION_NAME: {
-                USER_SESSION_SECRET: secrets.token_hex(32),
                 USER_API_KEY: "",
                 OW_API_KEY: "",
             },
@@ -280,7 +279,7 @@ class Settings:
         """Helper function to write an option."""
         value = self.get(option_name)
         section = self._get_section(section_name)
-        if not option_name in section:
+        if option_name not in section:
             self._logger.error("Option %s to write is unknown", option_name)
         if isinstance(value, dict):
             # dicts are handled as ordered dicts, where one line is one entry named option_name + _<id>

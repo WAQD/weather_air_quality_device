@@ -132,7 +132,7 @@ async def about():
 async def device_info():
     """Get device info for pairing - just returns server URL and device ID"""
     try:
-        external_device = app.comp_ctrl.components.external_websocket_connection
+        external_device = app.comp_ctrl.components.website_websocket_connection
         
         return JSONResponse({
             "device_id": external_device._device_id,
@@ -148,7 +148,7 @@ async def device_info():
 async def pairing_complete(pairing_data: Dict[str, Any]):
     """Called by frontend when pairing is complete - notifies the component"""
     try:
-        external_device = app.comp_ctrl.components.external_websocket_connection
+        external_device = app.comp_ctrl.components.website_websocket_connection
         
         # Extract API key and user info from pairing data
         api_key = pairing_data.get("api_key")
