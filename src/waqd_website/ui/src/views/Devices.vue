@@ -279,9 +279,11 @@ const claiming = ref(false)
 const pairingError = ref('')
 let currentSessionId: string | null = null
 let pollingInterval: number | null = null
+let deviceStatusPollingInterval: number | null = null
 
 onMounted(async () => {
   await loadDevices()
+  startDeviceStatusPolling()
 })
 
 async function loadDevices() {
@@ -302,6 +304,46 @@ async function loadDevices() {
     showToast('error', t('error_loading_devices') || 'Failed to load devices')
   } finally {
     loading.value = false
+  }
+}
+
+async function updateDeviceStatus() {
+  try {
+    const response = await fetch('/api/user/devices', {
+      credentials: 'include'
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to update device status')
+    }
+    
+    const data = await response.json()
+    const updatedDevices = data.devices || []
+    
+    // Update existing devices without triggering full re-render
+    updatedDevices.forEach((updatedDevice: Device) => {
+      const existingDevice = devices.value.find(d => d.id === updatedDevice.id)
+      if (existingDevice) {
+        existingDevice.status = updatedDevice.status
+        existingDevice.last_seen = updatedDevice.last_seen
+      }
+    })
+    } catch (error) {
+    console.error('Error updating device status:', error)
+  }
+}
+
+function startDeviceStatusPolling() {
+  // Poll every 5 seconds
+  deviceStatusPollingInterval = window.setInterval(async () => {
+    await updateDeviceStatus()
+  }, 10000)
+}
+
+function stopDeviceStatusPolling() {
+  if (deviceStatusPollingInterval !== null) {
+    clearInterval(deviceStatusPollingInterval)
+    deviceStatusPollingInterval = null
   }
 }
 
@@ -517,6 +559,7 @@ function showToast(type: 'success' | 'error', message: string) {
 // Cleanup on unmount
 onUnmounted(() => {
   stopPolling()
+  stopDeviceStatusPolling()
 })
 </script>
 

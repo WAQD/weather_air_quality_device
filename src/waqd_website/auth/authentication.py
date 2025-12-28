@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.openapi.models import OAuthFlows, OAuthFlowPassword
+from fastapi.openapi.models import OAuthFlowPassword, OAuthFlows
 from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 from jwt.exceptions import InvalidTokenError

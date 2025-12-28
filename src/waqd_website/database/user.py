@@ -11,8 +11,8 @@ def add_user(
     email: Optional[str] = None,
     permissions: Optional[List[str]] = None,
 ):
+    # avoid dependency loop
     from waqd_website.auth.authentication import get_password_hash
-
     hashed_password = get_password_hash(password)
     user = User(
         username=username,

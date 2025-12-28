@@ -80,7 +80,7 @@ async def list_user_devices(current_user: User = user_exception_check):
     Get all devices registered to the current user
     Returns real-time status from device_manager merged with DB data
     """
-    from waqd_website.service.device_connection import device_manager
+    from waqd_website.service.device_con import device_manager
     
     devices = get_devices_for_user(current_user.username)
     
@@ -163,7 +163,7 @@ async def claim_device(request: ClaimDeviceRequest, current_user: User = user_ex
     """
     User claims a device by entering the passphrase shown on device screen
     """
-    from waqd_website.service.device_connection import device_manager
+    from waqd_website.service.device_con import device_manager
     
     # Clean up expired sessions first
     expire_old_sessions()
