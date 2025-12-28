@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from sqlmodel import Session, select
 
+from waqd.base.file_logger import Logger
 from waqd_website.database import (
     Device,
     User,
@@ -117,6 +118,7 @@ def add_device_owner(
         device = session.exec(select(Device).where(Device.device_id == device_id)).first()
 
         if not device:
+            Logger().error("Attempted to add owner to non-existent device: %s", device_id)
             return False
 
         # Get current owner
@@ -171,6 +173,7 @@ def update_device_status(
         device = session.exec(select(Device).where(Device.device_id == device_id)).first()
 
         if not device:
+            Logger().error("Attempted to update status of non-existent device: %s", device_id)
             return False
 
         device.status = status
@@ -190,6 +193,7 @@ def update_device_api_key(device_id: str, api_key: str) -> bool:
         device = session.exec(select(Device).where(Device.device_id == device_id)).first()
 
         if not device:
+            Logger().error("Attempted to update API key of non-existent device: %s", device_id)
             return False
 
         device.api_key = api_key
@@ -203,12 +207,11 @@ def verify_device_api_key(device_id: str, api_key: str) -> bool:
     with Session(engine) as session:
         device = session.exec(select(Device).where(Device.device_id == device_id)).first()
 
-        if not device or not device.api_key:
+        if not device:
+            Logger().warning("API key verification failed: unknown device_id %s", device_id)
+            return False
+
+        if not device.api_key:
             return False
 
         return device.api_key == api_key
-
-
-def get_device_by_device_id(device_id: str) -> Optional[Device]:
-    """Get a device by its device_id (alias for get_device_by_id)"""
-    return get_device_by_id(device_id)

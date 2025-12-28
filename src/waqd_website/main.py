@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
 from waqd import DEBUG_LEVEL, assets_path as waqd_assets
+from waqd.base.file_logger import Logger
 
-from .service.device_connection import (
+from .service.device_con import (
     websocket_endpoint,
     user_device_stream,
     get_device_data,
@@ -91,6 +92,7 @@ async def readiness():
 
 # Mount the Vue.js frontend
 if DEBUG_LEVEL == 0:
+    Logger().info("Mounting production frontend from %s", FRONTEND_DIST_DIR)
     static_path = FRONTEND_DIST_DIR / "static"
     
     # Mount static files BEFORE catch-all routes

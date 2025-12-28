@@ -7,19 +7,15 @@ REST API endpoints for device management and communication.
 
 import asyncio
 import json
-import logging
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 
-from fastapi import HTTPException, WebSocket, WebSocketDisconnect, Header
+from fastapi import Header, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
+from waqd.base.file_logger import Logger
 from waqd.web.api.sensor.v1.model import SensorApi_v1_1
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Configuration
 # DB_SYNC_INTERVAL: How often to sync device status to database (periodic background task)
@@ -85,11 +81,11 @@ class ConnectedDevice:
             )
             if success:
                 self.last_db_sync = time.time()
-                logger.debug("Synced device %s to database", self.device_id)
+                Logger().debug("Synced device %s to database", self.device_id)
             else:
-                logger.warning("Failed to sync device %s to database", self.device_id)
+                Logger().warning("Failed to sync device %s to database", self.device_id)
         except Exception as e:
-            logger.error("Error syncing device %s to database: %s", self.device_id, e)
+            Logger().error("Error syncing device %s to database: %s", self.device_id, e)
 
     async def disconnect(self):
         """Handle device disconnection - sync final state to DB"""
@@ -102,9 +98,9 @@ class ConnectedDevice:
         # Final sync to mark as offline
         try:
             update_device_status(self.device_id, status="offline", last_seen=datetime.utcnow())
-            logger.info("Device %s marked as offline in database", self.device_id)
+            Logger().info("Device %s marked as offline in database", self.device_id)
         except Exception as e:
-            logger.error("Error marking device %s offline: %s", self.device_id, e)
+            Logger().error("Error marking device %s offline: %s", self.device_id, e)
 
     async def start_periodic_sync(self):
         """Start background task for periodic DB sync"""
@@ -117,7 +113,7 @@ class ConnectedDevice:
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
-                    logger.error("Error in periodic sync for %s: %s", self.device_id, e)
+                    Logger().error("Error in periodic sync for %s: %s", self.device_id, e)
 
         self._sync_task = asyncio.create_task(periodic_sync())
 
@@ -141,7 +137,7 @@ class DeviceManager:
         """Register a new device connection"""
         device = ConnectedDevice(device_id, websocket)
         self.connected_devices[device_id] = device
-        logger.info("Device %s connected", device_id)
+        Logger().info("Device %s connected", device_id)
 
         # Start periodic DB sync
         asyncio.create_task(device.start_periodic_sync())
@@ -165,7 +161,7 @@ class DeviceManager:
             await device.disconnect()
 
             del self.connected_devices[device_id]
-        logger.info("Device %s disconnected", device_id)
+        Logger().info("Device %s disconnected", device_id)
 
     def update_device_heartbeat(self, device_id: str):
         """Update device heartbeat timestamp"""
@@ -236,7 +232,7 @@ class DeviceManager:
         Device will show confirmation dialog
         """
         if device_id not in self.connected_devices:
-            logger.warning("Cannot send pairing request - device %s not connected", device_id)
+            Logger().warning("Cannot send pairing request - device %s not connected", device_id)
             return False
 
         device = self.connected_devices[device_id]
@@ -248,10 +244,10 @@ class DeviceManager:
                 "timestamp": datetime.now().isoformat(),
             }
             await device.websocket.send_json(message)
-            logger.info("Sent pairing request to %s for user %s", device_id, username)
+            Logger().info("Sent pairing request to %s for user %s", device_id, username)
             return True
         except Exception as e:
-            logger.error("Failed to send pairing request to %s: %s", device_id, e)
+            Logger().error("Failed to send pairing request to %s: %s", device_id, e)
             return False
 
 
@@ -268,7 +264,7 @@ class UserDeviceConnection:
         if device_id not in self.user_connections:
             self.user_connections[device_id] = []
         self.user_connections[device_id].append(websocket)
-        logger.info(
+        Logger().info(
             "User connected to device stream: %s (total: %d)",
             device_id,
             len(self.user_connections[device_id]),
@@ -281,7 +277,7 @@ class UserDeviceConnection:
                 self.user_connections[device_id].remove(websocket)
                 if not self.user_connections[device_id]:
                     del self.user_connections[device_id]
-                logger.info("User disconnected from device stream: %s", device_id)
+                Logger().info("User disconnected from device stream: %s", device_id)
             except ValueError:
                 pass
 
@@ -295,7 +291,7 @@ class UserDeviceConnection:
             try:
                 await user_ws.send_json(message)
             except Exception as e:
-                logger.error("Error sending to user websocket: %s", e)
+                Logger().error("Error sending to user websocket: %s", e)
                 dead_connections.append(user_ws)
 
         # Clean up dead connections
@@ -328,12 +324,12 @@ async def websocket_endpoint(
 
     # Verify API key matches device
     if not verify_device_api_key(device_id, api_key):
-        logger.warning("Invalid API key for device %s", device_id)
+        Logger().warning("Invalid API key for device %s", device_id)
         await websocket.close(code=1008, reason="Invalid API key")
         return
 
     await websocket.accept()
-    logger.info("Device %s connected successfully", device_id)
+    Logger().info("Device %s connected successfully", device_id)
 
     try:
         # Register device connection
@@ -361,7 +357,7 @@ async def websocket_endpoint(
                     data_dict = message.get("data", {})
                     device_data = SensorApi_v1_1(**data_dict)
                     device_manager.update_device_data(device_id, device_data)
-                    logger.debug("Updated data for %s: %s", device_id, data_dict)
+                    Logger().debug("Updated data for %s: %s", device_id, data_dict)
 
                     # Broadcast to all connected users watching this device
                     await user_device_connections.broadcast_to_users(
@@ -386,16 +382,16 @@ async def websocket_endpoint(
                         )
 
                 else:
-                    logger.warning("Unknown message type from %s: %s", device_id, message_type)
+                    Logger().warning("Unknown message type from %s: %s", device_id, message_type)
 
             except json.JSONDecodeError:
-                logger.error("Invalid JSON from %s", device_id)
+                Logger().error("Invalid JSON from %s", device_id)
                 continue
 
     except WebSocketDisconnect:
-        logger.info("Device %s disconnected", device_id)
+        Logger().info("Device %s disconnected", device_id)
     except Exception as e:
-        logger.error("Error handling device %s: %s", device_id, e)
+        Logger().error("Error handling device %s: %s", device_id, e)
     finally:
         # Clean up connection
         await device_manager.disconnect_device(device_id)
@@ -452,8 +448,8 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
     Users connect with: /ws/user/device/{device_id}
     Requires authentication via session cookie
     """
-    from waqd_website.database.devices import get_devices_for_user
     from waqd_website.auth.authentication import get_current_user
+    from waqd_website.database.devices import get_devices_for_user
 
     current_user = None
     auth_failed = False
@@ -463,17 +459,17 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
         # Get token from cookie
         cookie_authorization = websocket.cookies.get("Authorization", "")
         if not cookie_authorization or not cookie_authorization.startswith("Bearer "):
-            logger.warning("WebSocket auth failed: no valid Authorization cookie")
+            Logger().warning("WebSocket auth failed: no valid Authorization cookie")
             auth_failed = True
         else:
             token = cookie_authorization[7:]  # Remove "Bearer " prefix
             current_user = get_current_user(token)
 
             if not current_user:
-                logger.warning("WebSocket auth failed: invalid token")
+                Logger().warning("WebSocket auth failed: invalid token")
                 auth_failed = True
     except Exception as e:
-        logger.error("Authentication error in user_device_stream: %s", e)
+        Logger().error("Authentication error in user_device_stream: %s", e)
         auth_failed = True
 
     # Accept connection first, then close if auth failed
@@ -490,7 +486,7 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
         device_ids = [d.device_id for d in user_devices]
 
         if device_id not in device_ids:
-            logger.warning(
+            Logger().warning(
                 "User %s tried to access device %s without permission",
                 current_user.username,
                 device_id,
@@ -498,11 +494,11 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
             await websocket.close(code=1008, reason="Access denied")
             return
     except Exception as e:
-        logger.error("Error checking device ownership: %s", e)
+        Logger().error("Error checking device ownership: %s", e)
         await websocket.close(code=1008, reason="Internal error")
         return
 
-    logger.info("User %s connected to device %s stream", current_user.username, device_id)
+    Logger().info("User %s connected to device %s stream", current_user.username, device_id)
 
     try:
         # Register user connection
@@ -543,13 +539,13 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
                                     "timestamp": datetime.now().isoformat(),
                                 }
                             )
-                            logger.debug("Sent data_request to device %s", device_id)
+                            Logger().debug("Sent data_request to device %s", device_id)
                         except Exception as e:
-                            logger.error("Error sending data_request to %s: %s", device_id, e)
+                            Logger().error("Error sending data_request to %s: %s", device_id, e)
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
-                    logger.error("Error in periodic data request for %s: %s", device_id, e)
+                    Logger().error("Error in periodic data request for %s: %s", device_id, e)
                 await asyncio.sleep(10)  # Request every 10 seconds
 
         data_request_task = asyncio.create_task(request_data_periodically())
@@ -581,17 +577,17 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
                         )
 
             except json.JSONDecodeError:
-                logger.error("Invalid JSON from user websocket")
+                Logger().error("Invalid JSON from user websocket")
                 continue
 
     except WebSocketDisconnect:
-        logger.info(
+        Logger().info(
             "User %s disconnected from device %s stream",
             current_user.username if current_user else "unknown",
             device_id,
         )
     except Exception as e:
-        logger.error("Error in user device stream for %s: %s", device_id, e)
+        Logger().error("Error in user device stream for %s: %s", device_id, e)
     finally:
         # Cancel periodic data request task
         if "data_request_task" in locals():
