@@ -3,7 +3,7 @@ Device Registration API endpoints for user-device pairing
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
@@ -50,6 +50,7 @@ class DeviceResponse(BaseModel):
     location: Optional[str]
     status: str
     last_seen: Optional[datetime]
+    weather: Optional[Dict[str, Any]] = None  # Weather data from device
 
 
 class DevicesListResponse(BaseModel):
@@ -105,6 +106,7 @@ async def list_user_devices(current_user: User = user_exception_check):
                     location=device.location,
                     status="online",  # Real-time status
                     last_seen=connected_device.last_seen_datetime,  # Real-time timestamp
+                    weather=connected_device.weather_data,  # Include weather data
                 )
             )
         else:
@@ -115,7 +117,7 @@ async def list_user_devices(current_user: User = user_exception_check):
                     device_id=device.device_id,
                     name=device.name,
                     location=device.location,
-                    status=device.status,
+                    status="offline",
                     last_seen=device.last_seen,
                 )
             )

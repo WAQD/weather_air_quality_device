@@ -35,6 +35,7 @@ class DeviceInfo(BaseModel):
     connected: bool
     last_seen: Optional[str] = None
     data: Optional[SensorApi_v1_1] = None
+    weather: Optional[Dict] = None  # Weather data from device
 
 
 class ConnectedDevice:
@@ -47,6 +48,7 @@ class ConnectedDevice:
         self.last_heartbeat = time.time()
         self.last_db_sync = 0.0  # Never synced yet
         self.data: Optional[SensorApi_v1_1] = None
+        self.weather_data: Optional[Dict] = None  # Weather data from device
         self._sync_task: Optional[asyncio.Task] = None
 
     def update_heartbeat(self):
@@ -56,6 +58,11 @@ class ConnectedDevice:
     def update_data(self, data: SensorApi_v1_1):
         """Update device sensor data"""
         self.data = data
+        self.last_heartbeat = time.time()
+
+    def update_weather(self, weather: Dict):
+        """Update device weather data"""
+        self.weather_data = weather
         self.last_heartbeat = time.time()
 
     def needs_db_sync(self) -> bool:
@@ -184,11 +191,22 @@ class DeviceManager:
             self.device_data[device_id] = data
             self.last_seen[device_id] = time.time()
 
+    def update_device_weather(self, device_id: str, weather: Dict):
+        """Update device weather data"""
+        if device_id in self.connected_devices:
+            self.connected_devices[device_id].update_weather(weather)
+
     def get_device_data(self, device_id: str) -> Optional[SensorApi_v1_1]:
         """Get latest device data"""
         if device_id in self.connected_devices:
             return self.connected_devices[device_id].data
         return self.device_data.get(device_id)
+
+    def get_device_weather(self, device_id: str) -> Optional[Dict]:
+        """Get latest device weather data"""
+        if device_id in self.connected_devices:
+            return self.connected_devices[device_id].weather_data
+        return None  # Only available when device is connected
 
     def get_connected_devices(self) -> List[str]:
         """Get list of currently connected device IDs"""
@@ -206,6 +224,7 @@ class DeviceManager:
                     connected=True,
                     last_seen=device.last_seen_datetime.isoformat(),
                     data=device.data,
+                    weather=device.weather_data,
                 )
             )
 
@@ -353,21 +372,31 @@ async def websocket_endpoint(
                     )
 
                 elif message_type == "sensor_data":
-                    # Update device data
-                    data_dict = message.get("data", {})
-                    device_data = SensorApi_v1_1(**data_dict)
-                    device_manager.update_device_data(device_id, device_data)
-                    Logger().debug("Updated data for %s: %s", device_id, data_dict)
+                    # Update sensor data from device
+                    sensor_data = message.get("data")
+                    if sensor_data:
+                        try:
+                            # Validate and parse sensor data
+                            parsed_data = SensorApi_v1_1(**sensor_data)
+                            device_manager.update_device_data(device_id, parsed_data)
 
-                    # Broadcast to all connected users watching this device
-                    await user_device_connections.broadcast_to_users(
-                        device_id,
-                        {
-                            "type": "sensor_data",
-                            "data": data_dict,
-                            "timestamp": message.get("timestamp", datetime.now().isoformat()),
-                        },
-                    )
+                            # Broadcast to connected users
+                            await user_device_connections.broadcast_to_users(
+                                device_id, {"type": "sensor_data", "data": parsed_data.dict()}
+                            )
+                        except Exception as e:
+                            Logger().error("Invalid sensor data from %s: %s", device_id, e)
+
+                elif message_type == "weather_data":
+                    # Update weather data from device
+                    weather_data = message.get("data")
+                    if weather_data:
+                        device_manager.update_device_weather(device_id, weather_data)
+                        # Broadcast to connected users
+                        await user_device_connections.broadcast_to_users(
+                            device_id, {"type": "weather_data", "data": weather_data}
+                        )
+                        Logger().debug("Weather data updated for device %s", device_id)
 
                 elif message_type == "data_request":
                     # Server is requesting data (device-initiated)
@@ -382,7 +411,9 @@ async def websocket_endpoint(
                         )
 
                 else:
-                    Logger().warning("Unknown message type from %s: %s", device_id, message_type)
+                    Logger().warning(
+                        "Unknown message type from %s: %s", device_id, message_type
+                    )
 
             except json.JSONDecodeError:
                 Logger().error("Invalid JSON from %s", device_id)
@@ -507,6 +538,7 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
         # Send initial device status and latest data
         is_online = device_id in device_manager.connected_devices
         latest_data = device_manager.get_device_data(device_id)
+        latest_weather = device_manager.get_device_weather(device_id)
 
         await websocket.send_json(
             {
@@ -521,6 +553,15 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
                 {
                     "type": "sensor_data",
                     "data": latest_data.dict(),
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+        if latest_weather:
+            await websocket.send_json(
+                {
+                    "type": "weather_data",
+                    "data": latest_weather,
                     "timestamp": datetime.now().isoformat(),
                 }
             )
