@@ -117,6 +117,10 @@ export default defineConfig({
           dest: 'static/weather_icons'
         },
         {
+          src: '../../waqd_assets/weather_bgrs/**/*.jpg',
+          dest: 'static/weather_bgrs'
+        },
+        {
           src: '../../waqd_assets/font/**/*.{woff,woff2,ttf,otf}',
           dest: 'static/font'
         },

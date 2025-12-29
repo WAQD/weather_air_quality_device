@@ -1,7 +1,8 @@
 <template>
   <div class="container mx-auto p-8">
-    <!-- Back button and device header -->
-    <div class="mb-8">
+    <!-- Back button and device header with weather background -->
+    <div class="mb-8 -mx-8 -mt-8 p-8 rounded-b-lg overflow-hidden transition-all duration-500" :style="weatherBackgroundStyle">
+      <div class="bg-base-100/80 backdrop-blur-sm p-6 rounded-lg">
       <button @click="goBack" class="btn btn-ghost btn-sm mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
           fill="currentColor">
@@ -25,6 +26,27 @@
         <div v-if="lastUpdated" class="text-sm opacity-70">
           {{ t('last_updated') }}: {{ formatTime(lastUpdated) }}
         </div>
+      </div>
+
+      <!-- Weather Info Banner (only if device is connected and has weather data) -->
+      <div v-if="weatherData && isConnected" class="mt-6">
+        <div class="flex items-center gap-4 w-full bg-base-100/60 backdrop-blur-sm rounded-lg p-4">
+          <img 
+            v-if="weatherData.icon" 
+            :src="`/static/weather_icons/${weatherData.icon}.svg`" 
+            alt="Weather icon"
+            class="h-16 w-16 brightness-0 invert"
+          />
+          <div class="flex-1">
+            <h3 class="font-bold text-lg text-white">{{ weatherData.main }}</h3>
+            <p class="text-sm text-white/70">{{ deviceLocation || t('current_weather') }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-3xl font-bold text-white">{{ weatherData.temp.toFixed(1) }}°C</p>
+            <p class="text-sm text-white/70">{{ t('outdoor') }}</p>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
 
@@ -160,13 +182,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
+import { useWeather, type WeatherData } from '../composables/useWeather'
 
 const router = useRouter()
 const route = useRoute()
 const { t } = useTranslation()
+const { getWeatherData, setWeatherData, getWeatherBackground, isDay: isDayWeather } = useWeather()
 
 // Static asset URLs
 const thermometerIconUrl = '/static/weather_icons/wi-thermometer_full.svg#Layer_1'
@@ -195,6 +219,7 @@ interface SensorData {
 }
 
 const sensorData = ref<SensorData>({})
+const weatherData = ref<WeatherData | null>(null)
 
 let ws: WebSocket | null = null
 let reconnectTimeout: number | null = null
@@ -210,14 +235,24 @@ const co2ColorClass = computed(() => {
   return 'text-error'
 })
 
+// Computed property for weather background
+const weatherBackgroundStyle = computed(() => {
+  if (!deviceId.value) return {}
+  return getWeatherBackground(deviceId.value)
+})
+
 onMounted(async () => {
   deviceDbId.value = route.params.id as string
 
   // Load device info first
   await loadDeviceInfo()
 
-  // Only connect if we successfully loaded the device
+  // Load weather data from composable if available
   if (deviceId.value) {
+    const storedWeather = getWeatherData(deviceId.value)
+    if (storedWeather) {
+      weatherData.value = storedWeather
+    }
     connectWebSocket()
   }
 })
@@ -365,6 +400,14 @@ function handleWebSocketMessage(message: any) {
       timestamp: message.timestamp
     }
     lastUpdated.value = new Date()
+  } else if (messageType === 'weather_data') {
+    // Update weather data for background
+    weatherData.value = message.data
+    // Store in composable for reuse
+    if (deviceId.value) {
+      setWeatherData(deviceId.value, message.data)
+    }
+    console.log('Weather data received:', weatherData.value)
   } else if (messageType === 'pong') {
     // Heartbeat response
     console.log('Heartbeat acknowledged')

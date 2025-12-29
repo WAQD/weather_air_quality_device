@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import threading
+from dataclasses import asdict
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -11,6 +12,7 @@ import waqd.app as app
 from waqd.base.component import Component
 from waqd.settings import USER_API_KEY
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
+from waqd.web.api.weather.v1.connector import WeatherRetrieval
 
 
 class WAQDDeviceClient(Component):
@@ -134,7 +136,8 @@ class WAQDDeviceClient(Component):
         elif message_type == "data_request":
             # Server requesting immediate sensor data
             await self._send_current_sensor_data()
-
+            # Also send weather data
+            await self._send_current_weather_data()
         else:
             self._logger.warning("WS: Unknown message type: %s", message_type)
 
@@ -145,6 +148,23 @@ class WAQDDeviceClient(Component):
             await self.send_sensor_data(data.model_dump())
         except Exception as e:
             self._logger.error("WS: Error collecting/sending sensor data: %s", e)
+
+    async def _send_current_weather_data(self):
+        """Collect and send current weather data"""
+        try:
+            weather_retrieval = WeatherRetrieval()
+            current_weather = weather_retrieval.get_current_weather()
+            if current_weather:
+                # Convert dataclass to dict
+                weather_dict = asdict(current_weather)
+                # Convert datetime and time objects to ISO strings
+                weather_dict['date_time'] = current_weather.date_time.isoformat()
+                weather_dict['fetch_time'] = current_weather.fetch_time.isoformat()
+                weather_dict['sunrise'] = current_weather.sunrise.isoformat()
+                weather_dict['sunset'] = current_weather.sunset.isoformat()
+                await self.send_weather_data(weather_dict)
+        except Exception as e:
+            self._logger.error("WS: Error collecting/sending weather data: %s", e)
 
     async def send_sensor_data(self, data: Dict[str, Any]):
         """Send sensor data to server"""
@@ -161,6 +181,23 @@ class WAQDDeviceClient(Component):
                 )
             except Exception as e:
                 self._logger.error("Error sending sensor data: %s", e)
+
+    async def send_weather_data(self, data: Dict[str, Any]):
+        """Send weather data to server"""
+        if self._websocket:
+            try:
+                await self._websocket.send(
+                    json.dumps(
+                        {
+                            "type": "weather_data",
+                            "data": data,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                )
+                self._logger.debug("WS: Weather data sent successfully")
+            except Exception as e:
+                self._logger.error("Error sending weather data: %s", e)
 
     def _run_event_loop(self):
         """Run the event loop in a separate thread"""

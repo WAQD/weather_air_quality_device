@@ -56,9 +56,10 @@
         <div
           v-for="device in devices"
           :key="device.id"
-          class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow"
+          class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all overflow-hidden min-h-[280px]"
+          :style="getWeatherBackground(device.device_id)"
         >
-          <div class="card-body">
+          <div class="card-body bg-base-100/80 backdrop-blur-sm flex flex-col">
             <div class="flex justify-between items-start mb-2">
               <h2 class="card-title text-xl">{{ device.name }}</h2>
               <div 
@@ -69,7 +70,7 @@
               </div>
             </div>
             
-            <div class="space-y-2 text-sm opacity-70">
+            <div class="space-y-2 text-sm opacity-70 flex-grow">
               <div class="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
@@ -90,7 +91,7 @@
               </div>
             </div>
 
-            <div class="card-actions justify-end mt-4">
+            <div class="card-actions justify-end mt-auto pt-4">
               <button 
                 class="btn btn-sm btn-primary"
                 @click="connectToDevice(device)"
@@ -335,10 +336,12 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
+import { useWeather } from '../composables/useWeather'
 import QRCode from 'qrcode'
 
 const router = useRouter()
 const { t } = useTranslation()
+const { setWeatherData, getWeatherBackground } = useWeather()
 
 const cancelIconUrl = '/static/general_icons/cancel.svg#main'
 
@@ -349,6 +352,7 @@ interface Device {
   location?: string | null
   status: string
   last_seen?: string | null
+  weather?: any  // Weather data from backend
 }
 
 const loading = ref(true)
@@ -398,6 +402,13 @@ async function loadDevices() {
     
     const data = await response.json()
     devices.value = data.devices || []
+    
+    // Store weather data for each device in the composable
+    devices.value.forEach(device => {
+      if (device.weather) {
+        setWeatherData(device.device_id, device.weather)
+      }
+    })
   } catch (error) {
     console.error('Error loading devices:', error)
     showToast('error', t('error_loading_devices') || 'Failed to load devices')
@@ -425,9 +436,14 @@ async function updateDeviceStatus() {
       if (existingDevice) {
         existingDevice.status = updatedDevice.status
         existingDevice.last_seen = updatedDevice.last_seen
+        // Update weather data if available
+        if (updatedDevice.weather) {
+          existingDevice.weather = updatedDevice.weather
+          setWeatherData(updatedDevice.device_id, updatedDevice.weather)
+        }
       }
     })
-    } catch (error) {
+  } catch (error) {
     console.error('Error updating device status:', error)
   }
 }
