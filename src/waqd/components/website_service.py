@@ -146,8 +146,56 @@ class WAQDDeviceClient(Component):
         try:
             data = SensorRetrieval().get_interior_sensor_values()
             await self.send_sensor_data(data.model_dump())
+            # Also send sensor history data
+            await self._send_sensor_history_data()
         except Exception as e:
             self._logger.error("WS: Error collecting/sending sensor data: %s", e)
+
+    async def _send_sensor_history_data(self):
+        """Collect and send sensor history data for all interior sensors"""
+        try:
+            from waqd.components.sensors import SensorValueLogger
+            
+            # Define sensors to send history for
+            sensors = [
+                {'location': 'interior', 'type': 'temp_degC', 'hours': 12},
+                {'location': 'interior', 'type': 'humidity_%', 'hours': 12},
+                {'location': 'interior', 'type': 'CO2_ppm', 'hours': 12},
+                {'location': 'interior', 'type': 'pressure_hPa', 'hours': 12},
+            ]
+            
+            history_data = {}
+            
+            for sensor in sensors:
+                try:
+                    # Get sensor history from logger
+                    time_value_pairs = SensorValueLogger.get_sensor_values(
+                        sensor['location'],
+                        sensor['type'],
+                        minutes_to_read=sensor['hours'] * 60
+                    )
+                    
+                    # Convert to serializable format
+                    data_points = [
+                        {
+                            'timestamp': dt.isoformat(),
+                            'value': float(value)
+                        }
+                        for dt, value in time_value_pairs
+                    ]
+                    
+                    history_data[sensor['type']] = data_points
+                except Exception as e:
+                    self._logger.warning(
+                        "WS: Failed to get history for %s: %s",
+                        sensor['type'],
+                        e
+                    )
+            
+            if history_data:
+                await self.send_sensor_history_data(history_data)
+        except Exception as e:
+            self._logger.error("WS: Error collecting/sending sensor history: %s", e)
 
     async def _send_current_weather_data(self):
         """Collect and send current weather data"""
@@ -163,6 +211,11 @@ class WAQDDeviceClient(Component):
                 weather_dict['sunrise'] = current_weather.sunrise.isoformat()
                 weather_dict['sunset'] = current_weather.sunset.isoformat()
                 await self.send_weather_data(weather_dict)
+            
+            # Also send forecast data
+            await self._send_forecast_data()
+            # Also send hourly forecast data
+            await self._send_hourly_forecast_data()
         except Exception as e:
             self._logger.error("WS: Error collecting/sending weather data: %s", e)
 
@@ -182,6 +235,52 @@ class WAQDDeviceClient(Component):
             except Exception as e:
                 self._logger.error("Error sending sensor data: %s", e)
 
+    async def send_sensor_history_data(self, data: Dict[str, Any]):
+        """Send sensor history data to server"""
+        if self._websocket:
+            try:
+                await self._websocket.send(
+                    json.dumps(
+                        {
+                            "type": "sensor_history_data",
+                            "data": data,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                )
+                self._logger.debug("WS: Sensor history data sent successfully")
+            except Exception as e:
+                self._logger.error("Error sending sensor history data: %s", e)
+
+    async def _send_forecast_data(self):
+        """Collect and send forecast weather data"""
+        try:
+            weather_retrieval = WeatherRetrieval()
+            forecast = weather_retrieval.get_5_day_forecast()
+            if forecast:
+                # Convert list of dataclasses to list of dicts
+                forecast_list = []
+                for day in forecast:
+                    day_dict = asdict(day)
+                    # Convert datetime and time objects to ISO strings
+                    day_dict['date_time'] = day.date_time.isoformat()
+                    day_dict['fetch_time'] = day.fetch_time.isoformat()
+                    day_dict['sunrise'] = day.sunrise.isoformat()
+                    day_dict['sunset'] = day.sunset.isoformat()
+                    
+                    # Filter out entries with invalid temperature values (infinity)
+                    # These indicate incomplete forecast data
+                    if (abs(day_dict.get('temp_min', 0)) == float('inf') or 
+                        abs(day_dict.get('temp_max', 0)) == float('inf') or
+                        abs(day_dict.get('temp_night_min', 0)) == float('inf') or
+                        abs(day_dict.get('temp_night_max', 0)) == float('inf')):
+                        continue
+                    
+                    forecast_list.append(day_dict)
+                await self.send_forecast_data(forecast_list)
+        except Exception as e:
+            self._logger.error("WS: Error collecting/sending forecast data: %s", e)
+
     async def send_weather_data(self, data: Dict[str, Any]):
         """Send weather data to server"""
         if self._websocket:
@@ -198,6 +297,86 @@ class WAQDDeviceClient(Component):
                 self._logger.debug("WS: Weather data sent successfully")
             except Exception as e:
                 self._logger.error("Error sending weather data: %s", e)
+
+    async def _send_hourly_forecast_data(self):
+        """Collect and send hourly forecast weather data"""
+        try:
+            # Access the weather provider to get hourly data
+            if not app.comp_ctrl:
+                return
+            
+            weather_provider = app.comp_ctrl.components.weather_info
+            if not weather_provider:
+                return
+            
+            # Get hourly forecast points
+            daytime_points = getattr(weather_provider, 'daytime_forecast_points', [])
+            nighttime_points = getattr(weather_provider, 'nighttime_forecast_points', [])
+            
+            if not daytime_points and not nighttime_points:
+                return
+            
+            # Convert hourly data to serializable format
+            def convert_hourly_points(points_list):
+                converted = []
+                for day_points in points_list:
+                    day_converted = []
+                    for point in day_points:
+                        point_dict = asdict(point)
+                        # Convert datetime and time objects to ISO strings
+                        point_dict['date_time'] = point.date_time.isoformat()
+                        point_dict['fetch_time'] = point.fetch_time.isoformat()
+                        point_dict['sunrise'] = point.sunrise.isoformat()
+                        point_dict['sunset'] = point.sunset.isoformat()
+                        day_converted.append(point_dict)
+                    converted.append(day_converted)
+                return converted
+            
+            daytime_data = convert_hourly_points(daytime_points)
+            nighttime_data = convert_hourly_points(nighttime_points)
+            
+            await self.send_hourly_forecast_data(daytime_data, nighttime_data)
+        except Exception as e:
+            self._logger.error("WS: Error collecting/sending hourly forecast data: %s", e)
+
+    async def send_forecast_data(self, data: list[Dict[str, Any]]):
+        """Send forecast data to server"""
+        if self._websocket:
+            try:
+                await self._websocket.send(
+                    json.dumps(
+                        {
+                            "type": "forecast_data",
+                            "data": data,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                )
+                self._logger.debug("WS: Forecast data sent successfully")
+            except Exception as e:
+                self._logger.error("Error sending forecast data: %s", e)
+
+    async def send_hourly_forecast_data(
+        self,
+        daytime_data: list[list[Dict[str, Any]]],
+        nighttime_data: list[list[Dict[str, Any]]],
+    ):
+        """Send hourly forecast data to server"""
+        if self._websocket:
+            try:
+                await self._websocket.send(
+                    json.dumps(
+                        {
+                            "type": "hourly_forecast_data",
+                            "daytime": daytime_data,
+                            "nighttime": nighttime_data,
+                            "timestamp": datetime.now().isoformat(),
+                        }
+                    )
+                )
+                self._logger.debug("WS: Hourly forecast data sent successfully")
+            except Exception as e:
+                self._logger.error("Error sending hourly forecast data: %s", e)
 
     def _run_event_loop(self):
         """Run the event loop in a separate thread"""

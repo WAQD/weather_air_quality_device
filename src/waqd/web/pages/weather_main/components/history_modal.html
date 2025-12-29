@@ -7,8 +7,8 @@
     <div class="flex justify-between items-center mb-4">
       <h3 id="history-modal-title" class="font-bold text-4xl">{{ t('history_modal_title') }}</h3>
       <select id="history-time-range" class="select text-2xl">
-        <option value="6">{{ t('history_last_6_hours') }}</option>
-        <option value="12" selected>{{ t('history_last_12_hours') }}</option>
+        <option value="6" selected>{{ t('history_last_6_hours') }}</option>
+        <option value="12">{{ t('history_last_12_hours') }}</option>
         <option value="24">{{ t('history_last_24_hours') }}</option>
         <option value="48">{{ t('history_last_48_hours') }}</option>
         <option value="168">{{ t('history_last_7_days') }}</option>
@@ -138,6 +138,14 @@
                   }
                   label += context.parsed.y.toFixed(1) + (config.unit || '');
                   return label;
+                },
+                title: function(context) {
+                  // Show full date/time in tooltip
+                  if (data.timestamps && context[0]) {
+                    const date = new Date(data.timestamps[context[0].dataIndex]);
+                    return data.labels[context[0].dataIndex];
+                  }
+                  return context[0].label;
                 }
               }
             }
@@ -159,6 +167,11 @@
               title: {
                 display: true,
                 text: historyTranslations.time
+              },
+              ticks: {
+                autoSkip: true,
+                maxRotation: 45,
+                minRotation: 0
               }
             }
           }
@@ -196,14 +209,16 @@
           
           const labels = [];
           const values = [];
+          const timestamps = [];
           
           for (const point of apiData.data) {
             const date = new Date(point.timestamp);
-            labels.push(this.formatTime(date));
+            timestamps.push(date.getTime());
+            labels.push(this.formatTimeLabel(date, hours));
             values.push(point.value);
           }
           
-          return { labels, values };
+          return { labels, values, timestamps };
         } catch (error) {
           console.error('Error fetching sensor history:', error);
           // Fall back to generated data
@@ -214,18 +229,20 @@
       const now = new Date();
       const labels = [];
       const values = [];
+      const timestamps = [];
       const dataPoints = hours * 6; // One point every 10 minutes
 
       // Use config.dataGenerator if provided, otherwise use default
       const generator = config.dataGenerator || this.defaultDataGenerator;
 
-      for (let i = dataPoints; i >= 0; i--) {
-        const time = new Date(now - i * 10 * 60 * 1000);
-        labels.push(this.formatTime(time));
+      for (let i = 0; i <= dataPoints; i++) {
+        const time = new Date(now - (dataPoints - i) * 10 * 60 * 1000);
+        timestamps.push(time.getTime());
+        labels.push(this.formatTimeLabel(time, hours));
         values.push(generator(i, dataPoints, config));
       }
 
-      return { labels, values };
+      return { labels, values, timestamps };
     },
 
     // Default data generator (sinusoidal pattern with noise)
@@ -236,10 +253,18 @@
       return baseValue + Math.sin(index / total * Math.PI * 2) * amplitude + noise;
     },
 
-    formatTime(date) {
-      const hours = date.getHours().toString().padStart(2, '0');
+    formatTimeLabel(date, hours) {
+      const hours_val = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
+      
+      // For 48 hours or more, always include the date
+      if (hours >= 48) {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        return `${month}/${day}\n${hours_val}:${minutes}`;
+      }
+      
+      return `${hours_val}:${minutes}`;
     },
 
     // Update chart when time range changes

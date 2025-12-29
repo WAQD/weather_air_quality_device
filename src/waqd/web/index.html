@@ -28,18 +28,6 @@
   {% if local %}
   <script src="/static/js/kioskboard-2.3.0.js"></script>
   <link href="/static/css/kioskboard-2.3.0.css" rel="stylesheet">
-  <script>
-    // Call a fetch every 10 minutes to keep the session alive
-    setInterval(function () {
-      fetch('/public/keepalive', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-    }, 600000); // 10 minutes in milliseconds 600000
-  </script>
   {% endif %}
 </head>
 

@@ -3,7 +3,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from file_read_backwards import FileReadBackwards
 
@@ -130,12 +130,12 @@ class SensorFileLogger(logging.Logger):
     # zero reads the last value
     def get_sensor_values(
         sensor_location: str, sensor_type: str, minutes_to_read: int = 0
-    ) -> List[Tuple[datetime, float]]:
+    ) -> tuple[tuple[datetime, float], ...]:
         log_file_path = SensorFileLogger._get_sensor_logfile_path(sensor_location, sensor_type)
         if not log_file_path.exists():
-            return []
+            return tuple()
         current_time = datetime.now(LOCAL_TIMEZONE)
-        time_value_pairs: List[Tuple[datetime, float]] = []
+        time_value_pairs: list[tuple[datetime, float]] = []
         try:
             with FileReadBackwards(str(log_file_path), encoding="utf-8") as fp:
                 # log has format 2021-03-12 18:51:16=55\n...
@@ -145,15 +145,15 @@ class SensorFileLogger(logging.Logger):
                     timestamp = timestamp.replace(tzinfo=LOCAL_TIMEZONE)
                     time_value_pair[0] = timestamp
                     if not minutes_to_read:
-                        time_value_pair[1] = float(time_value_pair[1])  # always cast to float
-                        return [time_value_pair]
+                        value = float(time_value_pair[1].strip())  # always cast to float
+                        return ((timestamp, value),)
                     if (current_time - timestamp) > timedelta(minutes=minutes_to_read):
                         break
                     time_value_pairs.append((timestamp, float(time_value_pair[1].strip())))
         except Exception:
             # try to delete when file is corrupted
             delete_log_file(log_file_path)
-        return time_value_pairs
+        return tuple(reversed(time_value_pairs))
 
     @staticmethod
     def _init_logger(sensor_location, sensor_type: str, output_path: Path) -> logging.Logger:
