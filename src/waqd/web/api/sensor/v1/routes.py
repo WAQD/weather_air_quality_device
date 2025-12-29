@@ -42,9 +42,8 @@ async def get_sensor_history(
         hours: Number of hours of historical data to retrieve (default: 12)
     """
     try:
-        history = SensorRetrieval().get_sensor_history(
+        return SensorRetrieval().get_sensor_history(
             sensor_location, sensor_type, hours
         )
-        return history
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
