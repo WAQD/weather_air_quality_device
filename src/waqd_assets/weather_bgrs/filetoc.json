@@ -1,10 +1,9 @@
 {
     "filetype": "jpg",
     "filelist": {
-        "dummy": "dummy.png",
-        "bg_night_mist": "mist_bg.jpg",
-        "bg_night_drizzle": "drizzle_bg.jpg",
-        "bg_night_fog": "fog_bg.jpg",
-        "bg_night_squall": "squall_bg.jpg"
+        "bg_night_mist": "bg_day_mist",
+        "bg_night_drizzle": "bg_day_drizzle",
+        "bg_night_fog": "bg_day_fog",
+        "bg_night_squall": "bg_day_squall"
     }
 }
