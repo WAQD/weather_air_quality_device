@@ -36,6 +36,7 @@ class DeviceInfo(BaseModel):
     last_seen: Optional[str] = None
     data: Optional[SensorApi_v1_1] = None
     weather: Optional[Dict] = None  # Weather data from device
+    forecast: Optional[list[Dict]] = None  # Forecast data from device
 
 
 class ConnectedDevice:
@@ -49,6 +50,10 @@ class ConnectedDevice:
         self.last_db_sync = 0.0  # Never synced yet
         self.data: Optional[SensorApi_v1_1] = None
         self.weather_data: Optional[Dict] = None  # Weather data from device
+        self.forecast_data: Optional[list[Dict]] = None  # Forecast data from device
+        self.hourly_daytime_data: Optional[list[list[Dict]]] = None  # Hourly daytime
+        self.hourly_nighttime_data: Optional[list[list[Dict]]] = None  # Hourly night
+        self.sensor_history_data: Optional[Dict[str, list[Dict]]] = None  # Sensor history
         self._sync_task: Optional[asyncio.Task] = None
 
     def update_heartbeat(self):
@@ -63,6 +68,22 @@ class ConnectedDevice:
     def update_weather(self, weather: Dict):
         """Update device weather data"""
         self.weather_data = weather
+        self.last_heartbeat = time.time()
+
+    def update_forecast(self, forecast: list[Dict]):
+        """Update device forecast data"""
+        self.forecast_data = forecast
+        self.last_heartbeat = time.time()
+
+    def update_hourly_forecast(self, daytime: list[list[Dict]], nighttime: list[list[Dict]]):
+        """Update device hourly forecast data"""
+        self.hourly_daytime_data = daytime
+        self.hourly_nighttime_data = nighttime
+        self.last_heartbeat = time.time()
+
+    def update_sensor_history(self, history: Dict[str, list[Dict]]):
+        """Update device sensor history data"""
+        self.sensor_history_data = history
         self.last_heartbeat = time.time()
 
     def needs_db_sync(self) -> bool:
@@ -196,6 +217,23 @@ class DeviceManager:
         if device_id in self.connected_devices:
             self.connected_devices[device_id].update_weather(weather)
 
+    def update_device_forecast(self, device_id: str, forecast: list[Dict]):
+        """Update device forecast data"""
+        if device_id in self.connected_devices:
+            self.connected_devices[device_id].update_forecast(forecast)
+
+    def update_device_hourly_forecast(
+        self, device_id: str, daytime: list[list[Dict]], nighttime: list[list[Dict]]
+    ):
+        """Update device hourly forecast data"""
+        if device_id in self.connected_devices:
+            self.connected_devices[device_id].update_hourly_forecast(daytime, nighttime)
+
+    def update_device_sensor_history(self, device_id: str, history: Dict[str, list[Dict]]):
+        """Update device sensor history data"""
+        if device_id in self.connected_devices:
+            self.connected_devices[device_id].update_sensor_history(history)
+
     def get_device_data(self, device_id: str) -> Optional[SensorApi_v1_1]:
         """Get latest device data"""
         if device_id in self.connected_devices:
@@ -206,6 +244,27 @@ class DeviceManager:
         """Get latest device weather data"""
         if device_id in self.connected_devices:
             return self.connected_devices[device_id].weather_data
+        return None  # Only available when device is connected
+
+    def get_device_forecast(self, device_id: str) -> Optional[list[Dict]]:
+        """Get latest device forecast data"""
+        if device_id in self.connected_devices:
+            return self.connected_devices[device_id].forecast_data
+        return None  # Only available when device is connected
+
+    def get_device_hourly_forecast(
+        self, device_id: str
+    ) -> tuple[Optional[list[list[Dict]]], Optional[list[list[Dict]]]]:
+        """Get latest device hourly forecast data (daytime, nighttime)"""
+        if device_id in self.connected_devices:
+            device = self.connected_devices[device_id]
+            return (device.hourly_daytime_data, device.hourly_nighttime_data)
+        return (None, None)  # Only available when device is connected
+
+    def get_device_sensor_history(self, device_id: str) -> Optional[Dict[str, list[Dict]]]:
+        """Get latest device sensor history data"""
+        if device_id in self.connected_devices:
+            return self.connected_devices[device_id].sensor_history_data
         return None  # Only available when device is connected
 
     def get_connected_devices(self) -> List[str]:
@@ -398,6 +457,51 @@ async def websocket_endpoint(
                         )
                         Logger().debug("Weather data updated for device %s", device_id)
 
+                elif message_type == "forecast_data":
+                    # Update forecast data from device
+                    forecast_data = message.get("data")
+                    if forecast_data:
+                        device_manager.update_device_forecast(device_id, forecast_data)
+                        # Broadcast to connected users
+                        await user_device_connections.broadcast_to_users(
+                            device_id, {"type": "forecast_data", "data": forecast_data}
+                        )
+                        Logger().debug("Forecast data updated for device %s", device_id)
+
+                elif message_type == "hourly_forecast_data":
+                    # Update hourly forecast data from device
+                    daytime_data = message.get("daytime")
+                    nighttime_data = message.get("nighttime")
+                    if daytime_data is not None and nighttime_data is not None:
+                        device_manager.update_device_hourly_forecast(
+                            device_id, daytime_data, nighttime_data
+                        )
+                        # Broadcast to connected users
+                        await user_device_connections.broadcast_to_users(
+                            device_id,
+                            {
+                                "type": "hourly_forecast_data",
+                                "daytime": daytime_data,
+                                "nighttime": nighttime_data,
+                            },
+                        )
+                        Logger().debug("Hourly forecast data updated for device %s", device_id)
+
+                elif message_type == "sensor_history_data":
+                    # Update sensor history data from device
+                    history_data = message.get("data")
+                    if history_data:
+                        device_manager.update_device_sensor_history(device_id, history_data)
+                        # Broadcast to connected users
+                        await user_device_connections.broadcast_to_users(
+                            device_id,
+                            {
+                                "type": "sensor_history_data",
+                                "data": history_data,
+                            },
+                        )
+                        Logger().debug("Sensor history data updated for device %s", device_id)
+
                 elif message_type == "data_request":
                     # Server is requesting data (device-initiated)
                     current_data = device_manager.get_device_data(device_id)
@@ -539,6 +643,9 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
         is_online = device_id in device_manager.connected_devices
         latest_data = device_manager.get_device_data(device_id)
         latest_weather = device_manager.get_device_weather(device_id)
+        latest_forecast = device_manager.get_device_forecast(device_id)
+        hourly_daytime, hourly_nighttime = device_manager.get_device_hourly_forecast(device_id)
+        sensor_history = device_manager.get_device_sensor_history(device_id)
 
         await websocket.send_json(
             {
@@ -562,6 +669,34 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
                 {
                     "type": "weather_data",
                     "data": latest_weather,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+        if latest_forecast:
+            await websocket.send_json(
+                {
+                    "type": "forecast_data",
+                    "data": latest_forecast,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+        if hourly_daytime is not None and hourly_nighttime is not None:
+            await websocket.send_json(
+                {
+                    "type": "hourly_forecast_data",
+                    "daytime": hourly_daytime,
+                    "nighttime": hourly_nighttime,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+
+        if sensor_history:
+            await websocket.send_json(
+                {
+                    "type": "sensor_history_data",
+                    "data": sensor_history,
                     "timestamp": datetime.now().isoformat(),
                 }
             )

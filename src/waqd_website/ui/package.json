@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "chart.js": "^4.4.7",
     "daisyui": "^4.12.14",
     "qrcode": "^1.5.4",
     "vue": "^3.5.24",
