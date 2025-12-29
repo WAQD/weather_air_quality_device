@@ -152,6 +152,16 @@
       </div>
     </div>
 
+    <!-- Weather Forecast Component -->
+    <WeatherForecast 
+      v-if="isConnected"
+      :title="t('weather_forecast') || 'Weather Forecast'"
+      :forecastData="forecastData"
+      :daytimeHourlyData="hourlyDaytimeData"
+      :nighttimeHourlyData="hourlyNighttimeData"
+      class="mt-8"
+    />
+
     <!-- Device Info Section -->
     <div class="card bg-base-100 shadow-xl mt-8">
       <div class="card-body">
@@ -178,6 +188,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Sensor History Modal -->
+    <SensorHistoryModal ref="sensorHistoryModal" />
   </div>
 </template>
 
@@ -185,12 +198,26 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
-import { useWeather, type WeatherData } from '../composables/useWeather'
+import { useWeather, type WeatherData, type ForecastData, type HourlyWeatherData } from '../composables/useWeather'
+import { useSensorHistory, type SensorHistoryData } from '../composables/useSensorHistory'
+import WeatherForecast from '../components/WeatherForecast.vue'
+import SensorHistoryModal from '../components/SensorHistoryModal.vue'
 
 const router = useRouter()
 const route = useRoute()
 const { t } = useTranslation()
-const { getWeatherData, setWeatherData, getWeatherBackground, isDay: isDayWeather } = useWeather()
+const { 
+  getWeatherData, 
+  setWeatherData, 
+  getForecastData, 
+  setForecastData, 
+  getHourlyDaytimeData,
+  getHourlyNighttimeData,
+  setHourlyForecastData,
+  getWeatherBackground, 
+  isDay: isDayWeather 
+} = useWeather()
+const { setSensorHistory, getSensorHistory } = useSensorHistory()
 
 // Static asset URLs
 const thermometerIconUrl = '/static/weather_icons/wi-thermometer_full.svg#Layer_1'
@@ -220,6 +247,11 @@ interface SensorData {
 
 const sensorData = ref<SensorData>({})
 const weatherData = ref<WeatherData | null>(null)
+const forecastData = ref<ForecastData[]>([])
+const hourlyDaytimeData = ref<HourlyWeatherData[][]>([])
+const hourlyNighttimeData = ref<HourlyWeatherData[][]>([])
+
+const sensorHistoryModal = ref<InstanceType<typeof SensorHistoryModal> | null>(null)
 
 let ws: WebSocket | null = null
 let reconnectTimeout: number | null = null
@@ -252,6 +284,18 @@ onMounted(async () => {
     const storedWeather = getWeatherData(deviceId.value)
     if (storedWeather) {
       weatherData.value = storedWeather
+    }
+    const storedForecast = getForecastData(deviceId.value)
+    if (storedForecast) {
+      forecastData.value = storedForecast
+    }
+    const storedHourlyDaytime = getHourlyDaytimeData(deviceId.value)
+    if (storedHourlyDaytime) {
+      hourlyDaytimeData.value = storedHourlyDaytime
+    }
+    const storedHourlyNighttime = getHourlyNighttimeData(deviceId.value)
+    if (storedHourlyNighttime) {
+      hourlyNighttimeData.value = storedHourlyNighttime
     }
     connectWebSocket()
   }
@@ -408,6 +452,30 @@ function handleWebSocketMessage(message: any) {
       setWeatherData(deviceId.value, message.data)
     }
     console.log('Weather data received:', weatherData.value)
+  } else if (messageType === 'forecast_data') {
+    // Update forecast data
+    forecastData.value = message.data
+    // Store in composable for reuse
+    if (deviceId.value) {
+      setForecastData(deviceId.value, message.data)
+    }
+    console.log('Forecast data received:', forecastData.value)
+  } else if (messageType === 'hourly_forecast_data') {
+    // Update hourly forecast data
+    hourlyDaytimeData.value = message.daytime || []
+    hourlyNighttimeData.value = message.nighttime || []
+    // Store in composable for reuse
+    if (deviceId.value) {
+      setHourlyForecastData(deviceId.value, message.daytime || [], message.nighttime || [])
+    }
+    console.log('Hourly forecast data received - daytime:', hourlyDaytimeData.value.length, 'nighttime:', hourlyNighttimeData.value.length)
+  } else if (messageType === 'sensor_history_data') {
+    // Update sensor history data
+    const historyData = message.data as SensorHistoryData
+    if (deviceId.value) {
+      setSensorHistory(deviceId.value, historyData)
+    }
+    console.log('Sensor history data received:', Object.keys(historyData).length, 'sensor types')
   } else if (messageType === 'pong') {
     // Heartbeat response
     console.log('Heartbeat acknowledged')
@@ -418,9 +486,55 @@ function handleWebSocketMessage(message: any) {
 }
 
 function showHistory(sensorType: string) {
-  // TODO: Implement history modal/view
-  console.log('Show history for:', sensorType)
-  // Could open a modal or navigate to a history page
+  if (!sensorHistoryModal.value || !deviceId.value) return
+  
+  const sensorConfigs: Record<string, any> = {
+    'temperature': {
+      deviceId: deviceId.value,
+      sensorType: 'temperature',
+      sensorLocation: 'interior',
+      title: t('interior_temperature_history') || 'Interior Temperature History',
+      label: t('temperature') || 'Temperature',
+      unit: '°C',
+      color: 'rgb(255, 99, 132)',
+      backgroundColor: 'rgba(255, 99, 132, 0.1)'
+    },
+    'humidity': {
+      deviceId: deviceId.value,
+      sensorType: 'humidity',
+      sensorLocation: 'interior',
+      title: t('interior_humidity_history') || 'Interior Humidity History',
+      label: t('humidity') || 'Humidity',
+      unit: '%',
+      color: 'rgb(54, 162, 235)',
+      backgroundColor: 'rgba(54, 162, 235, 0.1)'
+    },
+    'co2': {
+      deviceId: deviceId.value,
+      sensorType: 'co2',
+      sensorLocation: 'interior',
+      title: t('co2_history') || 'CO₂ History',
+      label: t('co2') || 'CO₂',
+      unit: ' ppm',
+      color: 'rgb(75, 192, 75)',
+      backgroundColor: 'rgba(75, 192, 75, 0.1)'
+    },
+    'pressure': {
+      deviceId: deviceId.value,
+      sensorType: 'pressure',
+      sensorLocation: 'interior',
+      title: t('pressure_history') || 'Pressure History',
+      label: t('pressure') || 'Pressure',
+      unit: ' hPa',
+      color: 'rgb(153, 102, 255)',
+      backgroundColor: 'rgba(153, 102, 255, 0.1)'
+    }
+  }
+  
+  const config = sensorConfigs[sensorType]
+  if (config) {
+    sensorHistoryModal.value.show(config)
+  }
 }
 
 function goBack() {

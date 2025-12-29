@@ -15,8 +15,46 @@ export interface WeatherData {
   clouds: number
 }
 
+export interface ForecastData {
+  main: string
+  temp: number
+  temp_min: number
+  temp_max: number
+  temp_night_min: number
+  temp_night_max: number
+  icon: string
+  date_time: string
+  wid: number
+  wind_speed: number
+  wind_deg: number
+  sunrise: string
+  sunset: string
+  pressure: number
+  humidity: number
+  clouds: number
+}
+
+export interface HourlyWeatherData {
+  main: string
+  temp: number
+  icon: string
+  date_time: string
+  wid: number
+  wind_speed: number
+  wind_deg: number
+  sunrise: string
+  sunset: string
+  pressure: number
+  pressure_sea_level: number
+  humidity: number
+  clouds: number
+}
+
 // Global weather data store (shared across all components)
 const weatherStore = ref<Map<string, WeatherData>>(new Map())
+const forecastStore = ref<Map<string, ForecastData[]>>(new Map())
+const hourlyDaytimeStore = ref<Map<string, HourlyWeatherData[][]>>(new Map())
+const hourlyNighttimeStore = ref<Map<string, HourlyWeatherData[][]>>(new Map())
 
 export function useWeather() {
   const setWeatherData = (deviceId: string, weather: WeatherData) => {
@@ -33,6 +71,44 @@ export function useWeather() {
 
   const hasWeatherData = (deviceId: string): boolean => {
     return weatherStore.value.has(deviceId)
+  }
+
+  const setForecastData = (deviceId: string, forecast: ForecastData[]) => {
+    forecastStore.value.set(deviceId, forecast)
+  }
+
+  const getForecastData = (deviceId: string): ForecastData[] | undefined => {
+    return forecastStore.value.get(deviceId)
+  }
+
+  const clearForecastData = (deviceId: string) => {
+    forecastStore.value.delete(deviceId)
+  }
+
+  const hasForecastData = (deviceId: string): boolean => {
+    return forecastStore.value.has(deviceId)
+  }
+
+  const setHourlyForecastData = (deviceId: string, daytime: HourlyWeatherData[][], nighttime: HourlyWeatherData[][]) => {
+    hourlyDaytimeStore.value.set(deviceId, daytime)
+    hourlyNighttimeStore.value.set(deviceId, nighttime)
+  }
+
+  const getHourlyDaytimeData = (deviceId: string): HourlyWeatherData[][] | undefined => {
+    return hourlyDaytimeStore.value.get(deviceId)
+  }
+
+  const getHourlyNighttimeData = (deviceId: string): HourlyWeatherData[][] | undefined => {
+    return hourlyNighttimeStore.value.get(deviceId)
+  }
+
+  const clearHourlyForecastData = (deviceId: string) => {
+    hourlyDaytimeStore.value.delete(deviceId)
+    hourlyNighttimeStore.value.delete(deviceId)
+  }
+
+  const hasHourlyForecastData = (deviceId: string): boolean => {
+    return hourlyDaytimeStore.value.has(deviceId) || hourlyNighttimeStore.value.has(deviceId)
   }
 
   const getWeatherBackground = (deviceId: string): { backgroundImage?: string; backgroundSize?: string; backgroundPosition?: string; backgroundRepeat?: string } => {
@@ -98,6 +174,15 @@ export function useWeather() {
     getWeatherData,
     clearWeatherData,
     hasWeatherData,
+    setForecastData,
+    getForecastData,
+    clearForecastData,
+    hasForecastData,
+    setHourlyForecastData,
+    getHourlyDaytimeData,
+    getHourlyNighttimeData,
+    clearHourlyForecastData,
+    hasHourlyForecastData,
     getWeatherBackground,
     isDay
   }
