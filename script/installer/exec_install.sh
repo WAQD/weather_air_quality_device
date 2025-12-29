@@ -24,6 +24,7 @@ function waqd_install() {
     # kill the application itself
     pkill waqd || true
     pkill python3 || true
+    pkill chromium || true
 
     echo "# Install needed system libraries... (Step 1/5)"
     # python dependencies
