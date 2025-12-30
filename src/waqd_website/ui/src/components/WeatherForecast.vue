@@ -5,7 +5,7 @@
       
       <!-- 5-Day Forecast Section -->
       <div v-if="forecastData && forecastData.length > 0" class="mb-6">
-        <h3 class="font-semibold mb-4">{{ t('5_day_forecast') || '5-Day Forecast' }}</h3>
+        <h3 class="font-semibold mb-4">{{ t('weekly_weather_forecast') }}</h3>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <div v-for="(day, index) in forecastData.slice(0, 5)" :key="index" class="card bg-base-200 shadow-md">
             <div class="card-body p-4 text-center">
@@ -27,13 +27,13 @@
               
               <!-- Day temperature -->
               <div class="mb-2">
-                <p class="text-xs opacity-70">{{ t('day') || 'Day' }}</p>
+                <p class="text-xs opacity-70">{{ t('day') }}</p>
                 <p class="font-bold">{{ day.temp_min.toFixed(0) }}° / {{ day.temp_max.toFixed(0) }}°</p>
               </div>
               
               <!-- Night temperature -->
               <div>
-                <p class="text-xs opacity-70">{{ t('night') || 'Night' }}</p>
+                <p class="text-xs opacity-70">{{ t('night') }}</p>
                 <p class="text-sm">{{ day.temp_night_min.toFixed(0) }}° / {{ day.temp_night_max.toFixed(0) }}°</p>
               </div>
             </div>
@@ -43,7 +43,7 @@
 
       <!-- Hourly Forecast Graph Section -->
       <div v-if="hasHourlyData" class="mt-6">
-        <h3 class="font-semibold mb-4">{{ t('hourly_forecast') || 'Hourly Forecast' }}</h3>
+        <h3 class="font-semibold mb-4">{{ t('hourly_forecast') }}</h3>
         
         <!-- Toggle between day and night -->
         <div class="tabs tabs-boxed mb-4">

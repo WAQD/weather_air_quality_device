@@ -79,13 +79,12 @@
     "de": "Läuft ab in",
     "hu": "Lejár"
   },
-  "pair_device":{
+  "pair_device": {
     "en": "Pair Device",
     "de": "Gerät koppeln",
     "hu": "Eszköz párosítása"
   },
-  "pairing_instructions_title":
-  {
+  "pairing_instructions_title": {
     "en": "Pairing Instructions",
     "de": "Kopplungsanleitung",
     "hu": "Párosítási utasítások"
@@ -369,6 +368,11 @@
     "en": "Interior Temperature History",
     "de": "Innentemperatur Verlauf",
     "hu": "Belső hőmérséklet előzmények"
+  },
+  "hours": {
+    "en": "hours",
+    "de": "Stunden",
+    "hu": "óra"
   },
   "history_last_12_hours": {
     "en": "Last 12 hours",
@@ -1105,6 +1109,11 @@
     "de": "Passwort muss mindestens 6 Zeichen lang sein",
     "hu": "A jelszónak legalább 6 karakterből kell állnia"
   },
+  "day": {
+    "en": "day",
+    "de": "Tag",
+    "hu": "nap"
+  },
   "weather_today": {
     "en": "Weather today",
     "de": "Wetter heute",
@@ -1119,6 +1128,11 @@
     "en": "Weekly Weather Forecast",
     "de": "Wöchentliche Wettervorhersage",
     "hu": "Heti időjárás előrejelzés"
+  },
+  "hourly_forecast": {
+    "en": "Hourly Forecast",
+    "de": "Stündliche Vorhersage",
+    "hu": "Óránkénti előrejelzés"
   },
   "wlan_error_text": {
     "en": "Cannot start WLAN connection portal:",

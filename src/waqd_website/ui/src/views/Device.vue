@@ -155,7 +155,7 @@
     <!-- Weather Forecast Component -->
     <WeatherForecast 
       v-if="isConnected"
-      :title="t('weather_forecast') || 'Weather Forecast'"
+      :title="t('card_forecast')"
       :forecastData="forecastData"
       :daytimeHourlyData="hourlyDaytimeData"
       :nighttimeHourlyData="hourlyNighttimeData"
@@ -493,8 +493,8 @@ function showHistory(sensorType: string) {
       deviceId: deviceId.value,
       sensorType: 'temperature',
       sensorLocation: 'interior',
-      title: t('interior_temperature_history') || 'Interior Temperature History',
-      label: t('temperature') || 'Temperature',
+      title: t('history_interior_temperature'),
+      label: t('temperature'),
       unit: '°C',
       color: 'rgb(255, 99, 132)',
       backgroundColor: 'rgba(255, 99, 132, 0.1)'
@@ -503,8 +503,8 @@ function showHistory(sensorType: string) {
       deviceId: deviceId.value,
       sensorType: 'humidity',
       sensorLocation: 'interior',
-      title: t('interior_humidity_history') || 'Interior Humidity History',
-      label: t('humidity') || 'Humidity',
+      title: t('history_interior_humidity'),
+      label: t('humidity'),
       unit: '%',
       color: 'rgb(54, 162, 235)',
       backgroundColor: 'rgba(54, 162, 235, 0.1)'
@@ -513,8 +513,8 @@ function showHistory(sensorType: string) {
       deviceId: deviceId.value,
       sensorType: 'co2',
       sensorLocation: 'interior',
-      title: t('co2_history') || 'CO₂ History',
-      label: t('co2') || 'CO₂',
+      title: t('history_interior_co2'),
+      label: t('co2'),
       unit: ' ppm',
       color: 'rgb(75, 192, 75)',
       backgroundColor: 'rgba(75, 192, 75, 0.1)'
@@ -523,7 +523,7 @@ function showHistory(sensorType: string) {
       deviceId: deviceId.value,
       sensorType: 'pressure',
       sensorLocation: 'interior',
-      title: t('pressure_history') || 'Pressure History',
+      title: t('history_interior_pressure'),
       label: t('pressure') || 'Pressure',
       unit: ' hPa',
       color: 'rgb(153, 102, 255)',
