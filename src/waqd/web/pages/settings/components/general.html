@@ -1,7 +1,7 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
     <legend class="fieldset-legend">{{ t('regional_settings_legend') }}</legend>
 
-    <legend class="fieldset-legend">{{ t('language_legend') }}</legend>
+    <legend class="fieldset-legend">{{ t('language') }}</legend>
     <select class="select select-xl text-xl" name="lang" id="lang_select"
         hx-trigger="change" hx-post="set"
         hx-vals="js:{'name':'lang', 'value': event.target.value}"

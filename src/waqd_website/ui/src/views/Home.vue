@@ -104,7 +104,7 @@
               <p class="text-sm">{{ t('home_raspberry_versions') }}</p>
             </div>
             <div class="bg-base-200 rounded-lg p-3">
-              <h3 class="font-bold text-base mb-1">📺 {{ t('home_display') }}</h3>
+              <h3 class="font-bold text-base mb-1">📺 {{ t('display') }}</h3>
               <p class="text-sm">{{ t('home_display_types') }}</p>
             </div>
             <div class="bg-base-200 rounded-lg p-3">
@@ -179,13 +179,13 @@
             </div>
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">🎨 {{ t('home_display') }}</h3>
+                <h3 class="card-title text-base">🎨 {{ t('display') }}</h3>
                 <p class="text-sm">{{ t('home_display_settings') }}</p>
               </div>
             </div>
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">🌐 {{ t('home_language') }}</h3>
+                <h3 class="card-title text-base">🌐 {{ t('language') }}</h3>
                 <p class="text-sm">{{ t('home_language_desc') }}</p>
               </div>
             </div>

@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
 import router from './router'
-import i18n, { loadTranslations, setLocale, getStoredLocale } from './i18n'
+import i18n, { initI18n } from './i18n'
 import { registerSW } from 'virtual:pwa-register'
 
 // Register service worker for PWA
@@ -18,12 +18,8 @@ const updateSW = registerSW({
   },
 })
 
-// Load translations and initialize app
-loadTranslations().then(() => {
-  // Set locale from localStorage or default to 'en'
-  const storedLocale = getStoredLocale()
-  setLocale(storedLocale)
-  
+// Initialize i18n with lazy loading
+initI18n().then(() => {
   createApp(App)
     .use(router)
     .use(i18n)
