@@ -44,10 +44,6 @@
         "i18n-ally.keystyle": "flat",
         "i18n-ally.sourceLanguage": "en",
         "i18n-ally.displayLanguage": "en",
-        "i18n-ally.enabledFrameworks": [
-            "vue",
-            "general"
-        ],
         "i18n-ally.pathMatcher": "{locale}.json",
         "i18n-ally.namespace": false,
         "i18n-ally.extract.keygenStyle": "snake_case",
@@ -69,17 +65,28 @@
                 ],
                 "include": [
                     "**/*.ts",
-                    "**/*.js",
+                    "**/*.js"
+                ]
+            },
+            {
+                "templates": [
+                    "Translation().get_localized_string(\"ui_dict.json\", \"{key}\", lang_val)"
+                ],
+                "include": [
                     "**/*.py"
                 ]
             }
+        ],
+        "i18n-ally.keysInUse": [
+            "card_exterior",
+            "card_interior"
         ]
     },
     "launch": {
         "configurations": [
             {
                 "name": "Main",
-                "type": "python",
+                "type": "debugpy",
                 "request": "launch",
                 "module": "waqd",
                 "args": [
@@ -126,7 +133,7 @@
             },
             {
                 "name": "Python: Current File",
-                "type": "python",
+                "type": "debugpy",
                 "request": "launch",
                 "program": "${file}",
                 "console": "integratedTerminal",
@@ -135,7 +142,7 @@
             },
             {
                 "name": "Python Raspberry Pi: Attach",
-                "type": "python",
+                "type": "debugpy",
                 "request": "attach",
                 "subProcess": true,
                 "pathMappings": [
@@ -150,7 +157,7 @@
             },
             {
                 "name": "Python: Testing",
-                "type": "python",
+                "type": "debugpy",
                 "request": "test",
                 // "console": "integratedTerminal",
                 "subProcess": true,

@@ -323,11 +323,11 @@ async function loadDeviceInfo() {
       deviceName.value = device.name || device.device_id
       deviceLocation.value = device.location || ''
     } else {
-      connectionError.value = t('device_not_found') || 'Device not found'
+      connectionError.value = t('device_not_found')
     }
   } catch (error) {
     console.error('Error loading device info:', error)
-    connectionError.value = t('error_loading_device') || 'Failed to load device information'
+    connectionError.value = t('error_loading_device')
   } finally {
     loading.value = false
   }
@@ -339,7 +339,7 @@ function connectWebSocket() {
   // Don't connect if we don't have a valid device_id
   if (!deviceId.value) {
     console.error('Cannot connect WebSocket: no device_id')
-    connectionError.value = t('device_not_found') || 'Device not found'
+    connectionError.value = t('device_not_found')
     return
   }
 
@@ -372,7 +372,7 @@ function connectWebSocket() {
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error)
-      connectionError.value = t('connection_error') || 'Connection error occurred'
+      connectionError.value = t('connection_error')
     }
 
     ws.onclose = () => {
@@ -388,7 +388,7 @@ function connectWebSocket() {
     }
   } catch (error) {
     console.error('Error creating WebSocket:', error)
-    connectionError.value = t('connection_error') || 'Failed to connect to device'
+    connectionError.value = t('connection_error')
   }
 }
 
@@ -524,7 +524,7 @@ function showHistory(sensorType: string) {
       sensorType: 'pressure',
       sensorLocation: 'interior',
       title: t('history_interior_pressure'),
-      label: t('pressure') || 'Pressure',
+      label: t('pressure'),
       unit: ' hPa',
       color: 'rgb(153, 102, 255)',
       backgroundColor: 'rgba(153, 102, 255, 0.1)'

@@ -173,7 +173,7 @@
           <div class="grid grid-cols-2 gap-3">
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">🌍 {{ t('home_location') }}</h3>
+                <h3 class="card-title text-base">🌍 {{ t('location') }}</h3>
                 <p class="text-sm">{{ t('home_location_desc') }}</p>
               </div>
             </div>

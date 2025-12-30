@@ -1,0 +1,34 @@
+# Custom i18n Ally framework for WAQD's Python Translation() helper
+# https://github.com/lokalise/i18n-ally/wiki/Custom-Framework
+
+languageIds:
+  - python
+  - vue
+  - html
+  - javascript
+  - typescript
+  - javascriptreact
+  - typescriptreact
+
+# The key should be captured in the FIRST match group.
+# `{key}` will be replaced by i18n Ally's keypath-matching regex.
+usageMatchRegex:
+  # Vue/JS/TS: t('key') or t("key")
+  - "[^\\w\\d]t\\(\\s*['\"`]({key})['\"`]"
+  # Vue templates / server-rendered templates: {{ t('key') }}
+  - "\\{\\{\\s*t\\(\\s*['\"`]({key})['\"`]"
+  # Vue directive: v-t="key" / v-t='key'
+  - "v-t=\\s*['\"`]({key})['\"`]"
+  # Vue component usage: <i18n-t keypath="key" ...>
+  - "<i18n-t[^>]*?keypath=\\s*['\"`]({key})['\"`]"
+  # Translation().get_localized_string('ui_dict.json', 'card_interior', lang)
+  - "Translation\\(\\)\\.get_localized_string\\(\\s*['\"`]ui_dict\\.json['\"`]\\s*,\\s*['\"`]({key})['\"`]"
+  # get_localized_string('ui_dict.json', 'card_interior', lang) (in case used without the class)
+  - "get_localized_string\\(\\s*['\"`]ui_dict\\.json['\"`]\\s*,\\s*['\"`]({key})['\"`]"
+
+# Optional refactor templates (used by i18n Ally refactor/extract actions)
+refactorTemplates:
+  - "Translation().get_localized_string(\"ui_dict.json\", \"$1\", lang_val)"
+
+# Use this config for the listed languageIds (avoids built-in/custom conflicts)
+monopoly: true
