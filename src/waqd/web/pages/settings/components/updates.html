@@ -6,10 +6,10 @@
     <button class="btn btn-primary btn-lg max-w-96" hx-get="new_release_available/"
         hx-target="#update_modal_content" hx-trigger="click" hx-swap="innerHTML"
         hx-indicator="#update_modal_spinner"
+        hx-headers='{"Cache-Control": "no-cache"}'
         onclick="update_modal.showModal()">
         {{ t('check_for_updates') }}
     </button>
-    
     <!-- Modal -->
     <dialog id="update_modal" class="modal">
         <form method="dialog" class="modal-backdrop">
@@ -35,4 +35,8 @@
     {% include "components/snippets/bool_setting.html" %}
     {% endwith %}
 
+</fieldset>
+<fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
+        <legend class="fieldset-legend">{{ t('system_update') }}</legend>
+        <button class="btn btn-secondary btn-lg max-w-96" hx-post="system_update/" hx-swap="none">{{ t('system_update_start') }}</button>
 </fieldset>

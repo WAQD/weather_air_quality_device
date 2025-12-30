@@ -44,15 +44,10 @@
     "de": "Konto",
     "hu": "Fiók"
   },
-  "account_connection_legend": {
-    "en": "Account Connection",
-    "de": "Kontoverknüpfung",
-    "hu": "Fiók kapcsolat"
-  },
   "account_connection_description": {
-    "en": "Connect this device to your cloud account to access it remotely and view data from anywhere.",
-    "de": "Verbinden Sie dieses Gerät mit Ihrem Cloud-Konto, um von überall darauf zugreifen und Daten anzeigen zu können.",
-    "hu": "Csatlakoztassa ezt az eszközt a felhő fiókjához, hogy távolról is hozzáférjen és bárhonnan megtekinthesse az adatokat."
+    "en": "Connect this device to your waqd.de account to access it remotely and view data from anywhere.",
+    "de": "Verbinden Sie dieses Gerät mit Ihrem waqd.de Konto, um von überall darauf zugreifen und Daten anzeigen zu können.",
+    "hu": "Csatlakoztassa ezt az eszközt a waqd.de-s fiókjához, hogy távolról is hozzáférjen és bárhonnan megtekinthesse az adatokat."
   },
   "connect_to_account": {
     "en": "Connect to Account",
@@ -669,11 +664,6 @@
     "en": "Regional settings",
     "de": "Regionale Einstellungen",
     "hu": "Regionális beállítások"
-  },
-  "reset_admin_password": {
-    "en": "Reset admin password",
-    "de": "Admin-Passwort zurücksetzen",
-    "hu": "Admin jelszó visszaállítása"
   },
   "reset_password_legend": {
     "en": "Reset Password",
@@ -1459,6 +1449,16 @@
     "en": "Device shared successfully",
     "de": "Gerät erfolgreich geteilt",
     "hu": "Eszköz sikeresen megosztva"
+  },
+  "system_update": {
+    "en": "System Update",
+    "de": "Systemaktualisierung",
+    "hu": "Rendszerfrissítés"
+  },
+  "system_update_start": {
+    "en": "Start System Update Application",
+    "de": "Starte Systemaktualisierungsanwendung",
+    "hu": "Rendszerfrissítési program indítása"
   },
   "error_updating_device": {
     "en": "Error updating device",

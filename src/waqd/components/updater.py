@@ -55,6 +55,10 @@ class OnlineUpdater(CyclicComponent):
             return
         self._start_update_loop(self._updater_sequence, self._updater_sequence)
 
+    @staticmethod
+    def system_gui_update():
+        os.system("pi-gpk-update-viewer &")
+
     @property
     def latest_release(self) -> "GitRelease.GitRelease | None":
         """Get the latest release from the repository."""

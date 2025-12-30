@@ -1,9 +1,7 @@
 from pathlib import Path
 from typing import Dict, Any
 
-import asyncio
-import bcrypt
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 
 import waqd
@@ -88,6 +86,16 @@ async def trigger_update():
         )
         return HTMLResponse("Update started. Please wait for the device to restart.")
     except Exception as e:
+        return HTMLResponse(f"Error: {e}", status_code=500)
+
+@rt.post("/system_update", response_class=HTMLResponse)
+async def system_update():
+    try:
+        from waqd.components.updater import OnlineUpdater
+        OnlineUpdater.system_gui_update()
+        return HTMLResponse("System update started.")
+    except Exception as e:
+        Logger().error(f"Error starting system update: {e}")
         return HTMLResponse(f"Error: {e}", status_code=500)
 
 @rt.post("/set", response_class=HTMLResponse)
