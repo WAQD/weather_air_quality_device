@@ -46,15 +46,15 @@
         {
             "label": "Run tailwindcss",
             "type": "shell",
-            "command": "${workspaceRoot}/.venv/Scripts/activate.ps1 && tailwindcss -i src/waqd/assets/css/custom_theme.css -o src/waqd/assets/css/output.css -w",
+            "command": "${workspaceRoot}/.venv/Scripts/activate.ps1 && tailwindcss -i src/waqd_assets/css/custom_theme.css -o src/waqd_assets/css/output.css -w",
             "problemMatcher": []
         },
         {
-            "label": "Launch website frontend",
+            "label": "Launch website ui",
             "command": "npm run dev",
             "type": "shell",
             "args": [],
-            "options": {"cwd": "src/waqd_website/frontend"},
+            "options": {"cwd": "src/waqd_website/ui"},
             "problemMatcher": [
                 "$tsc"
             ],

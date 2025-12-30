@@ -167,7 +167,7 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
     xAxis: {
       type: 'datetime',
       title: {
-        text: t('time') || 'Time',
+        text: t('time'),
         style: {
           fontSize: '14px'
         }

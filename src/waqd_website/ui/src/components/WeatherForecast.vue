@@ -52,14 +52,14 @@
             :class="{ 'tab-active': selectedPeriod === 'day' }"
             @click="selectedPeriod = 'day'"
           >
-            {{ t('day') || 'Day' }} ({{ daytimeHourlyData?.length || 0 }} {{ t('hours') || 'hours' }})
+            {{ t('day')}} ({{ daytimeHourlyData?.length || 0 }} {{ t('hours')}})
           </a>
           <a 
             class="tab" 
             :class="{ 'tab-active': selectedPeriod === 'night' }"
             @click="selectedPeriod = 'night'"
           >
-            {{ t('night') || 'Night' }} ({{ nighttimeHourlyData?.length || 0 }} {{ t('hours') || 'hours' }})
+            {{ t('night')}} ({{ nighttimeHourlyData?.length || 0 }} {{ t('hours')}})
           </a>
         </div>
 
@@ -87,7 +87,7 @@
 
       <!-- No data message -->
       <div v-if="!forecastData || forecastData.length === 0" class="text-center py-8 opacity-70">
-        <p>{{ t('no_forecast_data') || 'No forecast data available' }}</p>
+        <p>{{'No forecast data available' }}</p>
       </div>
     </div>
   </div>
@@ -154,12 +154,12 @@ function formatForecastDate(dateString: string): string {
   
   // Check if it's today
   if (date.toDateString() === today.toDateString()) {
-    return t('today') || 'Today'
+    return t('today')
   }
   
   // Check if it's tomorrow
   if (date.toDateString() === tomorrow.toDateString()) {
-    return t('tomorrow') || 'Tomorrow'
+    return t('tomorrow')
   }
   
   // Otherwise return weekday name
