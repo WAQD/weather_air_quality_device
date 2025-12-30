@@ -14,7 +14,7 @@
 
     <div class="hero hero-bg min-h-[95vh]">
       <div class="hero-overlay"></div>
-      <div class="hero-content flex-col lg:flex-row px-2 sm:px-6 lg:px-8 w-full max-w-full gap-4 sm:gap-8">
+      <div class="hero-content flex-col lg:flex-row px-2 sm:px-6 lg:px-8 max-w-full gap-4 sm:gap-8">
       <div class="text-center lg:text-left glass rounded-box p-3 sm:p-4 bg-primary w-full max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] lg:w-auto lg:max-w-none">
         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold">{{ t('login_now') }}</h1>
         <p class="py-4 sm:py-6 text-base sm:text-lg">
