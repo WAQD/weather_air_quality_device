@@ -10,39 +10,69 @@ class Translation():
     _instance = None
     _resources = {}
     
-    # Hardcoded weekday names for supported languages
-    _WEEKDAYS = {
-        LANG_ENGLISH: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        LANG_GERMAN: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
-        LANG_HUNGARIAN: ["H", "K", "Sze", "Cs", "P", "Szo", "V"],
-    }
-    
-    # Hardcoded month names for supported languages
-    _MONTHS = {
-        LANG_ENGLISH: [
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        ],
-        LANG_GERMAN: [
-            "Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
-            "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"
-        ],
-        LANG_HUNGARIAN: [
-            "Jan", "Feb", "Már", "Ápr", "Máj", "Jún",
-            "Júl", "Aug", "Szep", "Okt", "Nov", "Dec"
-        ],
-    }
-    
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     def get_localized_string(self, asset_id: str, key: str, lang=LANG_ENGLISH, asset_dir="base") -> str:
+        # Handle new split locale files (en.json, de.json, hu.json)
+        if asset_id == "ui_dict.json":
+            # Map language codes to locale filenames
+            locale_map = {
+                LANG_ENGLISH: "en.json",
+                LANG_GERMAN: "de.json", 
+                LANG_HUNGARIAN: "hu.json"
+            }
+            
+            locale_file = locale_map.get(lang, "en.json")
+            locale_id = f"locales/{locale_file}"
+            
+            # Load the locale file if not already cached
+            if locale_id not in self._resources:
+                try:
+                    # Try loading from website UI locales (primary location)
+                    from pathlib import Path
+                    import waqd
+                    locale_path = waqd.assets_path.parent / "waqd_website" / "ui" / "src" / "locales" / locale_file
+                    
+                    if not locale_path.exists():
+                        Logger().error("TL: Cannot find locale file %s", locale_path)
+                        return ""
+                    
+                    with open(locale_path, encoding='utf-8') as f:
+                        self._resources[locale_id] = json.load(f)
+                except Exception as e:
+                    Logger().error("TL: Error loading locale file %s: %s", locale_file, e)
+                    return ""
+            
+            # Get the translation directly (split files are already language-first format)
+            value = self._resources[locale_id].get(key, "")
+            
+            if not value and lang != LANG_ENGLISH:
+                # Fallback to English
+                en_id = "locales/en.json"
+                if en_id not in self._resources:
+                    from pathlib import Path
+                    import waqd
+                    en_path = waqd.assets_path.parent / "waqd_website" / "ui" / "src" / "locales" / "en.json"
+                    
+                    if en_path.exists():
+                        with open(en_path, encoding='utf-8') as f:
+                            self._resources[en_id] = json.load(f)
+                
+                value = self._resources.get(en_id, {}).get(key, "")
+            
+            if not value:
+                Logger().error("TL: Cannot find translation for %s in %s", key, lang)
+            
+            return value
+        
+        # Handle other asset files (e.g., tts_dict.json) - keep old logic
         id = asset_dir + "/" + asset_id
         if id not in self._resources.keys():
             dict_file = get_asset_file(asset_dir, asset_id)
-            # read ui_dict.json
+            # read key-first format JSON
             with open(str(dict_file), encoding='utf-8') as f:
                 ts_dict = json.load(f)
             self._resources[id] = ts_dict
@@ -79,14 +109,25 @@ class Translation():
         # Get month (1-12, convert to 0-11 for array index)
         month_idx = date_time.month - 1
         
-        # Get localized names, fallback to English if language not supported
-        weekdays = self._WEEKDAYS.get(lang, self._WEEKDAYS[LANG_ENGLISH])
-        months = self._MONTHS.get(lang, self._MONTHS[LANG_ENGLISH])
+        # Weekday and month keys
+        weekday_keys = [
+            "weekday_mon", "weekday_tue", "weekday_wed", "weekday_thu",
+            "weekday_fri", "weekday_sat", "weekday_sun"
+        ]
+        month_keys = [
+            "month_jan", "month_feb", "month_mar", "month_apr",
+            "month_may", "month_jun", "month_jul", "month_aug",
+            "month_sep", "month_oct", "month_nov", "month_dec"
+        ]
+        
+        # Get localized names from translation files
+        weekday = self.get_localized_string("ui_dict.json", weekday_keys[weekday_idx], lang)
+        month = self.get_localized_string("ui_dict.json", month_keys[month_idx], lang)
         
         # Format based on language conventions
         if lang == LANG_HUNGARIAN:
             # Hungarian format: "Month Day, Weekday"
-            return f"{months[month_idx]} {date_time.day}, {weekdays[weekday_idx]}"
+            return f"{month} {date_time.day}, {weekday}"
         else:
             # English and German format: "Weekday, Month Day"
-            return f"{weekdays[weekday_idx]}, {months[month_idx]} {date_time.day}"
+            return f"{weekday}, {month} {date_time.day}"

@@ -1,12 +1,13 @@
 import { createI18n } from 'vue-i18n'
 
-export type MessageSchema = {
-  [key: string]: string
-}
+export type MessageSchema = Record<string, string>
 
 export type AvailableLocale = 'en' | 'de' | 'hu'
 
-// Create i18n instance with initial empty messages
+// Track which locales have been loaded
+const loadedLocales = new Set<AvailableLocale>()
+
+// Create i18n instance with only English loaded initially
 const i18n = createI18n<[MessageSchema], AvailableLocale>({
   locale: 'en', // default locale
   fallbackLocale: 'en',
@@ -20,52 +21,39 @@ const i18n = createI18n<[MessageSchema], AvailableLocale>({
 })
 
 /**
- * Load translations from the backend ui_dict.json
- * New format: { "key": { "en": "value", "de": "wert" } }
+ * Dynamically load a locale's messages
  */
-export async function loadTranslations() {
+async function loadLocaleMessages(locale: AvailableLocale): Promise<void> {
+  // If already loaded, skip
+  if (loadedLocales.has(locale)) {
+    return
+  }
+
   try {
-    const response = await fetch('/static/base/ui_dict.json')
-    if (!response.ok) {
-      throw new Error(`Failed to load translations: ${response.statusText}`)
-    }
+    // Dynamically import the locale JSON file
+    const messages = await import(`../locales/${locale}.json`)
     
-    const translations = await response.json()
+    // Set the locale messages
+    i18n.global.setLocaleMessage(locale, messages.default || messages)
     
-    // Convert from key-first to language-first structure for vue-i18n
-    const messages: Record<string, Record<string, string>> = {
-      en: {},
-      de: {},
-      hu: {},
-    }
-    
-    for (const [key, langObj] of Object.entries(translations)) {
-      const langs = langObj as Record<string, string>
-      for (const [lang, value] of Object.entries(langs)) {
-        if (messages[lang]) {
-          messages[lang][key] = value
-        }
-      }
-    }
-    
-    // Set messages for each locale
-    i18n.global.setLocaleMessage('en', messages.en || {})
-    i18n.global.setLocaleMessage('de', messages.de || {})
-    i18n.global.setLocaleMessage('hu', messages.hu || {})
-    
-    return true
+    // Mark as loaded
+    loadedLocales.add(locale)
   } catch (error) {
-    console.error('Error loading translations:', error)
-    return false
+    console.error(`Failed to load locale ${locale}:`, error)
+    throw error
   }
 }
 
 /**
- * Change the current locale
+ * Change the current locale (with lazy loading)
  */
-export function setLocale(locale: AvailableLocale) {
+export async function setLocale(locale: AvailableLocale): Promise<void> {
+  // Load the locale if not already loaded
+  await loadLocaleMessages(locale)
+  
   // @ts-ignore - locale.value type issue with vue-i18n
   i18n.global.locale.value = locale
+  
   // Store preference in localStorage
   localStorage.setItem('waqd-locale', locale)
 }
@@ -79,6 +67,16 @@ export function getStoredLocale(): AvailableLocale {
     return stored
   }
   return 'en'
+}
+
+/**
+ * Initialize i18n with the stored locale
+ */
+export async function initI18n(): Promise<void> {
+  const storedLocale = getStoredLocale()
+  await loadLocaleMessages(storedLocale)
+  // @ts-ignore
+  i18n.global.locale.value = storedLocale
 }
 
 export default i18n

@@ -11,8 +11,8 @@ export function useTranslation() {
 
   const currentLocale = computed(() => locale.value as AvailableLocale)
 
-  const setLocale = (newLocale: AvailableLocale) => {
-    setI18nLocale(newLocale)
+  const setLocale = async (newLocale: AvailableLocale) => {
+    await setI18nLocale(newLocale)
   }
 
   return {
