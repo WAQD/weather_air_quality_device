@@ -30,11 +30,15 @@ async function loadLocaleMessages(locale: AvailableLocale): Promise<void> {
   }
 
   try {
-    // Dynamically import the locale JSON file
-    const messages = await import(`../locales/${locale}.json`)
+    // Fetch the locale JSON file from static assets
+    const response = await fetch(`/static/locales/${locale}.json`)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch locale ${locale}: ${response.statusText}`)
+    }
+    const messages = await response.json()
     
     // Set the locale messages
-    i18n.global.setLocaleMessage(locale, messages.default || messages)
+    i18n.global.setLocaleMessage(locale, messages)
     
     // Mark as loaded
     loadedLocales.add(locale)

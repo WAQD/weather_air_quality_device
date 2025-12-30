@@ -4,6 +4,7 @@
         "bg_night_mist": "bg_day_mist",
         "bg_night_drizzle": "bg_day_drizzle",
         "bg_night_fog": "bg_day_fog",
-        "bg_night_squall": "bg_day_squall"
+        "bg_night_squall": "bg_day_squall",
+        "bg_night_clouds": "bg_night_heavy_clouds"
     }
 }
