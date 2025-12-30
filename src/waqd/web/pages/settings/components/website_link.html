@@ -1,0 +1,315 @@
+<fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
+    <legend class="fieldset-legend">WAQD Link</legend>
+
+    <label class="label text-wrap text-2xl">{{ t('account_connection_description') }}</label>
+
+    <button class="btn btn-primary max-w-96"
+        onclick="device_pairing_modal.showModal(); initiateDevicePairing()">
+        {{ t('connect_to_account') }}
+    </button>
+
+    <dialog id="device_pairing_modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="text-3xl font-bold mb-4">{{ t('connect_to_account') }}</h3>
+
+            <!-- Pairing Instructions -->
+            <div class="alert alert-info mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="text-xl">
+                    <p class="font-semibold">{{ t('pairing_device_instructions') }}</p>
+                    <p class="mt-2">{{ t('pairing_device_web_instruction') }}</p>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="pairing_loading" class="flex flex-col items-center gap-4 py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+                <p class="text-2xl">{{ t('generating_pairing_code') }}</p>
+            </div>
+
+            <!-- Passphrase Display -->
+            <div id="pairing_passphrase" class="hidden">
+                <div class="flex flex-col items-center gap-6 py-8">
+                    <p class="text-2xl font-semibold">{{ t('your_pairing_code') }}</p>
+
+                    <!-- Large Passphrase Display -->
+                    <div class="bg-base-300 rounded-box p-8 shadow-lg">
+                        <p id="passphrase_display"
+                            class="text-6xl font-mono font-bold tracking-widest text-center"></p>
+                    </div>
+
+                    <!-- QR Code -->
+                    <!-- <div id="qr_code_container" class="bg-white p-4 rounded-box"></div> -->
+
+                    <!-- Timer -->
+                    <div class="flex items-center gap-2 text-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ t('expires_in') }}: <span id="pairing_timer"
+                                class="font-mono font-bold">5:00</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waiting for Confirmation -->
+            <div id="pairing_waiting" class="hidden flex flex-col items-center gap-4 py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-success animate-pulse"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-2xl font-bold text-success">{{ t('pairing_code_entered') }}</p>
+                <p class="text-xl">{{ t('waiting_for_user_confirmation') }}: <span
+                        id="claiming_username" class="font-bold"></span></p>
+                <div class="flex gap-4 mt-4">
+                    <button class="btn btn-success btn-lg" onclick="confirmPairing(true)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ t('confirm') }}
+                    </button>
+                    <button class="btn btn-error btn-lg" onclick="confirmPairing(false)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        {{ t('reject') }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="pairing_success" class="hidden flex flex-col items-center gap-4 py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-success" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-3xl font-bold text-success">{{ t('pairing_successful') }}</p>
+                <p class="text-xl">{{ t('device_connected_to_account') }}</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="pairing_error" class="hidden flex flex-col items-center gap-4 py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-error" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-3xl font-bold text-error">{{ t('pairing_failed') }}</p>
+                <p class="text-xl" id="pairing_error_message"></p>
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn" onclick="cancelPairing()">{{ t('close') }}</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
+</fieldset>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> -->
+<script>
+    let pairingTimerInterval = null;
+    let currentSessionId = null;
+    let currentPassphrase = null;
+    let deviceInfo = null;
+    let statusPollingInterval = null;
+
+    // Get device info on page load
+    fetch('/settings/device_info')
+        .then(response => response.json())
+        .then(data => {
+            deviceInfo = data;
+            console.log('Device ID:', data.device_id);
+        })
+        .catch(error => console.error('Failed to get device info:', error));
+
+    function initiateDevicePairing() {
+        // Reset states
+        document.getElementById('pairing_loading').classList.remove('hidden');
+        document.getElementById('pairing_passphrase').classList.add('hidden');
+        document.getElementById('pairing_waiting').classList.add('hidden');
+        document.getElementById('pairing_success').classList.add('hidden');
+        document.getElementById('pairing_error').classList.add('hidden');
+
+        // Clear previous QR code
+        // document.getElementById('qr_code_container').innerHTML = '';
+
+        if (!deviceInfo) {
+            showPairingError('Device info not available');
+            return;
+        }
+
+        // Call server directly to initiate pairing
+        fetch(`${deviceInfo.server_url}/api/user/device/initiate-registration`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                device_id: deviceInfo.device_id,
+                location: deviceInfo.location
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                currentSessionId = data.session_id;
+                currentPassphrase = data.passphrase;
+
+                // Display passphrase
+                document.getElementById('passphrase_display').textContent = data.passphrase;
+                document.getElementById('pairing_loading').classList.add('hidden');
+                document.getElementById('pairing_passphrase').classList.remove('hidden');
+
+                // Generate QR Code
+                // new QRCode(document.getElementById('qr_code_container'), {
+                //     text: data.passphrase,
+                //     width: 200,
+                //     height: 200,
+                // });
+
+                // Start timer countdown (5 minutes = 300 seconds)
+                startPairingTimer(data.expires_at);
+
+                // Start polling server for status
+                statusPollingInterval = setInterval(pollPairingStatus, 2000);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showPairingError('Connection error');
+            });
+    }
+
+    function startPairingTimer(expiresAt) {
+        if (pairingTimerInterval) {
+            clearInterval(pairingTimerInterval);
+        }
+
+        // Parse expiresAt as UTC time
+        let expiryTime;
+        // Parse the ISO string as UTC and get milliseconds
+        expiryTime = Date.parse(expiresAt);
+
+
+        pairingTimerInterval = setInterval(() => {
+            // Use Date.now() which returns UTC milliseconds
+            const now = Date.now();
+            const remaining = Math.max(0, Math.floor((expiryTime - now) / 1000));
+
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+
+            document.getElementById('pairing_timer').textContent =
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (remaining <= 0) {
+                clearInterval(pairingTimerInterval);
+                showPairingError('Pairing code expired');
+            }
+        }, 1000);
+    }
+
+    function showPairingWaiting(username) {
+        document.getElementById('pairing_passphrase').classList.add('hidden');
+        document.getElementById('pairing_waiting').classList.remove('hidden');
+        document.getElementById('claiming_username').textContent = username;
+
+        if (pairingTimerInterval) {
+            clearInterval(pairingTimerInterval);
+        }
+    }
+
+    function pollPairingStatus() {
+        if (!currentSessionId) return;
+
+        // Poll server to check if session was claimed
+        fetch(`${deviceInfo.server_url}/api/user/device/session/${currentSessionId}/check`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.claimed && data.username) {
+                    clearInterval(statusPollingInterval);
+                    showPairingWaiting(data.username);
+                }
+            })
+            .catch(error => console.error('Error checking pairing status:', error));
+    }
+
+    function confirmPairing(approved) {
+        if (!currentSessionId) return;
+
+        // Send response directly to server
+        fetch(`${deviceInfo.server_url}/api/user/device/pairing-response`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                session_id: currentSessionId,
+                approved: approved
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && approved) {
+                    // Notify local backend about successful pairing with API key
+                    fetch('/settings/pairing_complete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            api_key: data.api_key,
+                            user_info: data.user_info || {}
+                        })
+                    });
+                    showPairingSuccess();
+                } else {
+                    showPairingError(approved ? 'Pairing failed' : 'Pairing rejected');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showPairingError('Connection error');
+            });
+    }
+
+    function showPairingSuccess() {
+        document.getElementById('pairing_waiting').classList.add('hidden');
+        document.getElementById('pairing_success').classList.remove('hidden');
+    }
+
+    function showPairingError(message) {
+        document.getElementById('pairing_loading').classList.add('hidden');
+        document.getElementById('pairing_passphrase').classList.add('hidden');
+        document.getElementById('pairing_waiting').classList.add('hidden');
+        document.getElementById('pairing_error').classList.remove('hidden');
+        document.getElementById('pairing_error_message').textContent = message;
+
+        if (pairingTimerInterval) {
+            clearInterval(pairingTimerInterval);
+        }
+    }
+
+    function cancelPairing() {
+        if (pairingTimerInterval) {
+            clearInterval(pairingTimerInterval);
+        }
+        if (statusPollingInterval) {
+            clearInterval(statusPollingInterval);
+        }
+        currentSessionId = null;
+        currentPassphrase = null;
+    }
+</script>
