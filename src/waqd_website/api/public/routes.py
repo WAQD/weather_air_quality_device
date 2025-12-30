@@ -111,7 +111,10 @@ def set_access_token_cookie(
         value=f"Bearer {access_token}",
         httponly=True,
         max_age=int(access_token_expires.total_seconds()),
-        expires=int(access_token_expires.total_seconds()),
+        # Use an absolute expiry datetime for broad browser compatibility.
+        # Some clients treat numeric/relative expires values as invalid,
+        # which can degrade this into a session cookie (especially in PWAs).
+        expires=datetime.now(timezone.utc) + access_token_expires,
         samesite="lax",
         secure=secure,
     )

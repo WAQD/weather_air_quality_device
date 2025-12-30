@@ -64,6 +64,18 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         sourcemap: false,
         runtimeCaching: [
+          // Never cache auth/session-related endpoints. Caching 401/redirects here
+          // can make it look like the cookie/session "disappeared" in PWA mode.
+          {
+            urlPattern: /^\/api\/(public\/token|public\/logout|public\/keepalive|user\/me)\b/i,
+            handler: 'NetworkOnly',
+            method: 'GET',
+          },
+          {
+            urlPattern: /^\/api\/(public\/token|public\/logout|public\/keepalive|user\/me)\b/i,
+            handler: 'NetworkOnly',
+            method: 'POST',
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
@@ -83,6 +95,11 @@ export default defineConfig({
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
+              cacheableResponse: {
+                // Avoid caching 401/403/5xx which can incorrectly persist "logged out"
+                // states while the cookie is still valid.
+                statuses: [200],
+              },
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 5 // 5 minutes
@@ -142,8 +159,8 @@ export default defineConfig({
           dest: 'static/font'
         },
         {
-          src: '../../waqd_assets/base/ui_dict.json',
-          dest: 'static/base'
+          src: '../../waqd_assets/locales/*.json',
+          dest: 'static/locales'
         }
       ]
     }),

@@ -16,7 +16,3 @@ onMounted(() => {
   fetchUserInfo()
 })
 </script>
-
-<style>
-/* Global styles can go here */
-</style>

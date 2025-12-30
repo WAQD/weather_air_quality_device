@@ -107,6 +107,7 @@ function login() {
 
   fetch('/api/public/token', {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
