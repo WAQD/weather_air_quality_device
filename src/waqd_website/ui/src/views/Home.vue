@@ -32,7 +32,7 @@
           <p class="py-6 text-lg">
             {{ t('home_create_professional') }}
           </p>
-          <router-link to="/public/login" class="btn btn-secondary btn-lg">{{ t('home_get_started') }}</router-link>
+          <!-- <router-link to="/public/login" class="btn btn-secondary btn-lg">{{ t('home_get_started') }}</router-link> -->
         </div>
       </div>
 
