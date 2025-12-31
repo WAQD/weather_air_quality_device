@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from frozendict import frozendict
 
 import waqd.app as app
-from waqd.assets.assets import get_asset_file_relative
+from waqd.base.assets import get_asset_file_relative
 from waqd.settings import LANG
 from waqd.web.api.sensor.v1.connector import SensorRetrieval
 from waqd.web.api.weather.v1.connector import WeatherRetrieval

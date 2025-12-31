@@ -12,7 +12,7 @@ from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 
 import waqd
-from waqd.assets import get_asset_file
+from waqd.base.assets import get_asset_file
 from waqd.base.component import Component
 from waqd.base.component_reg import ComponentRegistry
 from waqd.base.file_logger import Logger

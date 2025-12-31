@@ -1,4 +1,4 @@
-from waqd.assets.assets import get_asset_file, Logger
+from waqd.base.assets import get_asset_file, Logger
 
 
 def test_get_with_file_type(base_fixture):
