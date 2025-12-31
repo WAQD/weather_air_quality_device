@@ -1,12 +1,30 @@
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
     <legend class="fieldset-legend">WAQD Link</legend>
 
+    <!-- Connection status indicator -->
+    <div id="connection_status" class="hidden mb-2">
+        <div class="alert alert-success">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                <div class="font-bold">{{ t('connected') }}</div>
+                <div class="text-sm" id="paired_users_list"></div>
+            </div>
+        </div>
+    </div>
+
     <label class="label text-wrap text-2xl">{{ t('account_connection_description') }}</label>
 
-    <button class="btn btn-primary max-w-96"
-        onclick="device_pairing_modal.showModal(); initiateDevicePairing()">
-        {{ t('connect_to_account') }}
-    </button>
+
+    <div class="indicator">
+        <button class="btn btn-primary max-w-96"
+            onclick="device_pairing_modal.showModal(); initiateDevicePairing()">
+            {{ t('connect_to_account') }}
+        </button>
+    </div>
 
     <dialog id="device_pairing_modal" class="modal">
         <div class="modal-box max-w-2xl">
@@ -125,7 +143,6 @@
     let currentSessionId = null;
     let currentPassphrase = null;
     let deviceInfo = null;
-    let statusPollingInterval = null;
 
     // Get device info on page load
     fetch('/settings/device_info')
@@ -135,6 +152,26 @@
             console.log('Device ID:', data.device_id);
         })
         .catch(error => console.error('Failed to get device info:', error));
+
+    // Check connection status on page load
+    fetch('/settings/website_link_status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.connected && data.users && data.users.length > 0) {
+                // Show connection status alert
+                const statusDiv = document.getElementById('connection_status');
+                statusDiv.classList.remove('hidden');
+                
+                // Build user list display
+                const usersList = document.getElementById('paired_users_list');
+                const usernames = data.users
+                    .map(u => u.username || u.email || u.user_id)
+                    .filter(Boolean)
+                    .join(', ');
+                usersList.textContent = usernames || 'Unknown user';
+            }
+        })
+        .catch(error => console.error('Failed to get connection status:', error));
 
     function initiateDevicePairing() {
         // Reset states
@@ -288,6 +325,11 @@
     function showPairingSuccess() {
         document.getElementById('pairing_waiting').classList.add('hidden');
         document.getElementById('pairing_success').classList.remove('hidden');
+        
+        // Refresh connection status after successful pairing
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
     }
 
     function showPairingError(message) {

@@ -36,6 +36,19 @@ def get_device_by_id(device_id: str) -> Optional[Device]:
         return device
 
 
+def get_device_owners(device_id: str) -> List[User]:
+    """Get all users who own a specific device"""
+    with Session(engine) as session:
+        device = session.exec(select(Device).where(Device.device_id == device_id)).first()
+        if not device:
+            return []
+        
+        # Get users through the relationship
+        statement = select(User).join(UserDeviceLink).where(UserDeviceLink.device_id == device.id)
+        users = session.exec(statement).all()
+        return list(users)
+
+
 def delete_device(device_id: str, username: str) -> bool:
     """Delete a device if the user is an owner"""
     with Session(engine) as session:

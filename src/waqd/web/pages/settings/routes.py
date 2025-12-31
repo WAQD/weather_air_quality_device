@@ -19,6 +19,7 @@ from waqd.settings import (
     LOCATION_LONGITUDE,
     LOCATION_NAME,
     LOCATION_STATE,
+    USER_API_KEY,
 )
 from waqd.web.templates import render_main, sub_template
 
@@ -29,7 +30,7 @@ current_path = Path(__file__).parent.resolve()
 
 @rt.get("/", response_class=HTMLResponse)
 async def settings():
-    app.comp_ctrl.unload_all()
+    app.comp_ctrl.unload_all(reload_intended=True)
     context = app.settings.get_all()
     content = sub_template(
         "settings.html",
@@ -55,7 +56,9 @@ async def location_search_result(query: str):
 @rt.get("/new_release_available", response_class=HTMLResponse)
 async def new_release_available():
     try:
-        latest_version, update_available = app.comp_ctrl.components.auto_updater.check_newer_version()
+        latest_version, update_available = (
+            app.comp_ctrl.components.auto_updater.check_newer_version()
+        )
     except Exception as e:
         Logger().debug("Failed to check for updates: %s", e)
         return HTMLResponse("Failed to check update information. Try again later!")
@@ -173,5 +176,24 @@ async def pairing_complete(pairing_data: Dict[str, Any]):
         return JSONResponse({"success": True})
     except Exception as e:
         Logger().error("Error handling pairing completion: %s", e)
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@rt.get("/website_link_status")
+async def website_link_status():
+    """Return website pairing status for the settings UI (from WebSocket server)."""
+    try:
+        api_key = app.settings.get_string(USER_API_KEY)
+        if not api_key:
+            return JSONResponse({"connected": False, "users": []})
+
+        # Get device owners from WebSocket component (live data from server)
+        external_device = app.comp_ctrl.components.website_websocket_connection
+        users = external_device.get_device_owners()
+        
+        return JSONResponse({"connected": True, "users": users})
+
+    except Exception as e:
+        Logger().error("Error getting website link status: %s", e)
         return JSONResponse({"error": str(e)}, status_code=500)
 

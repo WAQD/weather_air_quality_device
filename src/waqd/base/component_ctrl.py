@@ -91,7 +91,7 @@ class ComponentController:
 
     def _watchdog_loop(self):
         # this import statement imports all the components initially
-        import waqd.components
+        import waqd.components  # noqa: F401
 
         self._components.watch_all()
         self._inited_all = True
@@ -139,10 +139,11 @@ class ComponentController:
         except Exception as e:
             Logger().debug(f"ERROR: Watchdog crashed: {str(e)}")
 
-    def _unload_all_components(self, reload_intended, updating):
+    def _unload_all_components(self, reload_intended:bool, updating: bool):
         """
         Stop own watcher and unload modules.
         :param reload_intended: singals, that objects, which forbid reload will be skipped
+        :param updating: signals, that updater is running - exclude it from unload
         """
         # watch threads needs to stop - updater runs continously
         self.stop()
