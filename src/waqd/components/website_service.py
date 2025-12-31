@@ -18,6 +18,7 @@ from waqd.web.api.weather.v1.connector import WeatherRetrieval
 class WAQDDeviceClient(Component):
     def __init__(self, user_api_key: str, device_id:str):
         super().__init__()
+        self._reload_forbidden = True
 
         self._device_id = device_id
         self._user_api_key = user_api_key
@@ -30,6 +31,7 @@ class WAQDDeviceClient(Component):
         self._reconnect_delay = 5  # Initial reconnect delay in seconds
         self._max_reconnect_delay = 300  # Max 5 minutes
         self._reconnect_attempts = 0
+        self._device_owners = []  # List of users who own this device (from server)
 
         self.start()
 
@@ -138,6 +140,11 @@ class WAQDDeviceClient(Component):
             await self._send_current_sensor_data()
             # Also send weather data
             await self._send_current_weather_data()
+        elif message_type == "device_owners":
+            # Server sending list of users who own this device
+            owners = message.get("owners", [])
+            self._device_owners = owners
+            self._logger.info("WS: Device owners updated: %s", owners)
         else:
             self._logger.warning("WS: Unknown message type: %s", message_type)
 
@@ -405,6 +412,10 @@ class WAQDDeviceClient(Component):
         if self._ws_thread:
             self._ws_thread.join(timeout=5)
             self._ws_thread = None
+
+    def get_device_owners(self) -> list[Dict[str, Any]]:
+        """Get list of users who own this device (from WebSocket server)"""
+        return self._device_owners.copy() if self._device_owners else []
 
     def on_pairing_success(self, api_key: str, user_info: Dict[str, Any]):
         """

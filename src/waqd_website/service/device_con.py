@@ -172,6 +172,9 @@ class DeviceManager:
 
         # Initial DB sync to mark as online
         asyncio.create_task(device.sync_to_db(force=True))
+        
+        # Send device owners list to the device
+        asyncio.create_task(self.send_device_owners(device_id))
 
         return device
 
@@ -326,6 +329,33 @@ class DeviceManager:
             return True
         except Exception as e:
             Logger().error("Failed to send pairing request to %s: %s", device_id, e)
+            return False
+
+    async def send_device_owners(self, device_id: str) -> bool:
+        """Send list of device owners to the device via WebSocket"""
+        if device_id not in self.connected_devices:
+            return False
+
+        from waqd_website.database.devices import get_device_owners
+
+        device = self.connected_devices[device_id]
+        try:
+            owners = get_device_owners(device_id)
+            owners_list = [
+                {"username": user.username, "email": user.email, "user_id": user.id}
+                for user in owners
+            ]
+            await device.websocket.send_json(
+                {
+                    "type": "device_owners",
+                    "owners": owners_list,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
+            Logger().debug("Sent device owners to %s: %s", device_id, owners_list)
+            return True
+        except Exception as e:
+            Logger().error("Failed to send device owners to %s: %s", device_id, e)
             return False
 
 
