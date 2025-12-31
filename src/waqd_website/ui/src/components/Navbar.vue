@@ -1,5 +1,5 @@
 <template>
-  <div class="navbar bg-base-100 shadow-sm rounded-b p-4 md:p-0 lg:p-2 sticky top-0 z-50">
+  <div class="navbar bg-base-100 shadow-sm p-4 md:p-0 lg:p-2 sticky top-0 z-50">
     <!-- Toast Container -->
     <div class="toast toast-bottom toast-end z-50">
       <div v-if="showLogoutToast" class="alert alert-success">
