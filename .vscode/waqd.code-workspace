@@ -39,7 +39,7 @@
         },
         // i18n Ally Configuration
         "i18n-ally.localesPaths": [
-            "src/waqd_website/ui/src/locales"
+            "src/waqd_assets/locales"
         ],
         "i18n-ally.keystyle": "flat",
         "i18n-ally.sourceLanguage": "en",
