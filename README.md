@@ -179,5 +179,5 @@ https://github.com/dfeneyrou/palanteer/releases
 
 ## Author:
 
-Copyright (c) 2022 Péter Gosztolya and contributors.
+Copyright (c) 2025 Péter Gosztolya and contributors.
 
