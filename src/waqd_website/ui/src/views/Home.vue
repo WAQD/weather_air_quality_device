@@ -235,6 +235,9 @@
           <p class="mt-8 text-sm opacity-80">
             🗲 {{ t('home_open_source') }}
           </p>
+          <p class="mt-8 text-sm opacity-80">
+            Copyright (c) 2025 Péter Gosztolya and contributors.
+          </p>
         </div>
       </div>
     </div>
