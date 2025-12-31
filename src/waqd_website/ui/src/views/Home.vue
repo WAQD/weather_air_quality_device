@@ -57,7 +57,7 @@
           <img :src="mainGuiImg" alt="WAQD Main Interface"
             class="rounded-lg shadow-2xl max-w-xl w-full" />
         </div>
-        <div class="w-full lg:w-2/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="lg:w-2/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-4xl font-bold mb-4">{{ t('home_full_featured') }}</h2>
           <ul class="space-y-2 text-base">
             <li class="flex items-start">
@@ -89,7 +89,7 @@
           <img :src="waqdStationImg" alt="WAQD Station"
             class="rounded-lg shadow-2xl max-w-xl w-full" />
         </div>
-        <div class="w-full lg:w-1/2 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="lg:w-1/2 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-3xl font-bold mb-4">{{ t('home_easy_assembly') }}</h2>
           <p class="text-base mb-3">
             {{ t('home_assembly_desc') }}
@@ -124,7 +124,7 @@
           <img :src="sensorCaseImg" alt="3D Printable Sensor Case"
             class="rounded-lg shadow-2xl max-w-xl w-full" />
         </div>
-        <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-4xl font-bold mb-4">{{ t('home_3d_printable') }}</h2>
           <p class="text-xl mb-3">
             {{ t('home_3d_desc') }}
@@ -161,7 +161,7 @@
         <div class="w-full lg:w-4/6 flex justify-center">
           <img :src="optionsImg" alt="WAQD Options" class="rounded-lg shadow-2xl max-w-2xl w-full" />
         </div>
-        <div class="w-full lg:w-2/6 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="lg:w-2/6 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-4xl font-bold mb-4">{{ t('home_customizable') }}</h2>
           <p class="text-xl mb-4">
             {{ t('home_customizable_desc') }}
