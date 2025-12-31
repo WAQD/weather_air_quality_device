@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from threading import Thread
 
 import waqd
-from waqd.assets.assets import get_asset_file
+from waqd.base.assets import get_asset_file
 from waqd.base.file_logger import Logger
 from waqd.base.system import RuntimeSystem
 from waqd.settings import STARTUP_JINGLE

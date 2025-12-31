@@ -11,7 +11,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from waqd.assets import get_asset_file
+from waqd.base.assets import get_asset_file
 from waqd.base.component import Component
 
 

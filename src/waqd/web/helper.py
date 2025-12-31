@@ -4,7 +4,7 @@ from typing import Optional
 from pint.facets.plain import PlainQuantity as Quantity
 
 from waqd.app import unit_reg
-from waqd.assets.assets import get_asset_file
+from waqd.base.assets import get_asset_file
 
 
 def format_unit_disp_value(
