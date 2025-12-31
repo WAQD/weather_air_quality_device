@@ -53,31 +53,27 @@
     <div class="hero hero-bg-features min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
       <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-full lg:w-2/5 flex justify-center">
+        <div class="w-full lg:w-3/5 flex justify-center">
           <img :src="mainGuiImg" alt="WAQD Main Interface"
-            class="rounded-lg shadow-2xl max-w-md w-full" />
+            class="rounded-lg shadow-2xl max-w-xl w-full" />
         </div>
-        <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-3xl font-bold mb-4">{{ t('home_full_featured') }}</h2>
+        <div class="w-full lg:w-2/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+          <h2 class="text-4xl font-bold mb-4">{{ t('home_full_featured') }}</h2>
           <ul class="space-y-2 text-base">
             <li class="flex items-start">
-              <span class="text-xl mr-2">🕐</span>
-              <span>{{ t('home_realtime_clock') }}</span>
-            </li>
-            <li class="flex items-start">
-              <span class="text-xl mr-2">🌡️</span>
+              <span class="text-3xl mr-2">🌡️</span>
               <span>{{ t('home_interior_temp') }}</span>
             </li>
             <li class="flex items-start">
-              <span class="text-xl mr-2">🌤️</span>
+              <span class="text-3xl mr-2">🌤️</span>
               <span>{{ t('home_exterior_weather') }}</span>
             </li>
             <li class="flex items-start">
-              <span class="text-xl mr-2">📅</span>
+              <span class="text-3xl mr-2">📅</span>
               <span>{{ t('home_forecast_3day') }}</span>
             </li>
             <li class="flex items-start">
-              <span class="text-xl mr-2">💨</span>
+              <span class="text-3xl mr-2">💨</span>
               <span>{{ t('home_air_quality') }}</span>
             </li>
           </ul>
@@ -89,11 +85,11 @@
     <div class="hero hero-bg-hardware min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
       <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-full lg:w-1/3 flex justify-center">
+        <div class="w-full lg:w-1/2 flex justify-center">
           <img :src="waqdStationImg" alt="WAQD Station"
-            class="rounded-lg shadow-2xl max-w-xs w-full" />
+            class="rounded-lg shadow-2xl max-w-xl w-full" />
         </div>
-        <div class="w-full lg:w-2/3 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+        <div class="w-full lg:w-1/2 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
           <h2 class="text-3xl font-bold mb-4">{{ t('home_easy_assembly') }}</h2>
           <p class="text-base mb-3">
             {{ t('home_assembly_desc') }}
@@ -126,33 +122,33 @@
       <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
         <div class="w-full lg:w-2/5 flex justify-center">
           <img :src="sensorCaseImg" alt="3D Printable Sensor Case"
-            class="rounded-lg shadow-2xl max-w-sm w-full" />
+            class="rounded-lg shadow-2xl max-w-xl w-full" />
         </div>
         <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-3xl font-bold mb-4">{{ t('home_3d_printable') }}</h2>
-          <p class="text-base mb-3">
+          <h2 class="text-4xl font-bold mb-4">{{ t('home_3d_printable') }}</h2>
+          <p class="text-xl mb-3">
             {{ t('home_3d_desc') }}
           </p>
           <ul class="space-y-2 text-base">
             <li class="flex items-start">
-              <span class="text-xl mr-2">📦</span>
+              <span class="text-2xl mr-2">📦</span>
               <span>{{ t('home_3d_sensors') }}</span>
             </li>
             <li class="flex items-start">
-              <span class="text-xl mr-2">💨</span>
+              <span class="text-2xl mr-2">💨</span>
               <span>{{ t('home_3d_ventilation') }}</span>
             </li>
             <li class="flex items-start">
-              <span class="text-xl mr-2">🔌</span>
+              <span class="text-2xl mr-2">🔌</span>
               <span>{{ t('home_3d_cable') }}</span>
             </li>
             <li class="flex items-start">
-              <span class="text-xl mr-2">🔩</span>
+              <span class="text-2xl mr-2">🔩</span>
               <span>{{ t('home_3d_screws') }}</span>
             </li>
           </ul>
           <div class="mt-4">
-            <p class="text-sm opacity-70">{{ t('home_3d_stl') }}</p>
+            <p class="text-lg opacity-70">{{ t('home_3d_stl') }}</p>
           </div>
         </div>
       </div>
@@ -161,38 +157,38 @@
     <!-- Customization Hero Section -->
     <div class="hero hero-bg-custom min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
-        <div class="w-full lg:w-2/5 flex justify-center">
-          <img :src="optionsImg" alt="WAQD Options" class="rounded-lg shadow-2xl max-w-md w-full" />
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-4 px-8 relative z-10">
+        <div class="w-full lg:w-4/6 flex justify-center">
+          <img :src="optionsImg" alt="WAQD Options" class="rounded-lg shadow-2xl max-w-2xl w-full" />
         </div>
-        <div class="w-full lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-3xl font-bold mb-4">{{ t('home_customizable') }}</h2>
-          <p class="text-base mb-4">
+        <div class="w-full lg:w-2/6 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
+          <h2 class="text-4xl font-bold mb-4">{{ t('home_customizable') }}</h2>
+          <p class="text-xl mb-4">
             {{ t('home_customizable_desc') }}
           </p>
           <div class="grid grid-cols-2 gap-3">
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">🌍 {{ t('location') }}</h3>
-                <p class="text-sm">{{ t('home_location_desc') }}</p>
+                <h3 class="card-title text-xl">🌍 {{ t('location') }}</h3>
+                <p class="text">{{ t('home_location_desc') }}</p>
               </div>
             </div>
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">🎨 {{ t('display') }}</h3>
-                <p class="text-sm">{{ t('home_display_settings') }}</p>
+                <h3 class="card-title text-xl">🎨 {{ t('display') }}</h3>
+                <p class="text">{{ t('home_display_settings') }}</p>
               </div>
             </div>
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">🌐 {{ t('language') }}</h3>
-                <p class="text-sm">{{ t('home_language_desc') }}</p>
+                <h3 class="card-title text-xl">🌐 {{ t('language') }}</h3>
+                <p class="text">{{ t('home_language_desc') }}</p>
               </div>
             </div>
             <div class="card bg-base-200 shadow-xl">
               <div class="card-body p-4">
-                <h3 class="card-title text-base">☁️ {{ t('home_weather') }}</h3>
-                <p class="text-sm">{{ t('home_weather_desc') }}</p>
+                <h3 class="card-title text-xl">☁️ {{ t('home_weather') }}</h3>
+                <p class="text">{{ t('home_weather_desc') }}</p>
               </div>
             </div>
           </div>
@@ -203,7 +199,7 @@
     <!-- Call to Action Section -->
     <div class="hero hero-bg-cta min-h-[60vh] snap-section">
       <div class="hero-overlay bg-opacity-60"></div>
-      <div class="hero-content text-center max-w-4xl relative z-10">
+      <div class="hero-content text-center max-w-5xl relative z-10">
         <div class="glass rounded-box p-12 bg-primary/80 backdrop-blur-sm">
           <h2 class="text-5xl font-bold mb-6">{{ t('home_ready_building') }}</h2>
           <p class="text-xl mb-8">
@@ -232,10 +228,10 @@
               {{ t('settings_tab_about') }}
             </router-link>
           </div>
-          <p class="mt-8 text-sm opacity-80">
+          <p class="mt-8 text-base opacity-80">
             🗲 {{ t('home_open_source') }}
           </p>
-          <p class="mt-8 text-sm opacity-80">
+          <p class="mt-2 text-base opacity-80">
             Copyright (c) 2025 Péter Gosztolya and contributors.
           </p>
         </div>
