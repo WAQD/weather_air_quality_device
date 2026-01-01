@@ -57,7 +57,8 @@ class OnlineUpdater(CyclicComponent):
 
     @staticmethod
     def system_gui_update():
-        os.system("pi-gpk-update-viewer &")
+        # has a nag screen for privilieged user, but at least it works
+        os.system("sudo pi-gpk-update-viewer &")
 
     @property
     def latest_release(self) -> "GitRelease.GitRelease | None":
