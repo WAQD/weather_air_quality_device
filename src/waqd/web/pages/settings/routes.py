@@ -197,3 +197,21 @@ async def website_link_status():
         Logger().error("Error getting website link status: %s", e)
         return JSONResponse({"error": str(e)}, status_code=500)
 
+
+@rt.post("/disconnect_device")
+async def disconnect_device():
+    """Disconnect device by clearing the API key and stopping WebSocket connection"""
+    try:
+        # Clear the API key
+        app.settings.set(USER_API_KEY, "")
+        
+        # Stop and restart WebSocket connection (which will not reconnect without API key)
+        external_device = app.comp_ctrl.components.website_websocket_connection
+        external_device.stop()
+
+        Logger().info("Device disconnected from website account")
+        return JSONResponse({"success": True})
+    except Exception as e:
+        Logger().error("Error disconnecting device: %s", e)
+        return JSONResponse({"error": str(e)}, status_code=500)
+

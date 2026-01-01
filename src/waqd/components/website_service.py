@@ -416,8 +416,9 @@ class WAQDDeviceClient(Component):
         try:
             self._loop.run_until_complete(self.connect_websocket())
         except Exception as e:
-            self._logger.error("Event loop error: %s", e)
+            self._logger.error("WS: Event loop error: %s", e)
         finally:
+            self._logger.info("WS: Event loop stopped")
             self._loop.close()
             self._loop = None
 

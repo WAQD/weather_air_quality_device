@@ -3,15 +3,27 @@
 
     <!-- Connection status indicator -->
     <div id="connection_status" class="hidden mb-2">
-        <div class="alert alert-success">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-                <div class="font-bold">{{ t('connected') }}</div>
-                <div class="text-sm" id="paired_users_list"></div>
+        <div class="flex items-stretch gap-4">
+            <div class="alert alert-success flex-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="flex items-center gap-2">
+                    <div class="text font-bold">{{ t('connected') }}</div>
+                    <div class="text-base" id="paired_users_list"></div>
+                </div>
+            </div>
+
+            <!-- Disconnect button (only shown when connected) -->
+            <div id="disconnect_section" class="hidden">
+                <button class="btn btn-xl btn-error h-full min-h-full flex items-center justify-center gap-2 px-4" onclick="disconnect_confirmation_modal.showModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>{{ t('disconnect_from_account') }}</span>
+                </button>
             </div>
         </div>
     </div>
@@ -25,6 +37,37 @@
             {{ t('connect_to_account') }}
         </button>
     </div>
+
+    <!-- Disconnect Confirmation Dialog -->
+    <dialog id="disconnect_confirmation_modal" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="text-3xl font-bold mb-4">{{ t('disconnect_from_account') }}</h3>
+
+            <div class="alert alert-warning mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="text-xl">
+                    <p class="font-semibold">{{ t('disconnect_warning') }}</p>
+                    <p class="mt-2">{{ t('disconnect_manual_removal_note') }}</p>
+                </div>
+            </div>
+
+            <p class="text-2xl mb-6">{{ t('disconnect_confirmation_message') }}</p>
+
+            <div class="modal-action">
+                <form method="dialog" class="flex gap-4">
+                    <button class="btn btn-error btn-lg" onclick="performDisconnect()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        {{ t('disconnect') }}
+                    </button>
+                    <button class="btn">{{ t('cancel') }}</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
 
     <dialog id="device_pairing_modal" class="modal">
         <div class="modal-box max-w-2xl">
@@ -161,6 +204,10 @@
                 // Show connection status alert
                 const statusDiv = document.getElementById('connection_status');
                 statusDiv.classList.remove('hidden');
+                
+                // Show disconnect button
+                const disconnectSection = document.getElementById('disconnect_section');
+                disconnectSection.classList.remove('hidden');
                 
                 // Build user list display
                 const usersList = document.getElementById('paired_users_list');
@@ -353,5 +400,27 @@
         }
         currentSessionId = null;
         currentPassphrase = null;
+    }
+
+    function performDisconnect() {
+        fetch('/settings/disconnect_device', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to update UI
+                    window.location.reload();
+                } else {
+                    alert('Disconnect failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Connection error during disconnect');
+            });
     }
 </script>
