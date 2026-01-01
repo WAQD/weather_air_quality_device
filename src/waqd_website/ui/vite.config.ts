@@ -5,6 +5,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
+import compression from 'vite-plugin-compression'
 
 export default defineConfig({
   plugins: [
@@ -105,6 +107,22 @@ export default defineConfig({
                 maxAgeSeconds: 60 * 5 // 5 minutes
               },
               networkTimeoutSeconds: 10
+            }
+          },
+          // Cache locale files with NetworkFirst for updates
+          {
+            urlPattern: /\/static\/locales\/.*\.json$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'locales-cache',
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              },
+              networkTimeoutSeconds: 3
             }
           },
           // Cache images on-demand instead of precaching
@@ -208,11 +226,37 @@ export default defineConfig({
         })
       },
     },
+
+    // Compression plugins for gzip and brotli
+    compression({
+      algorithm: 'gzip',
+      ext: '.gz',
+    }),
+    compression({
+      algorithm: 'brotliCompress',
+      ext: '.br',
+    }),
+
+    // Bundle visualizer
+    visualizer({
+      filename: 'build-reports/stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+    }),
   ],
 
   assetsInclude: ['**/*.svg', '**/*.avif'],
 
   build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+      },
+    },
+    sourcemap: false, // Disable source maps in production for smaller bundles
+    reportCompressedSize: true, // Enable build warnings and size reporting
     rollupOptions: {
       output: {
         assetFileNames: (assetInfo) => {

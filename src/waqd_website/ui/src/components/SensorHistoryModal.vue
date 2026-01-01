@@ -1,13 +1,13 @@
 <template>
   <dialog ref="modalRef" class="modal">
-    <div class="modal-box w-11/12 max-w-7xl h-5/6 max-h-screen">
+    <div class="modal-box w-11/12 max-w-7xl h-5/6 max-h-screen p-2 sm:p-6">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
       </form>
       
-      <div class="flex justify-between items-center mb-2 mr-4">
-        <h3 class="font-bold text-2xl">{{ modalTitle }}</h3>
-        <select v-model="selectedTimeRange" class="select select-bordered" @change="fetchData">
+      <div class="mb-2 mr-4">
+        <h3 class="font-bold text-xl sm:text-2xl mb-2">{{ modalTitle }}</h3>
+        <select v-model="selectedTimeRange" class="select select-bordered w-full sm:w-auto" @change="fetchData">
           <option value="6">{{ t('history_last_6_hours') }}</option>
           <option value="12">{{ t('history_last_12_hours') }}</option>
           <option value="24">{{ t('history_last_24_hours') }}</option>
@@ -31,7 +31,7 @@
       </div>
 
       <!-- Chart -->
-      <div v-else class="w-full" style="height: calc(100% - 60px);">
+      <div v-else class="w-full" style="height: calc(100% - 80px);">
         <div ref="chartContainer" style="width: 100%; height: 100%;"></div>
       </div>
     </div>
@@ -107,12 +107,32 @@ async function fetchData() {
   try {
     const sensorTypeKey = sensorTypeMap[currentConfig.sensorType]
     
-    // First, try to use streamed data from WebSocket
+    console.log('Requesting sensor history for:', sensorTypeKey, 'time range:', selectedTimeRange.value, 'hours')
+    
+    // Request fresh sensor history data from the device via WebSocket
+    // The device will send back sensor_history_data with the requested time range
+    const ws = (window as any).deviceWebSocket // Access the WebSocket from Device.vue
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'request_sensor_history',
+        hours: selectedTimeRange.value,
+        sensor_type: sensorTypeKey  // Only request the specific sensor type
+      }))
+      
+      console.log('Sent request_sensor_history for', sensorTypeKey, selectedTimeRange.value, 'hours')
+    }
+    
+    // Wait a bit for the response, then check cached data
+    await new Promise(resolve => setTimeout(resolve, 15000))
+    
+    // Get the updated cached history
     const cachedHistory = getSensorHistory(currentConfig.deviceId)
     
     if (cachedHistory && cachedHistory[sensorTypeKey as keyof SensorHistoryData]) {
       // Use cached data from WebSocket
       const dataPoints = cachedHistory[sensorTypeKey as keyof SensorHistoryData]!
+      
+      console.log('Total data points received:', dataPoints.length)
       
       const timestamps: number[] = []
       const values: number[] = []
@@ -123,6 +143,8 @@ async function fetchData() {
         values.push(point.value)
       }
       
+      console.log('Displaying', timestamps.length, 'data points')
+      
       // Store data for chart rendering after loading completes
       loading.value = false
       
@@ -132,7 +154,12 @@ async function fetchData() {
       // Update chart
       if (chartContainer.value) {
         updateChart(timestamps, values, currentConfig)
+      } else {
+        console.error('Chart container not available')
       }
+    } else {
+      console.error('No cached history found for sensor type:', sensorTypeKey)
+      loading.value = false
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load sensor data'
@@ -144,13 +171,18 @@ async function fetchData() {
 function updateChart(timestamps: number[], values: number[], config: SensorConfig) {
   if (!chartContainer.value) return
   
+  console.log('Updating chart with', timestamps.length, 'data points')
+  
   // Destroy existing chart
   if (chart) {
     chart.destroy()
+    chart = null
   }
   
   // Prepare data for Highcharts (array of [timestamp, value])
   const seriesData = timestamps.map((timestamp, index) => [timestamp, values[index]])
+  
+  console.log('Series data sample:', seriesData.slice(0, 3))
   
   // Create new Highcharts chart
   chart = (Highcharts as any).chart(chartContainer.value as HTMLElement, {

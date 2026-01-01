@@ -140,6 +140,16 @@ class WAQDDeviceClient(Component):
             await self._send_current_sensor_data()
             # Also send weather data
             await self._send_current_weather_data()
+        elif message_type == "sensor_history_request":
+            # Server requesting sensor history with specific time range and sensor type
+            hours = message.get("hours", 12)
+            sensor_type = message.get("sensor_type")
+            self._logger.info(
+                "WS: Received sensor_history_request for %s (%d hours)",
+                sensor_type or "all sensors",
+                hours
+            )
+            await self._send_sensor_history_data(hours=hours, sensor_type=sensor_type)
         elif message_type == "device_owners":
             # Server sending list of users who own this device
             owners = message.get("owners", [])
@@ -153,23 +163,39 @@ class WAQDDeviceClient(Component):
         try:
             data = SensorRetrieval().get_interior_sensor_values()
             await self.send_sensor_data(data.model_dump())
-            # Also send sensor history data
-            await self._send_sensor_history_data()
+            # Also send sensor history data (default 12 hours)
+            # await self._send_sensor_history_data(hours=12)
         except Exception as e:
             self._logger.error("WS: Error collecting/sending sensor data: %s", e)
 
-    async def _send_sensor_history_data(self):
-        """Collect and send sensor history data for all interior sensors"""
+    async def _send_sensor_history_data(
+        self, hours: int = 12, sensor_type: Optional[str] = None
+    ):
+        """Collect and send sensor history data for interior sensors
+        
+        Args:
+            hours: Number of hours of history to send
+            sensor_type: Specific sensor type to send (e.g., 'temp_degC'), or None for all
+        """
         try:
             from waqd.components.sensors import SensorValueLogger
             
-            # Define sensors to send history for
-            sensors = [
-                {'location': 'interior', 'type': 'temp_degC', 'hours': 12},
-                {'location': 'interior', 'type': 'humidity_%', 'hours': 12},
-                {'location': 'interior', 'type': 'CO2_ppm', 'hours': 12},
-                {'location': 'interior', 'type': 'pressure_hPa', 'hours': 12},
+            # Define all available sensors
+            all_sensors = [
+                {'location': 'interior', 'type': 'temp_degC', 'hours': hours},
+                {'location': 'interior', 'type': 'humidity_%', 'hours': hours},
+                {'location': 'interior', 'type': 'CO2_ppm', 'hours': hours},
+                {'location': 'interior', 'type': 'pressure_hPa', 'hours': hours},
             ]
+            
+            # Filter to only requested sensor type if specified
+            if sensor_type:
+                sensors = [s for s in all_sensors if s['type'] == sensor_type]
+                if not sensors:
+                    self._logger.warning("WS: Unknown sensor type requested: %s", sensor_type)
+                    return
+            else:
+                sensors = all_sensors
             
             history_data = {}
             

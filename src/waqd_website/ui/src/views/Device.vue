@@ -166,7 +166,7 @@
     <div class="card bg-base-100 shadow-xl mt-6 sm:mt-8">
       <div class="card-body p-4 sm:p-6">
         <h2 class="card-title text-base sm:text-lg">{{ t('device_information') }}</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">-4 mt-3 sm:mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
           <div>
             <p class="text-xs sm:text-sm opacity-70">{{ t('device_id') }}</p>
             <p class="font-mono text-xs sm:text-sm break-all">{{ deviceId }}</p>
@@ -377,6 +377,9 @@ function connectWebSocket() {
   try {
     ws = new WebSocket(wsUrl)
 
+    // Expose WebSocket globally so modal can access it
+    ;(window as any).deviceWebSocket = ws
+
     ws.onopen = () => {
       console.log('WebSocket connected to device:', deviceId.value)
       isConnected.value = true
@@ -432,6 +435,9 @@ function disconnectWebSocket() {
     ws.close()
     ws = null
   }
+  
+  // Clean up global reference
+  ;(window as any).deviceWebSocket = null
 }
 
 function startHeartbeat() {
