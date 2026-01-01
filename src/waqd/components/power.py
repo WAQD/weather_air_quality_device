@@ -76,6 +76,14 @@ class ESaver(CyclicComponent):
         # Very ugly workround, because we can't register instance methods
         app.comp_ctrl.components.energy_saver.wake_up(5)
 
+    def stop(self):
+        """Stop the mouse listener and the cyclic update thread"""
+        if self._mouse_listener:
+            self._mouse_listener.stop()
+        if self._sleep_timer:
+            self._sleep_timer.cancel()
+        super().stop()
+
     def _set_day_night_mode(self):
         """Runs periodically. Does the actual switch between the modes and sets brightness"""
         # get value from motion sensor - if available
