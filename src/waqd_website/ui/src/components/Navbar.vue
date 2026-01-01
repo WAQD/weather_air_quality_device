@@ -48,6 +48,9 @@
           <li v-if="isLoggedIn">
             <router-link to="/rest/devices" class="btn btn-ghost btn-sm ">{{ t('my_devices') }}</router-link>
           </li>
+          <li v-if="isLoggedIn">
+            <router-link to="/account" class="btn btn-ghost btn-sm">{{ t('account_settings') }}</router-link>
+          </li>
           <li v-if="isLoggedIn && isAdmin">
             <router-link to="/admin" class="btn btn-ghost btn-sm">{{ t('admin_controls') }}</router-link>
           </li>

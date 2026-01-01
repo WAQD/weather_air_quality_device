@@ -72,3 +72,29 @@ def update_user_password(username: str, new_password: str) -> bool:
         session.add(user)
         session.commit()
     return True
+
+
+def update_user_email(username: str, email: Optional[str]) -> bool:
+    """Update a user's email address"""
+    with Session(engine) as session:
+        statement = select(User).where(User.username == username)
+        user = session.exec(statement).first()
+        if not user:
+            return False
+        user.email = email
+        session.add(user)
+        session.commit()
+    return True
+
+
+def update_user_username(old_username: str, new_username: str) -> bool:
+    """Update a user's username"""
+    with Session(engine) as session:
+        statement = select(User).where(User.username == old_username)
+        user = session.exec(statement).first()
+        if not user:
+            return False
+        user.username = new_username
+        session.add(user)
+        session.commit()
+    return True

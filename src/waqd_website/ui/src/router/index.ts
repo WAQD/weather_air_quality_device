@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import About from '../views/About.vue'
 import Admin from '../views/Admin.vue'
+import Account from '../views/Account.vue'
 import Devices from '../views/Devices.vue'
 import Device from '../views/Device.vue'
 import { useUser } from '../composables/useUser'
@@ -40,6 +41,12 @@ const router = createRouter({
       path: '/public/about',
       name: 'about',
       component: About
+    },
+    {
+      path: '/account',
+      name: 'account',
+      component: Account,
+      meta: { requiresAuth: true }
     },
     {
       path: '/admin',
