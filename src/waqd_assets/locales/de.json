@@ -368,5 +368,13 @@
   "weekday_wed": "Mi",
   "weekly_weather_forecast": "Wöchentliche Wettervorhersage",
   "yes": "Ja",
-  "your_pairing_code": "Ihr Kopplungscode:"
+  "your_pairing_code": "Ihr Kopplungscode:",
+  "welcome_email_subject": "Willkommen bei WAQD - Ihr Konto wurde erstellt",
+  "welcome_email_body": "Hallo {username},\n\nIhr WAQD-Konto wurde erfolgreich erstellt. Sie können sich jetzt in Ihr Konto einloggen und Ihre Wetter- und Luftqualitätsgeräte verwalten.\n\nBei Fragen besuchen Sie bitte unsere Website oder kontaktieren Sie den Support.\n\nMit freundlichen Grüßen,\nDas WAQD-Team",
+  "password_changed_email_subject": "WAQD - Ihr Passwort wurde geändert",
+  "password_changed_email_body": "Hallo {username},\n\nIhr Passwort wurde erfolgreich geändert. Wenn Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie bitte sofort den Support.\n\nMit freundlichen Grüßen,\nDas WAQD-Team",
+  "email_changed_email_subject": "WAQD - Ihre E-Mail-Adresse wurde aktualisiert",
+  "email_changed_email_body": "Hallo {username},\n\nIhre E-Mail-Adresse wurde erfolgreich auf {new_email} aktualisiert.\n\nWenn Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie bitte sofort den Support.\n\nMit freundlichen Grüßen,\nDas WAQD-Team",
+  "username_changed_email_subject": "WAQD - Ihr Benutzername wurde geändert",
+  "username_changed_email_body": "Hallo {new_username},\n\nIhr Benutzername wurde erfolgreich von {old_username} auf {new_username} geändert.\n\nWenn Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie bitte sofort den Support.\n\nMit freundlichen Grüßen,\nDas WAQD-Team"
 }
