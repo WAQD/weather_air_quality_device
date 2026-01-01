@@ -288,6 +288,7 @@ class TempSensor(SensorComponent):
 
     def stop(self):
         self._temp_impl.stop()
+        super().stop()
 
 
 class BarometricSensor(SensorComponent):
@@ -342,6 +343,7 @@ class BarometricSensor(SensorComponent):
 
     def stop(self):
         self._pres_impl.stop()
+        super().stop()
 
 
 class HumiditySensor(SensorComponent):
@@ -390,6 +392,7 @@ class HumiditySensor(SensorComponent):
 
     def stop(self):
         self._hum_impl.stop()
+        super().stop()
 
 
 class TvocSensor(SensorComponent):
@@ -439,6 +442,7 @@ class TvocSensor(SensorComponent):
 
     def stop(self):
         self._tvoc_impl.stop()
+        super().stop()
 
 
 class CO2Sensor(SensorComponent):
@@ -488,6 +492,7 @@ class CO2Sensor(SensorComponent):
 
     def stop(self):
         self._co2_impl.stop()
+        super().stop()
 
 
 class DustSensor(SensorComponent):
@@ -536,6 +541,7 @@ class DustSensor(SensorComponent):
 
     def stop(self):
         self._dust_impl.stop()
+        super().stop()
 
 
 class LightSensor(SensorComponent):
@@ -584,6 +590,7 @@ class LightSensor(SensorComponent):
 
     def stop(self):
         self._light_impl.stop()
+        super().stop()
 
 
 class DHT22(TempSensor, HumiditySensor, CyclicComponent):
@@ -1150,6 +1157,13 @@ class WAQDRemoteSensor(TempSensor, HumiditySensor, BarometricSensor, CO2Sensor):
             invalidation_time_s=60,
         )
         BarometricSensor.__init__(
+            self,
+            log_values,
+            self.MEASURE_POINTS,
+            log_location_type=SENSOR_EXTERIOR_TYPE,
+            invalidation_time_s=60,
+        )
+        CO2Sensor.__init__(
             self,
             log_values,
             self.MEASURE_POINTS,

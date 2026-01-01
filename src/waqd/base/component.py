@@ -89,6 +89,7 @@ class CyclicComponent(Component):
             self._ticker_event.set()
             if self._update_thread.is_alive():
                 self._update_thread.join(self.STOP_TIMEOUT)
+        super().stop()
 
     def _start_update_loop(self, init_func: Optional[Callable]=None,
                            update_func: Optional[Callable]=None):
