@@ -142,7 +142,7 @@ class WAQDDeviceClient(Component):
             await self._send_current_weather_data()
         elif message_type == "sensor_history_request":
             # Server requesting sensor history with specific time range and sensor type
-            hours = message.get("hours", 12)
+            hours = int(message.get("hours", 12))
             sensor_type = message.get("sensor_type")
             self._logger.info(
                 "WS: Received sensor_history_request for %s (%d hours)",
@@ -163,8 +163,6 @@ class WAQDDeviceClient(Component):
         try:
             data = SensorRetrieval().get_interior_sensor_values()
             await self.send_sensor_data(data.model_dump())
-            # Also send sensor history data (default 12 hours)
-            # await self._send_sensor_history_data(hours=12)
         except Exception as e:
             self._logger.error("WS: Error collecting/sending sensor data: %s", e)
 
