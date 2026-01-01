@@ -10,7 +10,7 @@
           <div v-for="(day, index) in forecastData.slice(0, 5)" :key="index" class="card bg-base-200 shadow-md">
             <div class="card-body p-2 sm:p-3 lg:p-4 text-center">
               <!-- Day label -->
-              <h3 class="font-bold text-xs sm:text-sm mb-1 sm:mb-2">
+              <h3 class="font-bold text-sm sm:text-base mb-1 sm:mb-2">
                 {{ formatForecastDate(day.date_time) }}
               </h3>
               
@@ -19,22 +19,22 @@
                 v-if="day.icon" 
                 :src="`/static/weather_icons/${day.icon}.svg`" 
                 :alt="day.main"
-                class="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 mx-auto mb-1 sm:mb-2 weather-icon"
+                class="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-1 sm:mb-2 weather-icon"
               />
               
               <!-- Weather condition -->
-              <p class="text-xs opacity-70 mb-1 sm:mb-2 truncate">{{ translateWeatherCondition(day) }}</p>
+              <p class="text-sm opacity-70 mb-1 sm:mb-2 truncate">{{ translateWeatherCondition(day) }}</p>
               
               <!-- Day temperature -->
               <div class="mb-1 sm:mb-2">
-                <p class="text-xs opacity-70">{{ t('day') }}</p>
-                <p class="font-bold text-xs sm:text-sm">{{ day.temp_min.toFixed(0) }}° / {{ day.temp_max.toFixed(0) }}°</p>
+                <p class="text-sm opacity-70">{{ t('day') }}</p>
+                <p class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{ day.temp_max.toFixed(0) }}°</p>
               </div>
               
               <!-- Night temperature -->
               <div>
-                <p class="text-xs opacity-70">{{ t('night') }}</p>
-                <p class="text-xs sm:text-sm">{{ day.temp_night_min.toFixed(0) }}° / {{ day.temp_night_max.toFixed(0) }}°</p>
+                <p class="text-sm opacity-70">{{ t('night') }}</p>
+                <p class="text-sm sm:text-base">{{ day.temp_night_min.toFixed(0) }}° / {{ day.temp_night_max.toFixed(0) }}°</p>
               </div>
             </div>
           </div>
@@ -58,17 +58,17 @@
               <div 
                 v-for="(hour, index) in row" 
                 :key="index"
-                class="flex-shrink-0 card bg-base-200 p-2 sm:p-3 min-w-[80px] sm:min-w-[100px] text-center"
+                class="flex-shrink-0 card bg-base-200 p-2 sm:p-3 min-w-[90px] sm:min-w-[110px] text-center"
               >
-                <p class="text-xs opacity-70 mb-1">{{ formatHourlyTime(hour.date_time) }}</p>
+                <p class="text-sm opacity-70 mb-1">{{ formatHourlyTime(hour.date_time) }}</p>
                 <img 
                   v-if="hour.icon" 
                   :src="`/static/weather_icons/${hour.icon}.svg`" 
                   :alt="hour.main"
-                  class="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-1 weather-icon"
+                  class="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-1 weather-icon"
                 />
-                <p class="font-bold text-sm sm:text-base">{{ hour.temp.toFixed(1) }}°</p>
-                <p class="text-xs opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
+                <p class="font-bold text-base sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
+                <p class="text-sm opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
               </div>
             </div>
           </div>
@@ -200,8 +200,19 @@ function formatForecastDate(dateString: string): string {
     return t('tomorrow')
   }
   
-  // Otherwise return weekday name
-  return date.toLocaleDateString(undefined, { weekday: 'short' })
+  // Otherwise return translated weekday name
+  const weekdayMap: Record<number, string> = {
+    0: 'weekday_sun',
+    1: 'weekday_mon',
+    2: 'weekday_tue',
+    3: 'weekday_wed',
+    4: 'weekday_thu',
+    5: 'weekday_fri',
+    6: 'weekday_sat'
+  }
+  
+  const weekdayKey = weekdayMap[date.getDay()]!
+  return t(weekdayKey)
 }
 
 function formatHourlyTime(dateString: string): string {

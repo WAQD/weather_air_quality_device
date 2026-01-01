@@ -781,6 +781,31 @@ async def user_device_stream(websocket: WebSocket, device_id: str):
                                 "timestamp": datetime.now().isoformat(),
                             }
                         )
+                elif message_type == "request_sensor_history":
+                    # User requests sensor history with specific time range and sensor type
+                    hours = message.get("hours", 12)  # Default to 12 hours
+                    sensor_type = message.get("sensor_type")  # Specific sensor type
+                    if device_id in device_manager.connected_devices:
+                        device = device_manager.connected_devices[device_id]
+                        try:
+                            await device.websocket.send_json(
+                                {
+                                    "type": "sensor_history_request",
+                                    "hours": hours,
+                                    "sensor_type": sensor_type,
+                                    "timestamp": datetime.now().isoformat(),
+                                }
+                            )
+                            Logger().debug(
+                                "Sent sensor_history_request to device %s for %s (%d hours)",
+                                device_id,
+                                sensor_type or "all sensors",
+                                hours,
+                            )
+                        except Exception as e:
+                            Logger().error(
+                                "Error sending sensor_history_request to %s: %s", device_id, e
+                            )
 
             except json.JSONDecodeError:
                 Logger().error("Invalid JSON from user websocket")

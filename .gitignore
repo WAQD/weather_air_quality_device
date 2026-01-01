@@ -34,3 +34,4 @@ src/waqd/web/local/output.css
 src/waqd/web/local/login_admin.html
 src/waqd/web/local/Franzo-E4GA.woff
 waqd_userdata.db
+mail.py
