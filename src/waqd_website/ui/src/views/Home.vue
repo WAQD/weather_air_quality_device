@@ -3,12 +3,12 @@
     <!-- Main Hero Section -->
     <div class="hero hero-bg-main min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-60"></div>
-      <div class="hero-content flex-col max-w-4xl w-full relative z-10">
+      <div class="hero-content flex-col max-w-4xl w-full px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Logged In View -->
         <div v-if="isLoggedIn"
-          class="text-center glass rounded-box p-8 bg-primary/80 backdrop-blur-sm">
-          <h1 class="text-5xl font-bold">{{ t('home_welcome_back', { username }) }}</h1>
-          <p class="py-6 text-lg">
+          class="text-center glass rounded-box p-4 sm:p-6 lg:p-8 bg-primary/80 backdrop-blur-sm max-w-full">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold">{{ t('home_welcome_back', { username }) }}</h1>
+          <p class="py-4 sm:py-6 text-base sm:text-lg">
             {{ t('home_manage_devices') }}
             <a class="link text-purple-300"
               href="https://github.com/goszpeti/weather_air_quality_device">
@@ -16,7 +16,7 @@
             </a>
             {{ t('home_manage_devices_desc') }}
           </p>
-          <router-link to="/rest/devices" class="btn btn-secondary btn-lg">
+          <router-link to="/rest/devices" class="btn btn-secondary btn-md sm:btn-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 20 20"
               fill="currentColor">
               <path
@@ -27,9 +27,9 @@
         </div>
 
         <!-- Not Logged In View -->
-        <div v-else class="text-center glass rounded-box p-8 bg-primary/80 backdrop-blur-sm">
-          <h1 class="text-5xl font-bold">{{ t('home_build_station') }}</h1>
-          <p class="py-6 text-lg">
+        <div v-else class="text-center glass rounded-box p-4 sm:p-6 lg:p-8 bg-primary/80 backdrop-blur-sm max-w-full">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold">{{ t('home_build_station') }}</h1>
+          <p class="py-4 sm:py-6 text-base sm:text-lg">
             {{ t('home_create_professional') }}
           </p>
           <!-- <router-link to="/public/login" class="btn btn-secondary btn-lg">{{ t('home_get_started') }}</router-link> -->
@@ -52,13 +52,13 @@
     <!-- Features Hero Section -->
     <div class="hero hero-bg-features min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="w-full lg:w-3/5 flex justify-center">
           <img :src="mainGuiImg" alt="WAQD Main Interface"
-            class="rounded-lg shadow-2xl max-w-xl w-full" />
+            class="rounded-lg shadow-2xl w-full max-w-[600px]" />
         </div>
-        <div class="lg:w-2/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-4xl font-bold mb-4">{{ t('home_full_featured') }}</h2>
+        <div class="lg:w-2/5 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm max-w-full">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">{{ t('home_full_featured') }}</h2>
           <ul class="space-y-2 text-base">
             <li class="flex items-start">
               <span class="text-3xl mr-2">🌡️</span>
@@ -84,13 +84,13 @@
     <!-- Hardware Hero Section -->
     <div class="hero hero-bg-hardware min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="w-full lg:w-1/2 flex justify-center">
           <img :src="waqdStationImg" alt="WAQD Station"
-            class="rounded-lg shadow-2xl max-w-xl w-full" />
+            class="rounded-lg shadow-2xl w-full max-w-[600px]" />
         </div>
-        <div class="lg:w-1/2 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-3xl font-bold mb-4">{{ t('home_easy_assembly') }}</h2>
+        <div class="lg:w-1/2 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm max-w-full">
+          <h2 class="text-2xl sm:text-3xl font-bold mb-4">{{ t('home_easy_assembly') }}</h2>
           <p class="text-base mb-3">
             {{ t('home_assembly_desc') }}
           </p>
@@ -119,14 +119,14 @@
     <!-- 3D Printable Case Hero Section -->
     <div class="hero hero-bg-3dprint min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-6 px-8 relative z-10">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="w-full lg:w-2/5 flex justify-center">
           <img :src="sensorCaseImg" alt="3D Printable Sensor Case"
-            class="rounded-lg shadow-2xl max-w-xl w-full" />
+            class="rounded-lg shadow-2xl w-full max-w-[500px]" />
         </div>
-        <div class="lg:w-3/5 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-4xl font-bold mb-4">{{ t('home_3d_printable') }}</h2>
-          <p class="text-xl mb-3">
+        <div class="lg:w-3/5 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm max-w-full">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">{{ t('home_3d_printable') }}</h2>
+          <p class="text-base sm:text-lg lg:text-xl mb-3">
             {{ t('home_3d_desc') }}
           </p>
           <ul class="space-y-2 text-base">
@@ -157,13 +157,13 @@
     <!-- Customization Hero Section -->
     <div class="hero hero-bg-custom min-h-screen snap-section">
       <div class="hero-overlay bg-opacity-70"></div>
-      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-4 px-8 relative z-10">
+      <div class="hero-content flex-col lg:flex-row max-w-7xl w-full gap-4 px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="w-full lg:w-4/6 flex justify-center">
-          <img :src="optionsImg" alt="WAQD Options" class="rounded-lg shadow-2xl max-w-2xl w-full" />
+          <img :src="optionsImg" alt="WAQD Options" class="rounded-lg shadow-2xl w-full max-w-[700px]" />
         </div>
-        <div class="lg:w-2/6 glass rounded-box p-6 bg-base-100/90 backdrop-blur-sm">
-          <h2 class="text-4xl font-bold mb-4">{{ t('home_customizable') }}</h2>
-          <p class="text-xl mb-4">
+        <div class="lg:w-2/6 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm max-w-full">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">{{ t('home_customizable') }}</h2>
+          <p class="text-base sm:text-lg lg:text-xl mb-4">
             {{ t('home_customizable_desc') }}
           </p>
           <div class="grid grid-cols-2 gap-3">
@@ -199,15 +199,15 @@
     <!-- Call to Action Section -->
     <div class="hero hero-bg-cta min-h-[60vh] snap-section">
       <div class="hero-overlay bg-opacity-60"></div>
-      <div class="hero-content text-center max-w-5xl relative z-10">
-        <div class="glass rounded-box p-12 bg-primary/80 backdrop-blur-sm">
-          <h2 class="text-5xl font-bold mb-6">{{ t('home_ready_building') }}</h2>
-          <p class="text-xl mb-8">
+      <div class="hero-content text-center max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="glass rounded-box p-6 sm:p-8 lg:p-12 bg-primary/80 backdrop-blur-sm max-w-full">
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">{{ t('home_ready_building') }}</h2>
+          <p class="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8">
             {{ t('home_build_register') }}
           </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <a href="https://github.com/WAQD/weather_air_quality_device/wiki/Assembly-and-Software-Setup-Guide"
-              target="_blank" class="btn btn-secondary btn-lg">
+              target="_blank" class="btn btn-secondary btn-sm sm:btn-md lg:btn-lg">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2">
                 <path
@@ -216,7 +216,7 @@
               {{ t('home_view_assembly') }}
             </a>
             <a href="https://github.com/goszpeti/weather_air_quality_device" target="_blank"
-              class="btn btn-secondary btn-lg">
+              class="btn btn-secondary btn-sm sm:btn-md lg:btn-lg">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" viewBox="0 0 24 24"
                 fill="currentColor">
                 <path
@@ -224,7 +224,7 @@
               </svg>
               {{ t('home_view_github') }}
             </a>
-            <router-link to="/public/about" class="btn btn-primary btn-secondary btn-lg">
+            <router-link to="/public/about" class="btn btn-primary btn-secondary btn-sm sm:btn-md lg:btn-lg">
               {{ t('settings_tab_about') }}
             </router-link>
           </div>
@@ -258,12 +258,29 @@ const optionsImg = '/static/doc_images/options.png'
 .scroll-container {
   scroll-snap-type: y mandatory;
   overflow-y: auto;
+  overflow-x: hidden;
   height: calc(100vh - 4rem);
+  width: 100%;
+  max-width: 100vw;
 }
 
 .snap-section {
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Ensure images don't cause overflow */
+.snap-section img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent text from causing overflow */
+.hero-content {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hero-bg-main {

@@ -8,6 +8,16 @@
   src: url('/static/font/Franzo-E4GA.woff') format('woff');
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
 body {
   font-family: 'MyFranzo', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background-color: oklch(var(--b3));
