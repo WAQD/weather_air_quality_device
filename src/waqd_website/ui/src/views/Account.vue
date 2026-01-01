@@ -49,11 +49,13 @@
           </div>
 
           <div class="card-actions">
-            <button 
+            <button
               class="btn btn-primary"
               @click="updateProfile"
-              :disabled="!profileChanged"
+              :disabled="!profileChanged || updatingProfile"
+              :aria-busy="updatingProfile"
             >
+              <span v-if="updatingProfile" class="loading loading-spinner loading-sm mr-2" aria-hidden="true"></span>
               {{ t('update_profile') }}
             </button>
           </div>
@@ -98,11 +100,13 @@
           </div>
 
           <div class="card-actions">
-            <button 
+            <button
               class="btn btn-primary"
               @click="changePassword"
-              :disabled="!newPassword || !confirmPassword"
+              :disabled="!newPassword || !confirmPassword || changingPassword"
+              :aria-busy="changingPassword"
             >
+              <span v-if="changingPassword" class="loading loading-spinner loading-sm mr-2" aria-hidden="true"></span>
               {{ t('change_password') }}
             </button>
           </div>
@@ -139,12 +143,14 @@ const email = ref('')
 const originalEmail = ref('')
 const updateEmailError = ref('')
 const updateEmailSuccess = ref(false)
+const updatingProfile = ref(false)
 
 // Password change
 const newPassword = ref('')
 const confirmPassword = ref('')
 const passwordError = ref('')
 const passwordSuccess = ref(false)
+const changingPassword = ref(false)
 
 const profileChanged = computed(() => {
   return username.value !== originalUsername.value || email.value !== originalEmail.value
@@ -188,6 +194,8 @@ async function updateProfile() {
   updateEmailSuccess.value = false
 
   if (!userInfo.value) return
+
+  updatingProfile.value = true
 
   try {
     // Update username if changed
@@ -245,6 +253,8 @@ async function updateProfile() {
   } catch (err) {
     console.error('Failed to update profile:', err)
     updateEmailError.value = t('failed_to_update_profile')
+  } finally {
+    updatingProfile.value = false
   }
 }
 
@@ -263,6 +273,8 @@ async function changePassword() {
     passwordError.value = t('password_too_short')
     return
   }
+
+  changingPassword.value = true
 
   try {
     const response = await fetch(`/api/user/users/${userInfo.value.username}/password`, {
@@ -293,6 +305,8 @@ async function changePassword() {
   } catch (err) {
     console.error('Failed to change password:', err)
     passwordError.value = t('failed_to_change_password')
+  } finally {
+    changingPassword.value = false
   }
 }
 

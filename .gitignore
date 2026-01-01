@@ -17,7 +17,7 @@ v1.4.4
 nonexistant
 .sesskey
 node_modules
-
+.env
 
 src/config.ini
 waqd.log

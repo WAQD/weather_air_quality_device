@@ -368,5 +368,13 @@
   "weekday_wed": "Sze",
   "weekly_weather_forecast": "Heti időjárás előrejelzés",
   "yes": "Igen",
-  "your_pairing_code": "Az Ön párosítási kódja:"
+  "your_pairing_code": "Az Ön párosítási kódja:",
+  "welcome_email_subject": "Üdvözöljük a WAQD-ben - A fiókja létrejött",
+  "welcome_email_body": "Helló {username},\n\nA WAQD-fiókja sikeresen létrejött. Most már bejelentkezhet a fiókjába és kezelheti az időjárás- és levegőminőség-érzékelőit.\n\nKérdései esetén látogasson meg weboldalunkat vagy lépjen kapcsolatba a támogatással.\n\nÜdvözlettel,\nA WAQD csapat",
+  "password_changed_email_subject": "WAQD - A jelszava megváltozott",
+  "password_changed_email_body": "Helló {username},\n\nA jelszava sikeresen megváltozott. Ha nem Ön végezte ezt a módosítást, azonnal lépjen kapcsolatba a támogatással.\n\nÜdvözlettel,\nA WAQD csapat",
+  "email_changed_email_subject": "WAQD - Az e-mail címe frissült",
+  "email_changed_email_body": "Helló {username},\n\nAz e-mail címe sikeresen frissült erre: {new_email}.\n\nHa nem Ön végezte ezt a módosítást, azonnal lépjen kapcsolatba a támogatással.\n\nÜdvözlettel,\nA WAQD csapat",
+  "username_changed_email_subject": "WAQD - A felhasználóneve megváltozott",
+  "username_changed_email_body": "Helló {new_username},\n\nA felhasználóneve sikeresen megváltozott erről: {old_username} erre: {new_username}.\n\nHa nem Ön végezte ezt a módosítást, azonnal lépjen kapcsolatba a támogatással.\n\nÜdvözlettel,\nA WAQD csapat"
 }
