@@ -6,7 +6,6 @@ from typing import Dict, Union
 
 
 from waqd import PROG_NAME
-from waqd.base.network import Network
 from waqd.settings import (
     AUTO_UPDATER_ENABLED,
     BME_280_ENABLED,
@@ -93,6 +92,7 @@ class Settings:
         self._auto_save = auto_save
 
         ### default setting values ###
+        from waqd.base.network import Network
         self._values = {
             self._GENERAL_SECTION_NAME: {
                 LANG: LANG_GERMAN,
