@@ -299,6 +299,7 @@ class EventHandler(Component):
                     get_time_of_day(), self._lang))
 
             self._comps.tts.say(text, self._lang)
+            self._logger.info("EventHandler: TTS executed for event " + event.name)
 
         if "play_sound" in event.actions:
             sound = event.actions.get("play_sound", "")
