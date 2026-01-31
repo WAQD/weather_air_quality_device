@@ -201,7 +201,8 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
       title: {
         text: t('time'),
         style: {
-          fontSize: '14px'
+          fontSize: '14px',
+          color: 'rgba(255, 255, 255, 0.9)'
         }
       },
       dateTimeLabelFormats: {
@@ -216,7 +217,8 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
       },
       labels: {
         style: {
-          fontSize: '12px'
+          fontSize: '12px',
+          color: 'rgba(255, 255, 255, 0.9)'
         }
       }
     },
@@ -224,7 +226,8 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
       title: {
         text: `${config.label} (${config.unit})`,
         style: {
-          fontSize: '14px'
+          fontSize: '14px',
+          color: 'rgba(255, 255, 255, 0.9)'
         }
       },
       labels: {
@@ -232,7 +235,8 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
           return (this.value as number).toFixed(1) + config.unit
         },
         style: {
-          fontSize: '12px'
+          fontSize: '12px',
+          color: 'rgba(255, 255, 255, 0.9)'
         }
       }
     },

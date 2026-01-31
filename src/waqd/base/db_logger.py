@@ -103,6 +103,28 @@ class InfluxSensorLogger:
                 filter_expression = f"range(start: -{str(minutes_to_read)}m)"
                 if last_value:
                     filter_expression += " |> last()"
+                else:
+                    # Add intelligent downsampling based on time range
+                    # Goal: ~200-300 data points max for optimal chart rendering
+                    if minutes_to_read <= 360:  # Up to 6 hours
+                        window_size = "2m"  # ~180 points
+                    elif minutes_to_read <= 720:  # Up to 12 hours
+                        window_size = "3m"  # ~240 points
+                    elif minutes_to_read <= 1440:  # Up to 24 hours
+                        window_size = "5m"  # ~288 points
+                    elif minutes_to_read <= 2880:  # Up to 48 hours
+                        window_size = "10m"  # ~288 points
+                    elif minutes_to_read <= 10080:  # Up to 7 days
+                        window_size = "30m"  # ~336 points
+                    else:  # More than 7 days
+                        window_size = "1h"  # Hourly aggregation
+                    
+                    # Use aggregateWindow to downsample with mean
+                    filter_expression += (
+                        f' |> aggregateWindow(every: {window_size}, '
+                        'fn: mean, createEmpty: false)'
+                    )
+                
                 query = (
                     f'from(bucket: "{INFLUX_DB_BUCKET}") |> {filter_expression}'
                     f'|> filter(fn: (r) => r["type"] == "{sensor_location}")'
