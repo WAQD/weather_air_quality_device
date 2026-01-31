@@ -1,7 +1,7 @@
 <template>
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    <!-- DEBUG: On-screen console (remove after debugging) -->
-    <div v-if="debugMessages.length > 0" class="alert alert-info mb-4 max-h-60 overflow-y-auto">
+    <!-- DEBUG: On-screen console (only in dev mode with VITE_DEBUG_SENSORS=true) -->
+    <div v-if="showDebugPanel && debugMessages.length > 0" class="alert alert-info mb-4 max-h-60 overflow-y-auto">
       <div class="w-full">
         <div class="flex justify-between items-center mb-2">
           <span class="font-bold text-xs">Debug Log</span>
@@ -266,9 +266,15 @@ const forecastData = ref<ForecastData[]>([])
 const hourlyDaytimeData = ref<HourlyWeatherData[][]>([])
 const hourlyNighttimeData = ref<HourlyWeatherData[][]>([])
 
-// DEBUG: On-screen logging
+// DEBUG: On-screen logging (only enabled in dev mode with VITE_DEBUG_SENSORS=true)
 const debugMessages = ref<string[]>([])
+const showDebugPanel = computed(() => {
+  return import.meta.env.DEV && import.meta.env.VITE_DEBUG_SENSORS === 'true'
+})
+
 function debugLog(msg: string) {
+  if (!showDebugPanel.value) return // Skip logging if debug panel is disabled
+  
   const timestamp = new Date().toLocaleTimeString()
   debugMessages.value.push(`[${timestamp}] ${msg}`)
   console.log(`[DEBUG] ${msg}`)
