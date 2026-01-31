@@ -6,6 +6,7 @@ import waqd
 
 browser_proc = None
 
+
 def start_web_server(reload=False):
     import uvicorn
 
@@ -25,7 +26,6 @@ def start_web_server(reload=False):
     )
     if browser_proc is not None:
         browser_proc.terminate()
-
 
 def start_web_ui_chromium_kiosk_mode():
     # Start Chromium in kiosk mode

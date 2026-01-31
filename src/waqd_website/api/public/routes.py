@@ -18,6 +18,9 @@ from waqd_website.auth.authentication import (
     user_exception_check,
 )
 
+# Refresh threshold for keepalive endpoint (2 hours)
+TOKEN_REFRESH_THRESHOLD_MINUTES = 120
+
 rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
@@ -65,9 +68,9 @@ async def keepalive(
             detail="Invalid token",
         )
     
-    # Refresh token if it expires in less than 11 minutes
+    # Refresh token if it expires in less than the threshold (default: 2 hours)
     time_until_expiry = token_expires - datetime.now(timezone.utc)
-    if time_until_expiry < timedelta(minutes=11):
+    if time_until_expiry < timedelta(minutes=TOKEN_REFRESH_THRESHOLD_MINUTES):
         access_token_expires = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
         access_token = create_access_token(
             data={"sub": current_user.username}, expires_delta=access_token_expires

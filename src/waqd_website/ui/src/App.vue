@@ -20,9 +20,11 @@
 import { onMounted, ref } from 'vue'
 import Navbar from './components/Navbar.vue'
 import { useUser } from './composables/useUser'
+import { useTokenRefresh } from './composables/useTokenRefresh'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 
 const { fetchUserInfo } = useUser()
+const { stopRefreshTimer } = useTokenRefresh()
 const showUpdateNotification = ref(false)
 
 // PWA update handling

@@ -43,6 +43,8 @@ export function useUser() {
       console.error('Failed to logout:', error)
     } finally {
       userInfo.value = null
+      // Stop token refresh to prevent unnecessary API calls
+      window.dispatchEvent(new CustomEvent('user-logout'))
     }
   }
 

@@ -25,7 +25,7 @@ class RequiresLoginException(StarletteHTTPException):
 
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 1
+ACCESS_TOKEN_EXPIRE_DAYS = 7  # 7 days - refreshed hourly by frontend keepalive
 ADMIN_PERMISSION = "users:admin"
 
 class Token(BaseModel):

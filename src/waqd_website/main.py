@@ -63,6 +63,7 @@ web_app.include_router(public_router, prefix="/api/public")
 web_app.include_router(user_router, prefix="/api/user")
 web_app.include_router(device_router, prefix="/api/user")
 
+
 # Root redirect - register early
 @web_app.get("/", response_class=HTMLResponse)
 async def root():
@@ -90,17 +91,18 @@ async def readiness():
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"not ready: {exc}")
 
+
 # Mount the Vue.js frontend
 if DEBUG_LEVEL == 0:
     Logger().info("Mounting production frontend from %s", FRONTEND_DIST_DIR)
     static_path = FRONTEND_DIST_DIR / "static"
-    
+
     # Mount static files BEFORE catch-all routes
     web_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
     web_app.mount(
         "/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets"
     )
-    
+
     # Serve PWA-critical files explicitly
     @web_app.get("/manifest.webmanifest")
     async def serve_manifest():
@@ -109,18 +111,19 @@ if DEBUG_LEVEL == 0:
         if manifest_path.exists():
             return FileResponse(manifest_path, media_type="application/manifest+json")
         raise HTTPException(status_code=404, detail="Manifest not found")
-    
+
     @web_app.get("/sw.js")
     async def serve_service_worker():
         """Serve service worker"""
         sw_path = FRONTEND_DIST_DIR / "sw.js"
         if sw_path.exists():
-            return FileResponse(sw_path, media_type="application/javascript", headers={
-                "Service-Worker-Allowed": "/",
-                "Cache-Control": "no-cache"
-            })
+            return FileResponse(
+                sw_path,
+                media_type="application/javascript",
+                headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"},
+            )
         raise HTTPException(status_code=404, detail="Service worker not found")
-    
+
     @web_app.get("/workbox-{filename:path}.js")
     async def serve_workbox(filename: str):
         """Serve workbox files"""
@@ -128,7 +131,7 @@ if DEBUG_LEVEL == 0:
         if wb_path.exists():
             return FileResponse(wb_path, media_type="application/javascript")
         raise HTTPException(status_code=404, detail="Workbox file not found")
-    
+
     @web_app.get("/{filename}.png")
     async def serve_pwa_icons(filename: str):
         """Serve PWA icons (pwa-192x192.png, pwa-512x512.png)"""
@@ -137,7 +140,7 @@ if DEBUG_LEVEL == 0:
             if icon_path.exists():
                 return FileResponse(icon_path, media_type="image/png")
         raise HTTPException(status_code=404, detail="Icon not found")
-    
+
     # Catch-all route - must come last
     @web_app.get("/{full_path:path}")
     async def root_files(full_path: str):
