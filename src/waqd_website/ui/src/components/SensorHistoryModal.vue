@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useTranslation } from '../composables/useTranslation'
 import { useSensorHistory, type SensorHistoryData } from '../composables/useSensorHistory'
 import Highcharts from 'highcharts'
@@ -75,6 +75,7 @@ const modalTitle = ref('')
 
 let chart: Highcharts.Chart | null = null
 let currentConfig: SensorConfig | null = null
+let historyWatcher: (() => void) | null = null
 
 const sensorTypeMap: Record<string, string> = {
   'temperature': 'temp_degC',
@@ -104,67 +105,101 @@ async function fetchData() {
   loading.value = true
   error.value = ''
   
+  // Clean up any existing watcher
+  if (historyWatcher) {
+    historyWatcher()
+    historyWatcher = null
+  }
+  
   try {
     const sensorTypeKey = sensorTypeMap[currentConfig.sensorType]
+    const deviceId = currentConfig.deviceId
+    const configToUse = currentConfig
     
     console.log('Requesting sensor history for:', sensorTypeKey, 'time range:', selectedTimeRange.value, 'hours')
     
+    // Set up reactive watcher for sensor history data
+    // This will trigger immediately when data arrives from WebSocket
+    historyWatcher = watch(
+      () => getSensorHistory(deviceId),
+      (newHistory) => {
+        if (!newHistory || !configToUse) return
+        
+        const dataPoints = newHistory[sensorTypeKey as keyof SensorHistoryData]
+        if (!dataPoints || dataPoints.length === 0) return
+        
+        console.log('Sensor history data received:', dataPoints.length, 'points')
+        
+        const timestamps: number[] = []
+        const values: number[] = []
+        
+        for (const point of dataPoints) {
+          const date = new Date(point.timestamp)
+          timestamps.push(date.getTime())
+          values.push(point.value)
+        }
+        
+        console.log('Displaying', timestamps.length, 'data points')
+        
+        // Update chart immediately
+        loading.value = false
+        
+        nextTick(() => {
+          if (chartContainer.value) {
+            updateChart(timestamps, values, configToUse)
+          }
+        })
+        
+        // Clean up watcher after rendering
+        if (historyWatcher) {
+          historyWatcher()
+          historyWatcher = null
+        }
+      },
+      { immediate: true, deep: true }
+    )
+    
     // Request fresh sensor history data from the device via WebSocket
-    // The device will send back sensor_history_data with the requested time range
-    const ws = (window as any).deviceWebSocket // Access the WebSocket from Device.vue
+    const ws = (window as any).deviceWebSocket
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
         type: 'request_sensor_history',
         hours: selectedTimeRange.value,
-        sensor_type: sensorTypeKey  // Only request the specific sensor type
+        sensor_type: sensorTypeKey
       }))
       
       console.log('Sent request_sensor_history for', sensorTypeKey, selectedTimeRange.value, 'hours')
-    }
-    
-    // Wait a bit for the response, then check cached data
-    await new Promise(resolve => setTimeout(resolve, 15000))
-    
-    // Get the updated cached history
-    const cachedHistory = getSensorHistory(currentConfig.deviceId)
-    
-    if (cachedHistory && cachedHistory[sensorTypeKey as keyof SensorHistoryData]) {
-      // Use cached data from WebSocket
-      const dataPoints = cachedHistory[sensorTypeKey as keyof SensorHistoryData]!
-      
-      console.log('Total data points received:', dataPoints.length)
-      
-      const timestamps: number[] = []
-      const values: number[] = []
-      
-      for (const point of dataPoints) {
-        const date = new Date(point.timestamp)
-        timestamps.push(date.getTime())
-        values.push(point.value)
-      }
-      
-      console.log('Displaying', timestamps.length, 'data points')
-      
-      // Store data for chart rendering after loading completes
-      loading.value = false
-      
-      // Wait for DOM to update (loading spinner removed, chart container shown)
-      await nextTick()
-      
-      // Update chart
-      if (chartContainer.value) {
-        updateChart(timestamps, values, currentConfig)
-      } else {
-        console.error('Chart container not available')
-      }
     } else {
-      console.error('No cached history found for sensor type:', sensorTypeKey)
+      console.error('WebSocket not connected')
+      error.value = 'Connection to device lost'
       loading.value = false
+      if (historyWatcher) {
+        historyWatcher()
+        historyWatcher = null
+      }
     }
+    
+    // Set a timeout as fallback - if no data received in 10 seconds, show error
+    setTimeout(() => {
+      if (loading.value) {
+        console.error('Timeout waiting for sensor history data')
+        error.value = 'Timeout waiting for device response'
+        loading.value = false
+        if (historyWatcher) {
+          historyWatcher()
+          historyWatcher = null
+        }
+      }
+    }, 10000)
+    
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load sensor data'
     console.error('Error fetching sensor history:', e)
     loading.value = false
+    if (historyWatcher) {
+      historyWatcher()
+      historyWatcher = null
+    }
   }
 }
 
@@ -289,6 +324,10 @@ function close() {
     chart.destroy()
     chart = null
   }
+  if (historyWatcher) {
+    historyWatcher()
+    historyWatcher = null
+  }
 }
 
 // Expose methods to parent
@@ -300,6 +339,10 @@ defineExpose({
 onUnmounted(() => {
   if (chart) {
     chart.destroy()
+  }
+  if (historyWatcher) {
+    historyWatcher()
+    historyWatcher = null
   }
 })
 </script>
