@@ -1,5 +1,20 @@
 <template>
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+    <!-- DEBUG: On-screen console (remove after debugging) -->
+    <div v-if="debugMessages.length > 0" class="alert alert-info mb-4 max-h-60 overflow-y-auto">
+      <div class="w-full">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-bold text-xs">Debug Log</span>
+          <button class="btn btn-xs btn-ghost" @click="debugMessages = []">Clear</button>
+        </div>
+        <div class="font-mono text-xs space-y-1 whitespace-pre-wrap break-all">
+          <div v-for="(msg, idx) in debugMessages.slice(-15)" :key="idx" class="border-b border-base-300 pb-1">
+            {{ msg }}
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Back button and device header with weather background -->
     <div class="mb-6 sm:mb-8 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8 p-4 sm:p-6 lg:p-8 rounded-b-lg overflow-hidden transition-all duration-500" :style="weatherBackgroundStyle">
       <div class="bg-base-100/80 backdrop-blur-sm p-6 rounded-lg">
@@ -251,6 +266,18 @@ const forecastData = ref<ForecastData[]>([])
 const hourlyDaytimeData = ref<HourlyWeatherData[][]>([])
 const hourlyNighttimeData = ref<HourlyWeatherData[][]>([])
 
+// DEBUG: On-screen logging
+const debugMessages = ref<string[]>([])
+function debugLog(msg: string) {
+  const timestamp = new Date().toLocaleTimeString()
+  debugMessages.value.push(`[${timestamp}] ${msg}`)
+  console.log(`[DEBUG] ${msg}`)
+  // Keep only last 50 messages to prevent memory issues
+  if (debugMessages.value.length > 50) {
+    debugMessages.value = debugMessages.value.slice(-50)
+  }
+}
+
 const sensorHistoryModal = ref<InstanceType<typeof SensorHistoryModal> | null>(null)
 
 let ws: WebSocket | null = null
@@ -300,9 +327,11 @@ const weatherBackgroundStyle = computed(() => {
 
 onMounted(async () => {
   deviceDbId.value = route.params.id as string
+  debugLog('INIT: Component mounted, loading device info...')
 
   // Load device info first
   await loadDeviceInfo()
+  debugLog(`INIT: Device loaded - ID: ${deviceId.value}, Name: ${deviceName.value}`)
 
   // Load weather data from composable if available
   if (deviceId.value) {
@@ -322,6 +351,7 @@ onMounted(async () => {
     if (storedHourlyNighttime) {
       hourlyNighttimeData.value = storedHourlyNighttime
     }
+    debugLog('INIT: Connecting to WebSocket...')
     connectWebSocket()
   }
 })
@@ -372,6 +402,7 @@ function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
   const wsUrl = `${protocol}//${window.location.host}/ws/user/device/${deviceId.value}`
 
+  debugLog(`WS CONNECTING: ${wsUrl}`)
   console.log('Connecting to WebSocket:', wsUrl)
 
   try {
@@ -381,6 +412,7 @@ function connectWebSocket() {
     ;(window as any).deviceWebSocket = ws
 
     ws.onopen = () => {
+      debugLog(`WS OPEN: Connected to ${deviceId.value}`)
       console.log('WebSocket connected to device:', deviceId.value)
       isConnected.value = true
       connectionError.value = ''
@@ -390,20 +422,24 @@ function connectWebSocket() {
     }
 
     ws.onmessage = (event) => {
+      debugLog('WS MSG: Received message')
       try {
         const message = JSON.parse(event.data)
         handleWebSocketMessage(message)
       } catch (error) {
+        debugLog(`WS ERROR: Parse failed - ${error}`)
         console.error('Error parsing WebSocket message:', error)
       }
     }
 
     ws.onerror = (error) => {
+      debugLog('WS ERROR: Connection error')
       console.error('WebSocket error:', error)
       connectionError.value = t('connection_error')
     }
 
     ws.onclose = () => {
+      debugLog('WS CLOSE: Disconnected')
       console.log('WebSocket disconnected')
       isConnected.value = false
       ws = null
@@ -454,10 +490,12 @@ function startHeartbeat() {
 
 function handleWebSocketMessage(message: any) {
   const messageType = message.type
+  debugLog(`MSG TYPE: ${messageType}`)
 
   if (messageType === 'sensor_data') {
     // Update sensor data - convert strings to numbers, handle "N/A"
     const data = message.data
+    debugLog(`RAW DATA: temp=${data.temp}, hum=${data.hum}, co2=${data.co2}, baro=${data.baro}`)
 
     const parseValue = (value: any): number | undefined => {
       if (value === undefined || value === null || value === 'N/A') {
@@ -467,13 +505,23 @@ function handleWebSocketMessage(message: any) {
       return isNaN(parsed) ? undefined : parsed
     }
 
+    // Fix: Call parseValue once per value to avoid Chrome optimization issues
+    const tempParsed = parseValue(data.temp)
+    const humParsed = parseValue(data.hum)
+    const co2Parsed = parseValue(data.co2)
+    const baroParsed = parseValue(data.baro)
+
+    debugLog(`PARSED: temp=${tempParsed}, hum=${humParsed}, co2=${co2Parsed}, baro=${baroParsed}`)
+
     sensorData.value = {
-      temp: parseValue(data.temp) !== undefined ? parseFloat(parseValue(data.temp)!.toFixed(1)) : undefined,
-      hum: parseValue(data.hum) !== undefined ? parseFloat(parseValue(data.hum)!.toFixed(1)) : undefined,
-      co2: parseValue(data.co2) !== undefined ? Math.round(parseValue(data.co2)!) : undefined,
-      baro: parseValue(data.baro) !== undefined ? Math.round(parseValue(data.baro)!) : undefined,
+      temp: tempParsed !== undefined ? parseFloat(tempParsed.toFixed(1)) : undefined,
+      hum: humParsed !== undefined ? parseFloat(humParsed.toFixed(1)) : undefined,
+      co2: co2Parsed !== undefined ? Math.round(co2Parsed) : undefined,
+      baro: baroParsed !== undefined ? Math.round(baroParsed) : undefined,
       timestamp: message.timestamp
     }
+    
+    debugLog(`FINAL: temp=${sensorData.value.temp}, hum=${sensorData.value.hum}, co2=${sensorData.value.co2}, baro=${sensorData.value.baro}`)
     lastUpdated.value = new Date()
   } else if (messageType === 'weather_data') {
     // Update weather data for background
