@@ -830,7 +830,10 @@ class MH_Z19(CO2Sensor, CyclicComponent):  # pylint: disable=invalid-name
         # to automate the permission settings for the serial interface,
         # because of a bug? it resets after calling the python serial module.
         if self._runtime_system.is_target_system:
-            os.system(f"sudo {sys.executable} -m mh_z19 --detection_range_2000")
+            try:
+                os.system(f"sudo {sys.executable} -m mh_z19 --detection_range_5000")
+            except Exception:
+                os.system(f"sudo {sys.executable} -m mh_z19 --detection_range_2000")
             # disable auto calibration -> it will never read true 400ppm...
             os.system(f"sudo {sys.executable} -m mh_z19 --abc_off")
 
