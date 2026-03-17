@@ -1,5 +1,5 @@
 # docker build --tag waqd_website:latest . -f src/waqd_website/Dockerfile
-FROM python:3.13-alpine3.22 AS base
+FROM python:3.14-alpine3.23 AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
