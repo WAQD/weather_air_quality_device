@@ -232,7 +232,7 @@
             🗲 {{ t('home_open_source') }}
           </p>
           <p class="mt-2 text-base opacity-80">
-            Copyright (c) 2025 Péter Gosztolya and contributors.
+            v{{ version }} Copyright (c) 2025 Péter Gosztolya and contributors.
           </p>
         </div>
       </div>
@@ -243,9 +243,11 @@
 <script setup lang="ts">
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
+import packageJson from '../../package.json'
 
 const { t } = useTranslation()
 const { isLoggedIn, username } = useUser()
+const version = packageJson.version
 
 // Image URLs - defined as constants to prevent Vite from resolving as imports
 const mainGuiImg = '/static/doc_images/main_gui.png'
