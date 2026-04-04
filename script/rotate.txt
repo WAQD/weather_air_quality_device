@@ -1,0 +1,8 @@
+xrandr --output DSI-1 --rotate inverted
+    X11 Bookworm:
+        /boot/firmware/cmdline.txt
+        video=DSI-1:800x480@60,rotate=180
+
+
+/usr/share/X11/xorg.conf.d $ sudo nano 40-libinput.conf 
+touchscreen: Option "TransformationMatrix" "-1 0 1 0 -1 1 0 0 1" 
