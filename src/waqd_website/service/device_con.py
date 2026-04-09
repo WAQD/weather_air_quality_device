@@ -8,7 +8,7 @@ REST API endpoints for device management and communication.
 import asyncio
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from fastapi import Header, HTTPException, WebSocket, WebSocketDisconnect
@@ -105,7 +105,7 @@ class ConnectedDevice:
 
         try:
             success = update_device_status(
-                self.device_id, status="online", last_seen=datetime.utcnow()
+                self.device_id, status="online", last_seen=datetime.now(timezone.utc)
             )
             if success:
                 self.last_db_sync = time.time()
@@ -125,7 +125,7 @@ class ConnectedDevice:
 
         # Final sync to mark as offline
         try:
-            update_device_status(self.device_id, status="offline", last_seen=datetime.utcnow())
+            update_device_status(self.device_id, status="offline", last_seen=datetime.now(timezone.utc))
             Logger().info("Device %s marked as offline in database", self.device_id)
         except Exception as e:
             Logger().error("Error marking device %s offline: %s", self.device_id, e)
@@ -148,7 +148,7 @@ class ConnectedDevice:
     @property
     def last_seen_datetime(self) -> datetime:
         """Get last seen as datetime"""
-        return datetime.fromtimestamp(self.last_heartbeat)
+        return datetime.fromtimestamp(self.last_heartbeat, tz=timezone.utc)
 
 
 # Global device manager

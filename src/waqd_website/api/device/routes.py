@@ -2,7 +2,7 @@
 Device Registration API endpoints for user-device pairing
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, status
@@ -118,7 +118,7 @@ async def list_user_devices(current_user: User = user_exception_check):
                     name=device.name,
                     location=device.location,
                     status="offline",
-                    last_seen=device.last_seen,
+                    last_seen=device.last_seen.replace(tzinfo=timezone.utc) if device.last_seen else None,
                 )
             )
     
@@ -180,7 +180,7 @@ async def update_device(
             name=updated_device.name,
             location=updated_device.location,
             status=updated_device.status,
-            last_seen=updated_device.last_seen,
+            last_seen=updated_device.last_seen.replace(tzinfo=timezone.utc) if updated_device.last_seen else None,
         )
     }
 

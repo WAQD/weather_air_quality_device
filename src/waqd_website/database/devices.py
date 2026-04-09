@@ -192,8 +192,6 @@ def update_device_status(
         device.status = status
         if last_seen:
             device.last_seen = last_seen
-        elif status == "online":
-            device.last_seen = datetime.utcnow()
 
         session.add(device)
         session.commit()
