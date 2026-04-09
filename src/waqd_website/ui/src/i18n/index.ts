@@ -31,7 +31,7 @@ async function loadLocaleMessages(locale: AvailableLocale): Promise<void> {
 
   try {
     // Fetch the locale JSON file from static assets
-    const response = await fetch(`/static/locales/${locale}.json`)
+    const response = await fetch(`/static/locales/${locale}.json`, { cache: 'no-cache' })
     if (!response.ok) {
       throw new Error(`Failed to fetch locale ${locale}: ${response.statusText}`)
     }
