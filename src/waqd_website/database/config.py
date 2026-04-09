@@ -1,5 +1,6 @@
 import secrets
 from datetime import datetime
+from functools import lru_cache
 from typing import Optional
 
 from sqlmodel import Session, select
@@ -34,6 +35,7 @@ def set_config_value(key: str, value: str) -> None:
         session.commit()
 
 
+@lru_cache(maxsize=1)
 def get_or_create_jwt_secret() -> str:
     """Get the JWT secret from database, or create one if it doesn't exist"""
 

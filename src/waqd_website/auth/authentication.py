@@ -15,9 +15,6 @@ from waqd_website.database import User
 from waqd_website.database.config import get_or_create_jwt_secret
 from waqd_website.database.user import get_user_by_username
 
-# Load or create persistent JWT secret from database
-USER_SESSION_SECRET = get_or_create_jwt_secret()
-
 
 class RequiresLoginException(StarletteHTTPException):
     pass
@@ -116,13 +113,13 @@ def create_access_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, USER_SESSION_SECRET, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, get_or_create_jwt_secret(), algorithm=ALGORITHM)
     return encoded_jwt
 
 
 def decode_access_token(token: str) -> Optional[TokenData]:
     try:
-        payload = jwt.decode(token, USER_SESSION_SECRET, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_or_create_jwt_secret(), algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
             return None
