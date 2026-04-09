@@ -27,6 +27,7 @@
             <thead>
               <tr>
                 <th>{{ t('username') }}</th>
+                <th>{{ t('email') }}</th>
                 <th>{{ t('permissions') }}</th>
                 <th class="text-right">{{ t('actions') }}</th>
               </tr>
@@ -34,6 +35,7 @@
             <tbody>
               <tr v-for="user in users" :key="user.username">
                 <td class="font-semibold">{{ user.username }}</td>
+                <td class="text-sm opacity-70">{{ user.email ?? '—' }}</td>
                 <td>
                   <div class="flex gap-2 flex-wrap">
                     <span
@@ -196,6 +198,7 @@ const { t } = useTranslation()
 
 interface User {
   username: string
+  email?: string
   permissions: string[]
 }
 

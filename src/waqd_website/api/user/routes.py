@@ -26,6 +26,7 @@ class UserInfo(BaseModel):
 
 class UserListItem(BaseModel):
     username: str
+    email: str | None = None
     permissions: list[str]
 
 
@@ -44,7 +45,7 @@ async def list_users(current_user: Annotated[User, admin_check]):
     """List all users (admin only)"""
     users = get_all_users()
     return [
-        UserListItem(username=user.username, permissions=user.permissions) for user in users
+        UserListItem(username=user.username, email=user.email, permissions=user.permissions) for user in users
     ]
 
 
