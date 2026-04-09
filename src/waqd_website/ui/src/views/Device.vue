@@ -81,21 +81,21 @@
     </div>
 
     <!-- Interior Sensor Data Grid -->
-    <div v-else class="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div v-else class="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <!-- Temperature Card -->
       <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
         @click="showHistory('temperature')">
         <div class="card-body p-4 sm:p-6">
-          <div class="flex justify-between items-start">
-            <div>
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70">{{ t('temperature') }}</h2>
-              <p class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter mt-1 sm:mt-2">
-                {{ sensorData.temp ?? '--' }}
-                <a v-if="sensorData.temp" class="opacity-70 text-2xl sm:text-3xl lg:text-4xl">°C</a>
-              </p>
+          <div class="flex justify-between items-center gap-2">
+            <div class="min-w-0">
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('temperature') }}</h2>
+              <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold tracking-tighter">{{ sensorData.temp ?? '--' }}</span>
+                <span v-if="sensorData.temp" class="opacity-70 text-xl sm:text-2xl lg:text-2xl">°C</span>
+              </div>
             </div>
-            <div class="stat-figure">
-              <svg viewBox="0 0 24 24" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
+            <div class="stat-figure flex-shrink-0">
+              <svg viewBox="0 0 30 30" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
                 <use :href="thermometerIconUrl" fill="currentColor" />
               </svg>
             </div>
@@ -107,16 +107,16 @@
       <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
         @click="showHistory('humidity')">
         <div class="card-body p-4 sm:p-6">
-          <div class="flex justify-between items-start">
-            <div>
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70">{{ t('humidity') }}</h2>
-              <p class="text-4xl sm:text-5xl lg:text-6xl font-bold mt-1 sm:mt-2">
-                {{ sensorData.hum ?? '--' }}
-                <a v-if="sensorData.hum" class="opacity-70 text-2xl sm:text-3xl lg:text-4xl">%</a>
-              </p>
+          <div class="flex justify-between items-center gap-2">
+            <div class="min-w-0">
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('humidity') }}</h2>
+              <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.hum ?? '--' }}</span>
+                <span v-if="sensorData.hum" class="opacity-70 text-xl sm:text-2xl lg:text-2xl">%</span>
+              </div>
             </div>
-            <div class="stat-figure">
-              <svg viewBox="0 0 24 24" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
+            <div class="stat-figure flex-shrink-0">
+              <svg viewBox="0 0 30 30" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
                 <use :href="humidityIconUrl" fill="currentColor" />
               </svg>
             </div>
@@ -128,16 +128,16 @@
       <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
         @click="showHistory('co2')">
         <div class="card-body p-4 sm:p-6">
-          <div class="flex justify-between items-start">
-            <div>
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70">{{ t('co2') }}</h2>
-              <p class="text-4xl sm:text-5xl lg:text-6xl font-bold mt-1 sm:mt-2" :class="co2ColorClass">
-                {{ sensorData.co2 ?? '--' }}
-                <a v-if="sensorData.co2" class="opacity-70 text-xl sm:text-2xl lg:text-3xl">ppm</a>
-              </p>
+          <div class="flex justify-between items-center gap-2">
+            <div class="min-w-0">
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('co2') }}</h2>
+              <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap" :class="co2ColorClass">
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.co2 ?? '--' }}</span>
+                <span v-if="sensorData.co2" class="opacity-70 text-lg sm:text-xl lg:text-xl">ppm</span>
+              </div>
             </div>
-            <div class="stat-figure">
-              <svg viewBox="0 0 26 26" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
+            <div class="stat-figure flex-shrink-0">
+              <svg viewBox="0 0 30 30" class="h-10 w-10 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
                 <use :href="co2IconUrl" fill="currentColor" />
               </svg>
             </div>
@@ -149,16 +149,16 @@
       <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
         @click="showHistory('pressure')">
         <div class="card-body p-4 sm:p-6">
-          <div class="flex justify-between items-start">
-            <div>
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70">{{ t('pressure') }}</h2>
-              <p class="text-4xl sm:text-5xl lg:text-6xl font-bold mt-1 sm:mt-2">
-                {{ sensorData.baro ?? '--' }}
-                <a v-if="sensorData.baro" class="opacity-70 text-xl sm:text-2xl lg:text-3xl">hPa</a>
-              </p>
+          <div class="flex justify-between items-center gap-2">
+            <div class="min-w-0">
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('pressure') }}</h2>
+              <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.baro ?? '--' }}</span>
+                <span v-if="sensorData.baro" class="opacity-70 text-lg sm:text-xl lg:text-xl">hPa</span>
+              </div>
             </div>
-            <div class="stat-figure">
-              <svg viewBox="0 0 24 24" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
+            <div class="stat-figure flex-shrink-0">
+              <svg viewBox="0 0 30 30" class="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 opacity-50">
                 <use :href="barometerIconUrl" fill="currentColor" />
               </svg>
             </div>

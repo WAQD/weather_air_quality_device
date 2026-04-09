@@ -48,7 +48,7 @@ import { useSensorHistory, type SensorHistoryData } from '../composables/useSens
 import Highcharts from 'highcharts'
 
 const { t } = useTranslation()
-const { getSensorHistory } = useSensorHistory()
+const { getSensorHistory, clearSensorHistory } = useSensorHistory()
 
 interface SensorDataPoint {
   timestamp: string
@@ -116,6 +116,9 @@ async function fetchData() {
     const deviceId = currentConfig.deviceId
     const configToUse = currentConfig
     
+    // Clear previous history so we know when NEW data arrives
+    clearSensorHistory(deviceId)
+    
     console.log('Requesting sensor history for:', sensorTypeKey, 'time range:', selectedTimeRange.value, 'hours')
     
     // Set up reactive watcher for sensor history data
@@ -125,8 +128,7 @@ async function fetchData() {
       (newHistory) => {
         if (!newHistory || !configToUse) return
         
-        const dataPoints = newHistory[sensorTypeKey as keyof SensorHistoryData]
-        if (!dataPoints || dataPoints.length === 0) return
+        const dataPoints = newHistory[sensorTypeKey as keyof SensorHistoryData] || []
         
         console.log('Sensor history data received:', dataPoints.length, 'points')
         
@@ -179,7 +181,7 @@ async function fetchData() {
       }
     }
     
-    // Set a timeout as fallback - if no data received in 10 seconds, show error
+    // Set a timeout as fallback - if no data received in 60 seconds, show error
     setTimeout(() => {
       if (loading.value) {
         console.error('Timeout waiting for sensor history data')
@@ -190,7 +192,7 @@ async function fetchData() {
           historyWatcher = null
         }
       }
-    }, 10000)
+    }, 60000)
     
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load sensor data'
