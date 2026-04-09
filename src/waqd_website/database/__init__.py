@@ -8,7 +8,7 @@ from sqlmodel import Field, Relationship, SQLModel, create_engine
 
 password = os.getenv("DATABASE_PW", "waqd_root_pw")
 if POSTGRES_URL := os.getenv("POSTGRES_URL"):
-    DATABASE_URL = f"postgresql+psycopg2://root:{password}@{POSTGRES_URL}/waqd_userdata"
+    DATABASE_URL = f"postgresql+psycopg2://postgres:{password}@{POSTGRES_URL}/waqd_userdata"
 elif MARIADB_URL := os.getenv("MARIADB_URL"):
     DATABASE_URL = f"mariadb+pymysql://root:{password}@{MARIADB_URL}/waqd_userdata"
 else:
