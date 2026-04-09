@@ -105,6 +105,7 @@ website = [
     "sqlalchemy>=2.0.41",
     "sqlmodel>=0.0.24",
     "pymysql>=1.1.0",
+    "psycopg2-binary>=2.9.11",
     "websockets>=15.0.1",
 ]
 dev = [

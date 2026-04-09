@@ -1,42 +1,51 @@
 import os
+from contextlib import asynccontextmanager
 from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse
 
-from waqd import DEBUG_LEVEL, assets_path as waqd_assets
+from waqd import DEBUG_LEVEL
+from waqd import assets_path as waqd_assets
 from waqd.base.file_logger import Logger
 
-from .service.device_con import (
-    websocket_endpoint,
-    user_device_stream,
-    get_device_data,
-    get_connected_devices,
-)
+from .api.device.routes import rt as device_router
+from .api.public.routes import rt as public_router
+from .api.user.routes import rt as user_router
 from .auth.authentication import (
     ADMIN_PERMISSION,
     RequiresLoginException,
 )
-from .api.public.routes import rt as public_router
-from .api.user.routes import rt as user_router
-from .api.device.routes import rt as device_router
+from .database import create_db_tables
 from .database.user import add_user, get_all_users
+from .service.device_con import (
+    get_connected_devices,
+    get_device_data,
+    user_device_stream,
+    websocket_endpoint,
+)
 
 BASE_PATH = Path(__file__).parent.resolve()
 FRONTEND_DIST_DIR = BASE_PATH / "ui" / "dist"
 
-# Generate default admin user if not exists
 
-if not any(u.username == "admin" for u in get_all_users()):
-    pw = os.getenv("WAQD_ADMIN_PASSWORD", "admin12345")
-    add_user(username="admin", password=pw, permissions=[ADMIN_PERMISSION])
-    print("Created default admin user with username 'admin' and password:", pw)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_tables()
+    if not any(u.username == "admin" for u in get_all_users()):
+        pw = os.getenv("WAQD_ADMIN_PASSWORD", "admin12345")
+        add_user(username="admin", password=pw, permissions=[ADMIN_PERMISSION])
+        print("Created default admin user with username 'admin' and password:", pw)
+    yield
+
 
 web_app = FastAPI(
     title="WAQD",
     description="WAQD website",
+    lifespan=lifespan,
 )
 
 
