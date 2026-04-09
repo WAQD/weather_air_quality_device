@@ -182,6 +182,7 @@
   "login_failed": "Sikertelen bejelentkezés! Hibás felhasználónév vagy jelszó",
   "login_now": "Jelentkezzen be!",
   "login_web_access": "WAQD webes elérés távoli bejelentkezéshez és adatok megtekintéséhez.",
+  "remember_me_30_days": "Emlékezz rám 30 napig",
   "logout": "Kijelentkezés",
   "logout_success": "Sikeres kijelentkezés.",
   "manual_update_desc": "Frissítés keresése. A frissítés előtt megerősítést kér a rendszer.",

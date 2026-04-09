@@ -61,6 +61,10 @@
                 </button>
               </div>
               <!-- <div><a class="link link-hover">Forgot password?</a></div> -->
+              <label class="label cursor-pointer justify-start gap-3 mt-2">
+                <input type="checkbox" v-model="rememberMe" class="checkbox checkbox-primary" />
+                <span class="label-text text-sm sm:text-base">{{ t('remember_me_30_days') }}</span>
+              </label>
               <button class="btn btn-primary mt-4 text-base sm:text-lg" @click="login">
                 {{ t('login') }}
                 <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
@@ -90,6 +94,7 @@ const password = ref('')
 const loading = ref(false)
 const passwordVisible = ref(false)
 const showLoginFailedToast = ref(false)
+const rememberMe = ref(false)
 
 // Auto-hide toast after 5 seconds
 watch(showLoginFailedToast, (newValue) => {
@@ -117,6 +122,7 @@ function login() {
       grant_type: 'password',
       username: username.value,
       password: password.value,
+      remember_me: rememberMe.value ? 'true' : 'false',
     }),
   })
     .then((response) => {

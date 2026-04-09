@@ -2,13 +2,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
 
 import waqd
 from waqd_website.auth.authentication import (
-    ACCESS_TOKEN_EXPIRE_DAYS,
+    TOKEN_EXPIRE_LONG_DAYS,
+    TOKEN_EXPIRE_SHORT_MINUTES,
     Token,
     User,
     authenticate_user,
@@ -18,8 +18,24 @@ from waqd_website.auth.authentication import (
     user_exception_check,
 )
 
-# Refresh threshold for keepalive endpoint (2 hours)
-TOKEN_REFRESH_THRESHOLD_MINUTES = 120
+# Refresh threshold for short-lived tokens (refresh in last 30 min of 2h window)
+TOKEN_REFRESH_THRESHOLD_SHORT_MINUTES = 30
+# Refresh threshold for long-lived tokens (refresh in last 7 days of 30-day window)
+TOKEN_REFRESH_THRESHOLD_LONG_DAYS = 7
+
+
+class LoginForm:
+    def __init__(
+        self,
+        username: str = Form(...),
+        password: str = Form(...),
+        grant_type: str = Form(default="password"),
+        remember_me: bool = Form(default=False),
+    ):
+        self.username = username
+        self.password = password
+        self.grant_type = grant_type
+        self.remember_me = remember_me
 
 rt = APIRouter()
 
@@ -27,7 +43,7 @@ current_path = Path(__file__).parent.resolve()
 
 @rt.post("/token", response_model=Token)
 async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], request: Request
+    form_data: Annotated[LoginForm, Depends()], request: Request
 ):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
@@ -36,15 +52,19 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    if form_data.remember_me:
+        access_token_expires = timedelta(days=TOKEN_EXPIRE_LONG_DAYS)
+    else:
+        access_token_expires = timedelta(minutes=TOKEN_EXPIRE_SHORT_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "remember": form_data.remember_me},
+        expires_delta=access_token_expires,
     )
     response = JSONResponse(
         {"access_token": access_token, "token_type": "bearer"},
         status_code=status.HTTP_200_OK,
     )
-    set_access_token_cookie(response, user.username, access_token, request)
+    set_access_token_cookie(response, access_token, access_token_expires, request)
     return response
 
 
@@ -68,18 +88,25 @@ async def keepalive(
             detail="Invalid token",
         )
     
-    # Refresh token if it expires in less than the threshold (default: 2 hours)
+    # Refresh token if close to expiry; threshold depends on token type
+    if token_data.remember_me:
+        refresh_threshold = timedelta(days=TOKEN_REFRESH_THRESHOLD_LONG_DAYS)
+        new_expiry = timedelta(days=TOKEN_EXPIRE_LONG_DAYS)
+    else:
+        refresh_threshold = timedelta(minutes=TOKEN_REFRESH_THRESHOLD_SHORT_MINUTES)
+        new_expiry = timedelta(minutes=TOKEN_EXPIRE_SHORT_MINUTES)
+
     time_until_expiry = token_expires - datetime.now(timezone.utc)
-    if time_until_expiry < timedelta(minutes=TOKEN_REFRESH_THRESHOLD_MINUTES):
-        access_token_expires = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    if time_until_expiry < refresh_threshold:
         access_token = create_access_token(
-            data={"sub": current_user.username}, expires_delta=access_token_expires
+            data={"sub": current_user.username, "remember": token_data.remember_me},
+            expires_delta=new_expiry,
         )
         response = JSONResponse(
             {"access_token": access_token, "token_type": "bearer"},
             status_code=status.HTTP_200_OK,
         )
-        set_access_token_cookie(response, current_user.username, access_token, request)
+        set_access_token_cookie(response, access_token, new_expiry, request)
         return response
     
     # Token is still valid, return success without refreshing
@@ -96,16 +123,9 @@ def is_https(request: Request) -> bool:
 
 
 def set_access_token_cookie(
-    response: JSONResponse, username: str, access_token: str, request: Request
+    response: JSONResponse, access_token: str, access_token_expires: timedelta, request: Request
 ):
-    access_token_expires = timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
-    if not access_token:
-        access_token = create_access_token(
-            data={"sub": username}, expires_delta=access_token_expires
-        )
-
     secure = is_https(request)
-    # Optional: override for debugging
     if waqd.DEBUG_LEVEL > 0:
         secure = False
 

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from functools import lru_cache
 from typing import Annotated, Optional
 
 import jwt
@@ -25,7 +24,8 @@ class RequiresLoginException(StarletteHTTPException):
 
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 7  # 7 days - refreshed hourly by frontend keepalive
+TOKEN_EXPIRE_SHORT_MINUTES = 120  # 2 hours - default, refreshed by frontend keepalive
+TOKEN_EXPIRE_LONG_DAYS = 30       # 30 days - "remember me" mode
 ADMIN_PERMISSION = "users:admin"
 
 class Token(BaseModel):
@@ -36,6 +36,7 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
     expires: datetime | None = None
+    remember_me: bool = False
 
 
 pwd_context = CryptContext(
@@ -111,17 +112,14 @@ def authenticate_user(username: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-
+    expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, USER_SESSION_SECRET, algorithm=ALGORITHM)
     return encoded_jwt
 
 
-@lru_cache(maxsize=None)
 def decode_access_token(token: str) -> Optional[TokenData]:
     try:
         payload = jwt.decode(token, USER_SESSION_SECRET, algorithms=[ALGORITHM])
@@ -131,6 +129,7 @@ def decode_access_token(token: str) -> Optional[TokenData]:
         token_data = TokenData(
             username=username,
             expires=datetime.fromtimestamp(payload.get("exp", 0), timezone.utc),
+            remember_me=bool(payload.get("remember", False)),
         )
         return token_data
     except InvalidTokenError:

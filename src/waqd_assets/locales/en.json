@@ -184,6 +184,7 @@
   "login_failed": "Login failed! Wrong username or password",
   "login_now": "Login now!",
   "login_web_access": "WAQD web access for remote login to monitor all your data.",
+  "remember_me_30_days": "Remember me for 30 days",
   "logout": "Logout",
   "logout_success": "Logged out successfully.",
   "manual_update_desc": "Check manually for updates. You will be prompted for confirmation before the update.",
