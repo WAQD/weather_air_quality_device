@@ -5,7 +5,7 @@ Sets up cmd arguments, settings and starts the gui
 
 import sys
 import time
-from typing import TYPE_CHECKING
+from typing import Any
 from threading import Thread
 
 import waqd
@@ -13,24 +13,19 @@ from waqd.base.assets import get_asset_file
 from waqd.base.file_logger import Logger
 from waqd.base.system import RuntimeSystem
 from waqd.settings import STARTUP_JINGLE
-
-# don't import anything from Qt globally! we want to run also without qt in headless mode
-if TYPE_CHECKING:
-    from pint import UnitRegistry
-
-    from waqd.base.component_ctrl import ComponentController
-    from waqd.settings import Settings
+from waqd_common.singleton import BorgSingleton
 
 # GLOBAL VARIABLES
 
 Logger(output_path=waqd.user_config_dir)  # singleton, no assigment needed
 
+
 # singleton with access to all backend components
-comp_ctrl: "ComponentController"
+comp_ctrl = BorgSingleton("comp_ctrl")
 # for global access to units
-unit_reg: "UnitRegistry"
+unit_reg = BorgSingleton("unit_reg")
 # for global access to settings
-settings: "Settings"
+settings = BorgSingleton("settings")
 
 
 def basic_setup():
@@ -44,7 +39,7 @@ def basic_setup():
 
     from waqd.settings import Settings
 
-    settings = Settings(ini_folder=waqd.user_config_dir)
+    settings.initialize(Settings, ini_folder=waqd.user_config_dir)
     setup_unit_reg()
 
     # to be able to remote debug as much as possible, this call is being done early
@@ -60,7 +55,7 @@ def basic_setup():
         return None, None
     from waqd.base.component_ctrl import ComponentController
 
-    comp_ctrl = ComponentController(settings)
+    comp_ctrl.initialize(ComponentController, settings)
 
 def main():
     basic_setup()
@@ -118,7 +113,7 @@ def setup_unit_reg():
     global unit_reg
     from pint import UnitRegistry
 
-    unit_reg = UnitRegistry()
+    unit_reg.initialize(UnitRegistry)
 
     unit_reg.define("fraction = [] = frac")
     unit_reg.define("percent = 1e-2 frac = %")

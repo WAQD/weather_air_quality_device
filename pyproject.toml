@@ -45,6 +45,7 @@ build-backend = "pdm.backend"
 [tool.pdm.build]
 includes = [
     "src/waqd",
+    "src/waqd_common",
     "src/waqd_assets"
 ]
 source-includes = []

@@ -1,8 +1,5 @@
 
-import pytest
-import waqd
-from waqd import __version__ as VERSION
-from waqd.settings import Settings, UPDATER_USER_BETA_CHANNEL, AUTO_UPDATER_ENABLED
+from waqd.settings import Settings
 from waqd.components.updater import OnlineUpdater
 from waqd.base.component_reg import ComponentRegistry
 

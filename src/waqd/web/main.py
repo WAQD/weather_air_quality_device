@@ -84,5 +84,5 @@ async def root():
     return RedirectResponse(url="/weather")
 
 
-if app.comp_ctrl is None:
+if not app.comp_ctrl:
     app.basic_setup()

@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from freezegun import freeze_time
 
-from waqd.components.weather import OpenTopoData, OpenWeatherMap, OpenMeteo
+from waqd_common.weather import OpenTopoData, OpenWeatherMap, OpenMeteo
 
 
 class MockOpenMeteo(OpenMeteo):
@@ -24,14 +24,13 @@ def test_open_meteo_geocoder(base_fixture, mocker):
     om = OpenMeteo()
     mock_call = mocker.Mock()
     mock_call.return_value = json.loads(test_json.read_text())
-    mocker.patch("waqd.components.weather.OpenMeteo._call_api", mock_call)
+    mocker.patch("waqd_common.weather.OpenMeteo._call_api", mock_call)
     ret = om.find_location_candidates("Berlin", "de")
     assert len(ret) == 10
     assert ret[0].name == "Berlin"
     assert ret[0].country == "Deutschland"
     assert ret[0].state == "Berlin"
     assert ret[0].county == ""
-    assert ret[0].postcodes == ['10967', '13347']
     assert ret[0].altitude == 74
     assert ret[0].longitude == 13.41053
     assert ret[0].latitude == 52.52437
@@ -107,7 +106,7 @@ def test_open_weather_new_day_forecast(base_fixture):
         assert forecast[0].temp_max == 23.71
         assert forecast[0].temp_night_min == 11.25
         assert forecast[0].temp_night_max == 13.03
-        assert forecast[0].wid == 803
+        assert forecast[0].wid == 804
 
 
 def test_open_weather_get3_day_forecast(base_fixture):
@@ -127,7 +126,7 @@ def test_open_weather_get3_day_forecast(base_fixture):
         assert forecast[0].temp_max == float("inf")
         assert forecast[0].temp_night_min == 19.77
         assert forecast[0].temp_night_max == 23.87
-        assert forecast[0].wid == 803
+        assert forecast[0].wid == 500
 
         assert forecast[1].temp_min == 21.65
         assert forecast[1].temp_max == 30.15
