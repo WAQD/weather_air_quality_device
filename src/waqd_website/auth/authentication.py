@@ -102,13 +102,8 @@ def get_user_from_token(token_data: TokenData):
         return get_user_by_username(token_data.username)
     return None
 
-
-def get_user_from_name(username: str):
-    return get_user_by_username(username)
-
-
 def authenticate_user(username: str, password: str):
-    user = get_user_from_name(username)
+    user = get_user_by_username(username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -191,7 +186,7 @@ class PermissionChecker:
     def __call__(self, _user: User = Depends(get_current_user_plain), exception=True) -> bool:
         # update from db
         assert _user is not None
-        user = get_user_from_name(_user.username)
+        user = get_user_by_username(_user.username)
         assert user is not None
         if self.check_permissions(user):
             return True
