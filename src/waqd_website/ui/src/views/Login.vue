@@ -12,8 +12,7 @@
       </div>
     </div>
     <!-- Beta Warning Alert -->
-    <div
-      class="alert alert-warning shadow-lg w-full">
+    <div class="alert alert-warning shadow-lg w-full">
       <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
         viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -43,7 +42,7 @@
               <label class="label text-sm sm:text-base">{{ t('username') }}</label>
               <input type="text" id="username" v-model="username" name="username"
                 autocomplete="username" :placeholder="t('username')"
-                class="input input-bordered text-sm sm:text-base" @keyup.enter="login" />
+                class="input input-bordered w-full text-sm sm:text-base" @keyup.enter="login" />
 
               <label class="label text-sm sm:text-base">{{ t('password') }}</label>
 
@@ -60,7 +59,6 @@
                   </svg>
                 </button>
               </div>
-              <!-- <div><a class="link link-hover">Forgot password?</a></div> -->
               <div class="text-right mt-1">
                 <router-link to="/public/forgot-password" class="link link-hover text-sm">
                   {{ t('forgot_password') }}
