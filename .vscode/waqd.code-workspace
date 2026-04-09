@@ -85,7 +85,7 @@
     "launch": {
         "configurations": [
             {
-                "name": "Main",
+                "name": "WAQD Main",
                 "type": "debugpy",
                 "request": "launch",
                 "module": "waqd",
@@ -101,7 +101,7 @@
                 "justMyCode": false
             },
             {
-                "name": "Website",
+                "name": "Website backend",
                 "type": "debugpy",
                 "request": "launch",
                 "module": "uvicorn",
@@ -115,13 +115,14 @@
                 "justMyCode": false,
                 "env": {
                     "WAQD_DEBUG": "0",
+                    "PYTHONPATH": "${workspaceFolder}/src",
                     // "MARIADB_URL": "localhost:3306",
                 }
             },
             {
                 "type": "firefox",
                 "request": "launch",
-                "name": "vuejs: firefox",
+                "name": "Debug Website in firefox",
                 "url": "http://localhost:5173",
                 "webRoot": "${workspaceFolder}/src/waqd_website/ui",
                 "pathMappings": [
@@ -132,13 +133,11 @@
                 ]
             },
             {
-                "name": "Python: Current File",
-                "type": "debugpy",
+                "name": "Debug Website in Editor",
                 "request": "launch",
-                "program": "${file}",
-                "console": "integratedTerminal",
-                "subProcess": true,
-                "justMyCode": false
+                "type": "editor-browser",
+                "url": "http://localhost:5173",
+                "webRoot": "${workspaceFolder}/src/waqd_website/ui"
             },
             {
                 "name": "Python Raspberry Pi: Attach",
