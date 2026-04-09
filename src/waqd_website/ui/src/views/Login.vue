@@ -61,6 +61,11 @@
                 </button>
               </div>
               <!-- <div><a class="link link-hover">Forgot password?</a></div> -->
+              <div class="text-right mt-1">
+                <router-link to="/public/forgot-password" class="link link-hover text-sm">
+                  {{ t('forgot_password') }}
+                </router-link>
+              </div>
               <label class="label cursor-pointer justify-start gap-3 mt-2">
                 <input type="checkbox" v-model="rememberMe" class="checkbox checkbox-primary" />
                 <span class="label-text text-sm sm:text-base">{{ t('remember_me_30_days') }}</span>

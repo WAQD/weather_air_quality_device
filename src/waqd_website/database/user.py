@@ -1,8 +1,11 @@
+import hashlib
+import secrets
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from sqlmodel import Session, select
 
-from waqd_website.database import User, engine
+from waqd_website.database import PasswordResetToken, User, engine
 from waqd.base.translation import Translation
 from waqd_website.mail.mail import send_email
 
@@ -174,4 +177,59 @@ def update_user_username(old_username: str, new_username: str) -> bool:
             # Log error but don't fail the username update
             print(f"Failed to send username change email to {user_email}: {e}")
 
+    return True
+
+
+_RESET_TOKEN_EXPIRY_MINUTES = 30
+
+
+def get_user_by_email(email: str) -> Optional[User]:
+    with Session(engine) as session:
+        statement = select(User).where(User.email == email)
+        return session.exec(statement).first()
+
+
+def create_password_reset_token(user_id: int) -> str:
+    """Generate a raw reset token, store its SHA-256 hash, and return the raw token."""
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=_RESET_TOKEN_EXPIRY_MINUTES)
+    with Session(engine) as session:
+        # Invalidate any existing unused tokens for this user
+        old_tokens = session.exec(
+            select(PasswordResetToken).where(
+                PasswordResetToken.user_id == user_id,
+                PasswordResetToken.used == False,  # noqa: E712
+            )
+        ).all()
+        for token in old_tokens:
+            token.used = True
+            session.add(token)
+        session.add(PasswordResetToken(token_hash=token_hash, user_id=user_id, expires_at=expires_at))
+        session.commit()
+    return raw_token
+
+
+def consume_password_reset_token(raw_token: str, new_password: str) -> bool:
+    """Validate the token, reset the password, and mark the token used.
+    Returns True on success, False if the token is invalid/expired/already used."""
+    from waqd_website.auth.authentication import get_password_hash
+
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    with Session(engine) as session:
+        record = session.exec(
+            select(PasswordResetToken).where(PasswordResetToken.token_hash == token_hash)
+        ).first()
+        if record is None or record.used:
+            return False
+        if record.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            return False
+        user = session.exec(select(User).where(User.id == record.user_id)).first()
+        if user is None:
+            return False
+        user.hashed_password = get_password_hash(new_password)
+        record.used = True
+        session.add(user)
+        session.add(record)
+        session.commit()
     return True

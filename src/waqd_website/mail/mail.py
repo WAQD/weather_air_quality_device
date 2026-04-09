@@ -27,3 +27,14 @@ def send_email(receiver_email: str, subject: str, body: str, sender_email="norep
             Logger().debug("Email sent to receiver_email: %s", receiver_email)
     except Exception as e:
         Logger().debug("Failed to send email to %s: %s", receiver_email, e)
+
+
+def send_reset_email(receiver_email: str, reset_url: str):
+    subject = "WAQD Password Reset"
+    body = (
+        f"You requested a password reset for your WAQD account.\n\n"
+        f"Click the link below to set a new password (valid for 30 minutes):\n"
+        f"{reset_url}\n\n"
+        f"If you did not request this, you can safely ignore this email."
+    )
+    send_email(receiver_email, subject, body)

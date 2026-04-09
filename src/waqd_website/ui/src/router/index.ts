@@ -6,6 +6,8 @@ import Admin from '../views/Admin.vue'
 import Account from '../views/Account.vue'
 import Devices from '../views/Devices.vue'
 import Device from '../views/Device.vue'
+import ForgotPassword from '../views/ForgotPassword.vue'
+import ResetPassword from '../views/ResetPassword.vue'
 import { useUser } from '../composables/useUser'
 
 const router = createRouter({
@@ -24,6 +26,16 @@ const router = createRouter({
       path: '/public/login',
       name: 'login',
       component: Login
+    },
+    {
+      path: '/public/forgot-password',
+      name: 'forgot-password',
+      component: ForgotPassword
+    },
+    {
+      path: '/public/reset-password',
+      name: 'reset-password',
+      component: ResetPassword
     },
     {
       path: '/rest/devices',

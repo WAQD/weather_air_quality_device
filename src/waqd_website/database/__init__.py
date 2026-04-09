@@ -88,6 +88,19 @@ class ServerConfig(SQLModel, table=True):
     value: str = Field(max_length=1024)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
+
+class PasswordResetToken(SQLModel, table=True):
+    """Short-lived, single-use tokens for password reset via email"""
+
+    __tablename__ = "password_reset_token"  # type: ignore
+
+    token_hash: str = Field(primary_key=True, max_length=64)  # SHA-256 hex digest
+    user_id: int = Field(foreign_key="user.id")
+    expires_at: datetime
+    used: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 # Create database tables - must be last
 
 SQLModel.metadata.create_all(engine)

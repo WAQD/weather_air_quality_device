@@ -17,6 +17,12 @@ from waqd_website.auth.authentication import (
     oauth2_scheme,
     user_exception_check,
 )
+from waqd_website.database.user import (
+    consume_password_reset_token,
+    create_password_reset_token,
+    get_user_by_email,
+)
+from waqd_website.mail.mail import send_reset_email
 
 # Refresh threshold for short-lived tokens (refresh in last 30 min of 2h window)
 TOKEN_REFRESH_THRESHOLD_SHORT_MINUTES = 30
@@ -164,5 +170,30 @@ async def logout(request: Request):
         secure=secure,
     )
     return response
+
+
+@rt.post("/request-reset", response_class=JSONResponse)
+async def request_password_reset(request: Request, email: str = Form(...)):
+    """Request a password reset email. Always returns 200 to prevent user enumeration."""
+    user = get_user_by_email(email)
+    if user and user.id is not None:
+        raw_token = create_password_reset_token(user.id)
+        scheme = "https" if is_https(request) else "http"
+        host = request.headers.get("x-forwarded-host") or request.url.netloc
+        reset_url = f"{scheme}://{host}/public/reset-password?token={raw_token}"
+        send_reset_email(email, reset_url)
+    # Always return the same response to prevent email enumeration
+    return JSONResponse({"detail": "If that email is registered, a reset link has been sent."}, status_code=status.HTTP_200_OK)
+
+
+@rt.post("/reset-password", response_class=JSONResponse)
+async def reset_password(token: str = Form(...), new_password: str = Form(...)):
+    """Consume a reset token and update the user's password."""
+    if len(new_password) < 8:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must be at least 8 characters.")
+    success = consume_password_reset_token(token, new_password)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token.")
+    return JSONResponse({"detail": "Password updated successfully."}, status_code=status.HTTP_200_OK)
 
 
