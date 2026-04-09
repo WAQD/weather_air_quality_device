@@ -29,7 +29,7 @@ from waqd.components.sensors import (
 from waqd.components.sound import SoundInterface, SoundVLC
 from waqd.components.speech import TextToSpeach
 from waqd.components.updater import OnlineUpdater
-from waqd.components.weather import OpenMeteo, OpenWeatherMap, WeatherProvider
+from waqd_common.weather import OpenMeteo, OpenWeatherMap, WeatherProvider
 
 __all__ = [
     "Display",

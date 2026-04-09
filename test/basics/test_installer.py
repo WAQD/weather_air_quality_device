@@ -3,8 +3,8 @@ import tempfile
 from pathlib import Path
 import shutil
 from waqd import __version__
-from installer import common, setup_system
-from installer.common import assure_file_does_not_exist
+from waqd_installer import common, setup_system
+from waqd_installer.common import assure_file_does_not_exist
 
 
 def test_add_to_autostart(base_fixture):
@@ -50,7 +50,7 @@ def test_get_install_path():
         home = "/home/pi"
         os.environ["HOME"] = home
     from importlib import reload
-    from installer import common
+    from waqd_installer import common
     reload(common)
     install_path = common.get_waqd_install_path(common.installer_root_dir)
     version_suffix = __version__.replace(".", "-")
@@ -58,10 +58,10 @@ def test_get_install_path():
 
 
 def test_register_autostart(base_fixture):
-    from installer.common import get_waqd_bin_name
+    from waqd_installer.common import get_waqd_bin_name
     auto_update_file = base_fixture.testdata_path / "auto_updater" / "autostart.txt"
     os.environ["SUDO_USER"] = "user"
-    from installer import install
+    from waqd_installer import install
 
     # redirect output to a temp dir
     tempdir = Path(tempfile.gettempdir())
@@ -119,15 +119,3 @@ def test_unattended_upgrades_config(base_fixture):
     assert 'MinimalSteps "true"' in content
     assert 'AutoFixInterruptedDpkg "true"' in content
     assert 'Remove-Unused-Dependencies "false"' in content
-
-# TODO
-# def testEnableHwAccess
-#     setup_system.
-
-# def testHideMouseCursor
-
-# def testCustomizeSplashScreen
-
-# def testSetupSupportedLocales
-
-# def testSetWallpaper

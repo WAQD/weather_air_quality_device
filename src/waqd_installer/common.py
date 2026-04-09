@@ -5,8 +5,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import List, Dict, Tuple, Union, Literal
-
+from typing import Dict, List
 
 USERNAME = os.environ.get("SUDO_USER", "")  # the original user
 if not USERNAME:
