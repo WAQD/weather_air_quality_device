@@ -1,7 +1,7 @@
 <template>
   <div class="scroll-container">
     <!-- Main Hero Section -->
-    <div class="hero hero-bg-main min-h-screen snap-section">
+    <div class="hero hero-bg-main min-h-screen snap-section relative">
       <div class="hero-overlay bg-opacity-60"></div>
       <div class="hero-content flex-col max-w-4xl w-full px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Logged In View -->
@@ -32,12 +32,15 @@
           <p class="py-4 sm:py-6 text-base sm:text-lg">
             {{ t('home_create_professional') }}
           </p>
-          <!-- <router-link to="/public/login" class="btn btn-secondary btn-lg">{{ t('home_get_started') }}</router-link> -->
+          <router-link to="/public/login" class="btn btn-secondary btn-lg relative mt-2">
+            {{ t('login') }}
+            <span class="absolute -top-2 -right-2 badge badge-warning badge-sm font-bold z-10 animate-pulse">Beta</span>
+          </router-link>
         </div>
       </div>
 
       <!-- Scroll Indicator -->
-      <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+      <div v-if="!isLoggedIn" class="absolute bottom-16 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
         <div class="flex flex-col items-center text-white opacity-80">
           <span class="text-sm mb-2">{{ t('home_scroll_more') }}</span>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24"
