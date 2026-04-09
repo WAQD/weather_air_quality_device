@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from waqd.components.weather.base_types import DailyWeather, Weather
+from waqd_common.weather.base_types import DailyWeather, Weather
 
 from .connector import WeatherRetrieval
 

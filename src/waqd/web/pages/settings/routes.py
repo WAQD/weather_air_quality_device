@@ -9,8 +9,8 @@ import waqd.app as app
 from waqd import __version__ as WAQD_VERSION
 from waqd.base.file_logger import Logger
 from waqd.base.system import RuntimeSystem
-from waqd.components.weather.base_types import Location
-from waqd.components.weather.open_meteo import OpenMeteo
+from waqd_common.weather.base_types import Location
+from waqd_common.weather.open_meteo import OpenMeteo
 from waqd.settings import (
     BRIGHTNESS,
     LOCATION_ALTITUDE_M,
