@@ -6,18 +6,18 @@ import os
 import shutil
 from pathlib import Path
 from configparser import ConfigParser, DuplicateSectionError
-from subprocess import check_output
 
 from waqd_installer.common import (
     HOME,
     add_line_to_file,
     assure_file_exists,
     installer_root_dir,
-    add_to_autostart,
+    add_to_LXDE_autostart,
     remove_from_autostart,
     remove_line_in_file,
     rotate_and_overwrite_image,
 )
+from waqd_installer import AUTOSTART_FILE
 
 def disable_screensaver():
     logging.info("Check the screensaver")
@@ -29,7 +29,7 @@ def disable_screensaver():
     remove_line_in_file(["mode:"], config_file)
     add_line_to_file([switch_off_cmd], config_file)
     logging.info("Add the screensaver to autostart")
-    add_to_autostart(["xscreensaver -no-splash"])
+    add_to_LXDE_autostart(AUTOSTART_FILE, ["xscreensaver -no-splash"])
 
 
 def hide_mouse_cursor():
@@ -115,8 +115,8 @@ def clean_lxde_desktop(
 def do_setup(inverted_dislplay: bool):
     # System setup
     # Start only the desktop, but not the taskbar
-    add_to_autostart(["pcmanfm-pi"])
-    remove_from_autostart(["lxpanel-pi"])
+    add_to_LXDE_autostart(AUTOSTART_FILE, ["pcmanfm-pi"])
+    remove_from_autostart(AUTOSTART_FILE, ["lxpanel-pi"])
 
     hide_mouse_cursor()
     disable_screensaver()

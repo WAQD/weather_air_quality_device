@@ -8,11 +8,11 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-
+from . import AUTOSTART_FILE
 from .common import (
-    INSTALL_TARGET_ROOT, AUTOSTART_FILE, USER_CONFIG_PATH, INSTALL_DIR_SUFFIX, LOCAL_BIN_PATH, USERNAME,
+    INSTALL_TARGET_ROOT, INSTALL_DIR_SUFFIX, LOCAL_BIN_PATH, USERNAME,
     installer_root_dir,
-    add_to_autostart, get_waqd_version, get_waqd_bin_name, remove_from_autostart, set_write_permissions, setup_logger)
+    add_to_LXDE_autostart, get_waqd_version, get_waqd_bin_name, remove_from_autostart, set_write_permissions, setup_logger)
 
 def install_waqd(waqd_version: str):
     logging.info("Installing with pipx")
@@ -32,7 +32,7 @@ def install_waqd(waqd_version: str):
     logging.info(f"Removing conflicting RPi.GPIO package: {uninstall_cmd}")
     os.system(uninstall_cmd)
 
-def register_waqd_autostart(bin_path: Path = LOCAL_BIN_PATH, autostart_file: Path = AUTOSTART_FILE):
+def register_waqd_autostart(autostart_file: Path, bin_path: Path = LOCAL_BIN_PATH):
     # Create an executable with auto restart for the current user
     # TODO: This would be nicer? with systemctl -> Restart=on-failure..
     os.makedirs(bin_path, exist_ok=True)
@@ -52,8 +52,14 @@ def register_waqd_autostart(bin_path: Path = LOCAL_BIN_PATH, autostart_file: Pat
     os.system(f"chown {USERNAME} {waqd_start_bin_path}")
     logging.info(f"Add respawning {str(waqd_start_bin_path)} to autostart file {str(autostart_file)}")
     # first remove, to not aciddentally remove added lines
-    remove_from_autostart(["waqd", "PiWeather"], autostart_file)
-    add_to_autostart([str(waqd_start_bin_path)], autostart_file)
+    remove_from_autostart(
+        autostart_file,
+        ["waqd", "PiWeather"],
+    )
+    add_to_LXDE_autostart(
+        autostart_file,
+        [str(waqd_start_bin_path)],
+    )
 
 def do_install():
     # install and add to autostart
@@ -62,4 +68,4 @@ def do_install():
     logging.info(f"Installing version {version} of waqd")
     install_waqd(version)
 
-    register_waqd_autostart()
+    register_waqd_autostart(AUTOSTART_FILE)
