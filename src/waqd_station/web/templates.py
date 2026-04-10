@@ -12,7 +12,7 @@ import waqd
 import waqd_station
 import waqd_station.app as app
 from waqd import DEBUG_LEVEL
-from waqd_station.components.translation import Translation
+from waqd.components.translation import Translation
 from waqd_station.settings import LANG
 
 extra_minify = partial(minify, remove_comments=True, remove_empty_space=True)
