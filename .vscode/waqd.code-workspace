@@ -88,7 +88,7 @@
                 "name": "WAQD Main",
                 "type": "debugpy",
                 "request": "launch",
-                "module": "waqd",
+                "module": "waqd_station",
                 "args": [
                     // "-H"
                 ],

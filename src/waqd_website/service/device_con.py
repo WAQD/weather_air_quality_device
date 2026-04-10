@@ -15,7 +15,7 @@ from fastapi import Header, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from waqd.base.file_logger import Logger
-from waqd.web.api.sensor.v1.model import SensorApi_v1_1
+from waqd.web.api.sensor.v1 import SensorApi_v1_1
 
 # Configuration
 # DB_SYNC_INTERVAL: How often to sync device status to database (periodic background task)

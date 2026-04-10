@@ -8,7 +8,7 @@ from typing import Optional
 from file_read_backwards import FileReadBackwards
 
 import waqd
-from waqd import LOCAL_TIMEZONE, PROG_NAME
+from waqd import LOCAL_TIMEZONE
 
 
 # helper functions for logs
@@ -39,6 +39,7 @@ class Logger(logging.Logger):
     """
 
     GLOBAL_LOGFILE_NAME = "waqd.log"
+    LOGGER_NAME = "waqd_logger"
 
     _instance: Optional[logging.Logger] = None
 
@@ -47,7 +48,7 @@ class Logger(logging.Logger):
             cls._instance = cls._init_logger(output_path)
         return cls._instance
 
-    def __init__(self, output_path: Path = waqd.user_config_dir) -> None:
+    def __init__(self) -> None:
         return None
 
     @classmethod
@@ -59,7 +60,7 @@ class Logger(logging.Logger):
         root.setLevel(logging.ERROR)
 
         # set up file logger - log everything in file and stdout
-        logger = logging.getLogger(PROG_NAME)
+        logger = logging.getLogger(cls.LOGGER_NAME)
         logger.setLevel(logging.DEBUG)
         log_debug_level = logging.INFO
         if waqd.DEBUG_LEVEL > 0:
@@ -93,8 +94,38 @@ class Logger(logging.Logger):
 
 
 class SensorFileLogger(logging.Logger):
-    def __new__(cls, sensor_location: str, sensor_type: str, output_path: Path = Path(".")):
-        return cls._init_logger(sensor_location, sensor_type, output_path)
+    _output_path = Path(".")  # default, should be set when used
+
+    # waqd.user_config_dir / "sensor_logs",
+    def __new__(cls, sensor_location: str, sensor_type: str, output_path: str):
+        return cls._init_logger(sensor_location, sensor_type, cls._output_path / output_path)
+
+    @classmethod
+    def _init_logger(
+        cls, sensor_location, sensor_type: str, output_path: Path
+    ) -> logging.Logger:
+        """Logger used by sensors to store values to display in detail view"""
+        logger = logging.getLogger(sensor_location + "_" + sensor_type)
+
+        # return already initalized logger when calling multiple times
+        if len(logger.handlers) > 0:
+            return logger
+
+        logger.setLevel(logging.DEBUG)
+
+        os.makedirs(output_path, exist_ok=True)
+        log_file_path = output_path / (sensor_location + "_" + sensor_type + ".log")
+
+        # delete old logfile
+        delete_large_logfile(log_file_path, size_mbytes=100)
+
+        file_handler = logging.FileHandler(str(log_file_path), encoding="utf-8")
+        formatter = logging.Formatter(r"%(asctime)s=%(message)s", "%Y-%m-%d %H:%M:%S")
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(logging.DEBUG)
+        logger.addHandler(file_handler)
+        logger.propagate = False
+        return logger
 
     def __init__(
         self, sensor_location: str, sensor_type: str, output_path: Path = Path(".")
@@ -103,16 +134,12 @@ class SensorFileLogger(logging.Logger):
 
     @staticmethod
     def set_value(sensor_location: str, sensor_type: str, value: Optional[float]):
-        logger = SensorFileLogger(
-            sensor_location, sensor_type, output_path=waqd.user_config_dir / "sensor_logs"
-        )
+        logger = SensorFileLogger(sensor_location, sensor_type, output_path="sensor_logs")
         logger.info(value)
 
     @staticmethod
     def _get_sensor_logfile_path(sensor_location: str, sensor_type: str) -> Path:
-        logger = SensorFileLogger(
-            sensor_location, sensor_type, output_path=waqd.user_config_dir / "sensor_logs"
-        )
+        logger = SensorFileLogger(sensor_location, sensor_type, output_path="sensor_logs")
         if logger.handlers == 0:
             return Path("InvalidPath")
         try:
@@ -155,36 +182,15 @@ class SensorFileLogger(logging.Logger):
             delete_log_file(log_file_path)
         return tuple(reversed(time_value_pairs))
 
-    @staticmethod
-    def _init_logger(sensor_location, sensor_type: str, output_path: Path) -> logging.Logger:
-        """Logger used by sensors to store values to display in detail view"""
-        logger = logging.getLogger(sensor_location + "_" + sensor_type)
+    @classmethod
+    def set_output_path(cls, output_path: Path):
+        cls._output_path = output_path
 
-        # return already initalized logger when calling multiple times
-        if len(logger.handlers) > 0:
-            return logger
-
-        logger.setLevel(logging.DEBUG)
-
-        os.makedirs(output_path, exist_ok=True)
-        log_file_path = output_path / (sensor_location + "_" + sensor_type + ".log")
-
-        # delete old logfile
-        delete_large_logfile(log_file_path, size_mbytes=100)
-
-        file_handler = logging.FileHandler(str(log_file_path), encoding="utf-8")
-        formatter = logging.Formatter(r"%(asctime)s=%(message)s", "%Y-%m-%d %H:%M:%S")
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(logging.DEBUG)
-        logger.addHandler(file_handler)
-        logger.propagate = False
-        return logger
-
-    @staticmethod
-    def migrate_txts_to_db():
+    @classmethod
+    def migrate_txts_to_db(cls):
         from waqd.base.db_logger import InfluxSensorLogger
 
-        sensor_files = (waqd.user_config_dir / "sensor_logs").glob("*.log")
+        sensor_files = (cls._output_path / "sensor_logs").glob("*.log")
         db_logger = InfluxSensorLogger()
         for sensor_file in sensor_files:
             if "interior" in sensor_file.stem:
