@@ -8,25 +8,24 @@ services:
     container_name: waqd_website
     environment:
       DATABASE_PW: waqd_root_pw
-      MARIADB_URL: mariadb:3306
+      POSTGRES_URL: postgres:5430
     ports:
       - "80:8080"
     depends_on:
-      - mariadb
-  mariadb:
-    image: mariadb:latest
-    container_name: waqd_mariadb
+      - postgres
+  postgres:
+    image: postgres:latest
+    container_name: waqd_postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: waqd_root_pw
-      MYSQL_DATABASE: waqd_userdata
-      # MYSQL_USER: waqd_user
-      # MYSQL_PASSWORD: waqd_user_pw
+      POSTGRES_PASSWORD: waqd_root_pw
+      POSTGRES_DB: waqd_userdata
+
     ports:
       - "3306:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - postgres_data:/var/lib/mysql
 
 volumes:
-  mariadb_data:
+  postgres_data:
     driver: local
