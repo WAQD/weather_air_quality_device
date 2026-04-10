@@ -10,15 +10,11 @@ from typing import Dict, List
 USERNAME = os.environ.get("SUDO_USER", "")  # the original user
 if not USERNAME:
     USERNAME = os.environ.get("USER", "pi")
-HOME = Path("/home") / USERNAME
+HOME = Path.home()
 
 LOCAL_BIN_PATH = HOME / ".local" / "bin"
 INSTALL_TARGET_ROOT = HOME / ".local/share/pipx/venvs"
 USER_CONFIG_PATH = HOME / ".waqd"
-AUTOSTART_FILE = HOME / ".config/lxsession/rpd-x/autostart"
-AUTOSTART_FILE.parent.mkdir(parents=True, exist_ok=True)
-# add write permissions to user
-os.system(f"sudo chmod 777 -R {str(AUTOSTART_FILE.parent)}")
 INSTALL_DIR_SUFFIX = ".{version}"
 
 current_dir = Path(os.path.abspath(os.path.dirname(__file__)))
@@ -154,7 +150,10 @@ def comment_line_in_file(
     file_path.write_text(new_text)
 
 
-def add_to_autostart(cmds_to_add: List[str], autostart_file: Path = AUTOSTART_FILE):
+def add_to_LXDE_autostart(
+    autostart_file: Path,
+    cmds_to_add: List[str],
+):
     """Uses LXDE autostart file and format"""
     lines_to_add = []
     for cmd_to_add in cmds_to_add:
@@ -163,7 +162,10 @@ def add_to_autostart(cmds_to_add: List[str], autostart_file: Path = AUTOSTART_FI
     add_line_to_file(lines_to_add, autostart_file)
 
 
-def remove_from_autostart(remove_items: List[str] = [], autostart_file: Path = AUTOSTART_FILE):
+def remove_from_autostart(
+    autostart_file: Path,
+    remove_items: List[str] = [],
+):
     """Uses LXDE autostart file and format"""
     remove_line_in_file(remove_items, autostart_file)
 
@@ -171,7 +173,7 @@ def remove_from_autostart(remove_items: List[str] = [], autostart_file: Path = A
 def rotate_and_overwrite_image(image_path: str|Path, degrees: int = 180):
     """Rotate the image by the given degrees and overwrite the original file."""
     try:
-        from PIL import Image
+        from PIL import Image # pyright: ignore[reportMissingImports]
 
         img = Image.open(str(image_path))
         img = img.rotate(degrees)
