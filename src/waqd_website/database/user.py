@@ -6,7 +6,7 @@ from typing import List, Optional
 from sqlmodel import Session, select
 
 from waqd_website.database import PasswordResetToken, User, engine
-from waqd.base.translation import Translation
+from waqd.components.translation import Translation
 from waqd_website.mail.mail import send_email
 
 

@@ -1,9 +1,7 @@
-
-
-
 import threading
 import time
 import types
+
 # this allows to use forward declarations to avoid circular imports
 from typing import TYPE_CHECKING, Callable, Optional
 
@@ -16,9 +14,14 @@ if TYPE_CHECKING:
 
 
 class Component:
-    """ Base class for all components """
+    """Base class for all components"""
 
-    def __init__(self, components: Optional["ComponentRegistry"]=None, settings: Optional[Settings]=None, enabled=True):
+    def __init__(
+        self,
+        components: Optional["ComponentRegistry"] = None,
+        settings: Optional[Settings] = None,
+        enabled=True,
+    ):
         self._comps = components
         self._settings = settings  # TODO remove
         self._logger = Logger()
@@ -29,7 +32,7 @@ class Component:
 
     @property
     def is_ready(self) -> bool:
-        """ Returns true, if component is ready to be used."""
+        """Returns true, if component is ready to be used."""
         return self._ready
 
     @property
@@ -50,7 +53,7 @@ class Component:
         return self._disabled
 
     def stop(self):
-        """ Stop this component. """
+        """Stop this component."""
         pass
 
 
@@ -59,6 +62,7 @@ class CyclicComponent(Component):
     Implements the cyclic updatefor a Component with a separate thread.
     State can be checked by is_alive.
     """
+
     UPDATE_TIME: int = 0  # in seconds
     INIT_WAIT_TIME: int = 0  # in seconds
     STOP_TIMEOUT: int = 2 * UPDATE_TIME
@@ -70,13 +74,12 @@ class CyclicComponent(Component):
         self._update_thread: Optional[threading.Thread] = None
         self._ready = False
         self._error_num = 0
-        if settings: # for type hinting
+        if settings:  # for type hinting
             self._settings: Settings
-
 
     @property
     def is_alive(self) -> bool:
-        """ Update thread is running, module is OK. """
+        """Update thread is running, module is OK."""
         if not self._update_thread:
             return False
         if self._update_thread.is_alive() and not self._ticker_event.is_set():
@@ -84,23 +87,29 @@ class CyclicComponent(Component):
         return False
 
     def stop(self):
-        """ Stop this component, by sending a stop request. """
+        """Stop this component, by sending a stop request."""
         if self._update_thread:
             self._ticker_event.set()
             if self._update_thread.is_alive():
                 self._update_thread.join(self.STOP_TIMEOUT)
         super().stop()
 
-    def _start_update_loop(self, init_func: Optional[Callable]=None,
-                           update_func: Optional[Callable]=None):
+    def _start_update_loop(
+        self, init_func: Optional[Callable] = None, update_func: Optional[Callable] = None
+    ):
         """
         Generic set up function for cyclic thread.
         Has to be called with own init and update function in child class.
         """
-        self._update_thread = threading.Thread(name=self.__class__.__name__,
-                                               target=self._update_loop,
-                                               args=[init_func, update_func, ],
-                                               daemon=True)
+        self._update_thread = threading.Thread(
+            name=self.__class__.__name__,
+            target=self._update_loop,
+            args=[
+                init_func,
+                update_func,
+            ],
+            daemon=True,
+        )
         self._update_thread.start()
 
     def _update_loop(self, init_func: types.FunctionType, update_func: types.FunctionType):

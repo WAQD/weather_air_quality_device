@@ -71,7 +71,7 @@ source-includes = []
 ]
 
 [project.scripts]
-waqd = "waqd.__main__:startup"
+waqd = "waqd_station.__main__:startup"
 
 # Test dependencies and configs
 
