@@ -1,6 +1,8 @@
 import threading
 
 from typing import Optional
+from typing import TypeVar
+from typing import Generic
 
 from waqd.base.file_logger import Logger
 from waqd.base.component_reg import ComponentRegistry
@@ -8,14 +10,16 @@ from waqd.base.network import Network
 from waqd.base.component_reg import CyclicComponent
 from waqd.settings import Settings
 
+TRegistry = TypeVar("TRegistry", bound=ComponentRegistry)
 
-class ComponentController:
+
+class ComponentController(Generic[TRegistry]):
     """Loader, unloader and watchdog for components."""
 
     UPDATE_TIME = 5
 
-    def __init__(self, settings: Settings):
-        self._components = ComponentRegistry(settings)
+    def __init__(self, settings: Settings, registry_class:type[TRegistry]):
+        self._components: TRegistry = registry_class(settings)
 
         # thread for watchdog
         self._watch_thread: Optional[threading.Thread] = (
@@ -27,6 +31,10 @@ class ComponentController:
             None  # re-usable thread, assignment is in unload_all
         )
         self._inited_all = False
+    
+    def wait_for_stop(self):
+        """Wait for stop event, used for headless mode."""
+        self._stop_event.wait()
 
     @property
     def all_ready(self) -> bool:
@@ -49,7 +57,7 @@ class ComponentController:
         return not self._unload_thread.is_alive()
 
     @property
-    def components(self) -> ComponentRegistry:
+    def components(self) -> TRegistry:
         """Returns held components for higher level functions"""
         return self._components
 
@@ -151,9 +159,6 @@ class ComponentController:
             self._watch_thread.join()
 
         for comp_name in self._components.get_names():
-            if updating:  # exclude updater
-                if self._components.auto_updater == self._components.get(comp_name):
-                    continue
             self._components.stop_component(comp_name, reload_intended)
         Logger().info("ComponentRegistry: All components unloaded.")
         self._inited_all = False

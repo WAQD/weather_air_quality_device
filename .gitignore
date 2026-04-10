@@ -19,12 +19,7 @@ nonexistant
 node_modules
 .env
 
-src/config.ini
-waqd.log
-src/events.json
-src/sensor_logs/*
 src/waqd_assets/weather_icons/*_white.svg
-user_db.json
 *.mp3
 crash.log
 experiments
@@ -36,3 +31,4 @@ src/waqd/web/local/Franzo-E4GA.woff
 waqd_userdata.db
 mail.py
 .pdm-python
+config

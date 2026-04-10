@@ -5,22 +5,14 @@ Should not contain any 3rd party imports!
 
 import datetime
 from enum import Enum
-from importlib.metadata import PackageNotFoundError, distribution
 import os
 from pathlib import Path
-PROG_NAME = "WAQD"
+from typing import TYPE_CHECKING
 
-try:
-    pkg_info = distribution(PROG_NAME)
-    __version__ = pkg_info.version
-    # format: repository, https://...
-    REPO_URL = pkg_info.metadata.get("project-url", "").split(", ")[1]  # type: ignore
-    AUTHOR = pkg_info.metadata.get("author", "")  # type: ignore
-except PackageNotFoundError:  # pragma: no cover
-    # For local usecases, when there is no distribution
-    __version__ = "1.0.0"
-    REPO_URL = ""
-    AUTHOR = ""
+from waqd.base.singleton import BorgSingleton
+
+if TYPE_CHECKING:
+    from pint import UnitRegistry as PintUnitRegistry
 
 ### Global constants ###
 
@@ -28,8 +20,6 @@ except PackageNotFoundError:  # pragma: no cover
 # 0: No debug, 1 = logging on, 2: remote debugging on
 # 3: wait for remote debugger, 4: quick-load
 DEBUG_LEVEL = int(os.getenv("WAQD_DEBUG", "0"))
-HEADLESS_MODE = False
-MIGRATE_SENSOR_LOGS = False
 LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 
 class WeatherDataProviders(Enum):  # promote to settings, after stable
@@ -43,5 +33,18 @@ WEATHER_DATA_PROVIDER = 2
 # paths to find folders
 base_path = Path(__file__).absolute().parent
 assets_path = base_path.parent / "waqd_assets"
-user_config_dir = Path().home() / ".waqd"
-user_config_dir.mkdir(parents=True, exist_ok=True)
+
+
+class UnitRegistrySingleton(BorgSingleton["PintUnitRegistry"]):
+    @classmethod
+    def _create_instance(cls, key: object) -> "PintUnitRegistry":
+        from pint import UnitRegistry
+
+        unit_reg = UnitRegistry()
+        unit_reg.define("fraction = [] = frac")
+        unit_reg.define("percent = 1e-2 frac = %")
+        unit_reg.define("ppm = 1e-6 fraction")
+        unit_reg.define("ppb = 1e-9 fraction")
+        return unit_reg
+
+unit_reg = UnitRegistrySingleton()
