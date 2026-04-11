@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
@@ -7,15 +6,24 @@ import requests
 
 from waqd.base.network import Network
 
-from .base_types import (DailyWeather, Location, Weather, WeatherProvider,
-                         WeatherQuality, is_daytime)
-from .icon_mapping import (om_condition_map, om_day_code_to_ico,
-                           om_night_code_to_ico)
+from .base_types import (
+    DailyWeather,
+    Location,
+    Weather,
+    WeatherProvider,
+    WeatherQuality,
+    is_daytime,
+)
+from .icon_mapping import om_condition_map, om_day_code_to_ico, om_night_code_to_ico
 
 
 class OpenMeteo(WeatherProvider):
-    API_FORECAST_CMD = "https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
-    API_GEOCONDING_CMD = "https://geocoding-api.open-meteo.com/v1/search?name={query}&language={lang}"
+    API_FORECAST_CMD = (
+        "https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
+    )
+    API_GEOCONDING_CMD = (
+        "https://geocoding-api.open-meteo.com/v1/search?name={query}&language={lang}"
+    )
 
     def __init__(self, longitude=0.0, latitude=0.0):
         super().__init__()
@@ -44,11 +52,12 @@ class OpenMeteo(WeatherProvider):
                     altitude=result.get("elevation", 0),
                     latitude=result.get("latitude", 0),
                     longitude=result.get("longitude", 0),
-                ))
+                )
+            )
         return locations
 
     def get_current_weather(self) -> Optional[Weather]:
-        """ Public API function to get the current weather. """
+        """Public API function to get the current weather."""
         self._fetch_weather()
         return self._current_weather
 
@@ -58,7 +67,7 @@ class OpenMeteo(WeatherProvider):
 
     def _fetch_weather(self):
         current_date_time = datetime.now()
-        
+
         # Check if we recently failed and should back off from retrying
         if self._last_failed_fetch:
             time_since_failure = current_date_time - self._last_failed_fetch
@@ -72,16 +81,16 @@ class OpenMeteo(WeatherProvider):
                     remaining_time,
                 )
                 return
-        
+
         # Return if data is up-to-date in a window of 5 minutes
         if self._current_weather and self._current_weather.fetch_time:
             time_delta = current_date_time - self._current_weather.fetch_time
             if time_delta.seconds < 60 * 5:  # 5 minutes
                 return
-        
+
         # Track fetch attempt
         self._last_fetch_attempt = current_date_time
-        
+
         # Attempt to fetch data
         daily_success = self._fetch_daily_weather()
         if not daily_success:
@@ -92,7 +101,7 @@ class OpenMeteo(WeatherProvider):
                 self._fetch_retry_delay,
             )
             return
-        
+
         self._fetch_hourly_weather()
         # add pressure, humidty and clouds to cw
         self._complete_daily_weather()
@@ -104,17 +113,19 @@ class OpenMeteo(WeatherProvider):
                 continue
             self._five_day_forecast[i].main = daily_weather.main
             self._five_day_forecast[i].icon = self._get_icon_name(daily_weather.wid, True)
-        
+
         # Clear failed fetch timestamp on success
         self._last_failed_fetch = None
 
     def _fetch_daily_weather(self):
         response = self._call_api(
-            self.API_FORECAST_CMD +
-            "&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum," +
-            "rain_sum,showers_sum,snowfall_sum,precipitation_hours,windspeed_10m_max," +
-            "winddirection_10m_dominant&current_weather=true&windspeed_unit=ms&timezone=auto",
-            latitude=self._latitude, longitude=self._longitude)
+            self.API_FORECAST_CMD
+            + "&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,"
+            + "rain_sum,showers_sum,snowfall_sum,precipitation_hours,windspeed_10m_max,"
+            + "winddirection_10m_dominant&current_weather=true&windspeed_unit=ms&timezone=auto",
+            latitude=self._latitude,
+            longitude=self._longitude,
+        )
         if not response:
             return False
 
@@ -197,10 +208,12 @@ class OpenMeteo(WeatherProvider):
 
     def _fetch_hourly_weather(self):
         response = self._call_api(
-            self.API_FORECAST_CMD +
-            "&hourly=temperature_2m,relativehumidity_2m,precipitation,cloudcover,weathercode,pressure_msl," +
-            "surface_pressure,windspeed_10m,winddirection_10m&windspeed_unit=ms&timezone=auto",
-            latitude=self._latitude, longitude=self._longitude)
+            self.API_FORECAST_CMD
+            + "&hourly=temperature_2m,relativehumidity_2m,precipitation,cloudcover,weathercode,pressure_msl,"
+            + "surface_pressure,windspeed_10m,winddirection_10m&windspeed_unit=ms",
+            latitude=self._latitude,
+            longitude=self._longitude,
+        )
         if not response:
             return None
         # now aggregate the data - every 3 hours for 5 days and populate daily_forecast_points
@@ -221,7 +234,9 @@ class OpenMeteo(WeatherProvider):
             day_idx = time_delta.days
             if day_idx > 5 or day_idx < 0:
                 continue
-            is_day = is_daytime(current_weather.sunrise, current_weather.sunset, entry_date_time)
+            is_day = is_daytime(
+                current_weather.sunrise, current_weather.sunset, entry_date_time
+            )
             weather_point = Weather(
                 # "",  # no name necessary
                 self._get_main_category(hourly.get("weathercode", [i])[i]),
@@ -251,7 +266,7 @@ class OpenMeteo(WeatherProvider):
                 #     #continue
                 #     nighttime_forecast_points[1].append(weather_point)
                 else:
-                    nighttime_forecast_points[day_idx-1].append(weather_point)
+                    nighttime_forecast_points[day_idx - 1].append(weather_point)
             else:
                 if day_idx == 0:
                     if entry_date_time.time() > current_weather.sunset:
@@ -265,7 +280,11 @@ class OpenMeteo(WeatherProvider):
         # calculate min/max night and daytime temps
         self._set_min_max_temps(daytime_forecast_points, nighttime_forecast_points)
 
-    def _set_min_max_temps(self, daytime_forecast_points: List[List[Weather]], nighttime_forecast_points: List[List[Weather]]):
+    def _set_min_max_temps(
+        self,
+        daytime_forecast_points: List[List[Weather]],
+        nighttime_forecast_points: List[List[Weather]],
+    ):
         for day_idx, forecast_points in enumerate(daytime_forecast_points):
             if not forecast_points:  # empty 0. day before midnight
                 if len(self._five_day_forecast) > day_idx:
@@ -289,7 +308,9 @@ class OpenMeteo(WeatherProvider):
             self._five_day_forecast[day_idx].temp_night_min = min_temp
 
     @staticmethod
-    def _determine_daily_overall_weather(measurement_points: Optional[List[Weather]]) -> Optional[Weather]:
+    def _determine_daily_overall_weather(
+        measurement_points: Optional[List[Weather]],
+    ) -> Optional[Weather]:
         """
         Get the weather to be shown on the forecast icon.
         The strategy is to first sort after the main category, e.g. rain, snow.
@@ -339,8 +360,10 @@ class OpenMeteo(WeatherProvider):
         return [point for point in measurement_points if point.wid == wid][0]
 
     @staticmethod
-    def _find_dominant_detailed_weather(measurement_points: List[Weather], category: WeatherQuality):
-        """ Tries to find the best matching detailed weather for the day """
+    def _find_dominant_detailed_weather(
+        measurement_points: List[Weather], category: WeatherQuality
+    ):
+        """Tries to find the best matching detailed weather for the day"""
 
         # count all detailed conditions with the selected main category
         detail_count_dict = {}
@@ -352,12 +375,11 @@ class OpenMeteo(WeatherProvider):
                 detail_count_dict[point.wid] += 1
         max_count = max(detail_count_dict.values())
         max_indices = [i for i, x in enumerate(detail_count_dict.values()) if x == max_count]
-        dominant_categories = [list(detail_count_dict)[i]for i in max_indices]
+        dominant_categories = [list(detail_count_dict)[i] for i in max_indices]
         return dominant_categories[0]
 
-
     def _call_api(self, command: str, **kwargs) -> Dict[str, Any]:
-        """ Call the REST like API of OpenWeatherMap. Return response. """
+        """Call the REST like API of OpenWeatherMap. Return response."""
         if self._disabled:
             return {}
         # wait a little bit for connection
