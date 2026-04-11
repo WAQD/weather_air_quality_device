@@ -1,11 +1,4 @@
 
-"""
-This file contains classes concerning online weather data.
-Currently OpenWeatherMap is supported.
-An own abstraction class was created to generalize the weather data.
-"""
-
-
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
@@ -206,7 +199,7 @@ class OpenMeteo(WeatherProvider):
         response = self._call_api(
             self.API_FORECAST_CMD +
             "&hourly=temperature_2m,relativehumidity_2m,precipitation,cloudcover,weathercode,pressure_msl," +
-            "surface_pressure,windspeed_10m,winddirection_10m&windspeed_unit=ms",
+            "surface_pressure,windspeed_10m,winddirection_10m&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude, longitude=self._longitude)
         if not response:
             return None
@@ -220,7 +213,7 @@ class OpenMeteo(WeatherProvider):
         current_datetime = datetime.now()
         hourly = response.get("hourly", {})
         for i in range(len(hourly.get("time", []))):
-            # utc to local time
+            # timezone=auto already returns local time
             entry_date_time = datetime.fromisoformat(hourly.get("time", [])[i])
             if entry_date_time < current_datetime:  # throw away entries im the past
                 continue
