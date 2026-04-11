@@ -1,12 +1,15 @@
 
 
+import time
 from abc import ABC, abstractmethod
 from os import PathLike
 from threading import Lock, Thread
-import time
+from typing import TYPE_CHECKING
 
-from waqd.base.component_reg import Component, ComponentRegistry
-from waqd.base.file_logger import Logger
+from waqd.base.component_reg import Component
+
+if TYPE_CHECKING:
+    from waqd_station.app.component_reg import ComponentRegistry
 
 
 class SoundInterface(ABC, Component):
@@ -29,6 +32,7 @@ class SoundVLC(SoundInterface):
 
     def __init__(self, components: ComponentRegistry, enabled=True):
         super().__init__(components, enabled=enabled)
+        self._comps: ComponentRegistry
         self._sound_thread = Thread()
         self._ready = True
 

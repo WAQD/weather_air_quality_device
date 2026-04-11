@@ -58,6 +58,7 @@ class Weather():
     temp: float  # degC
     altitude: float  # elevation of location in meters, deprecated, use from location instead
     precipitation: float # mm, optional
+    precipitation_probability: float = 0.0  # percent, optional for hourly
 
     def __post_init__(self):
         if self.main:  # only set fetch_time if it is non-empty initiallized
@@ -99,6 +100,7 @@ class DailyWeather(Weather):
     temp_max: float = field(init=False)
     temp_night_min: float = field(init=False)
     temp_night_max: float = field(init=False)
+    precipitation_probability_max: float = field(init=False, default=0.0)
 
 
 class BeaufortScale(Enum):
@@ -150,5 +152,9 @@ class WeatherProvider(ABC, Component):
         raise NotImplementedError
 
     @abstractmethod
-    def get_5_day_forecast(self) -> list[DailyWeather]:
+    def get_7_day_forecast(self) -> list[DailyWeather]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_hourly_forecast(self, day: int) -> list[Weather]:
         raise NotImplementedError
