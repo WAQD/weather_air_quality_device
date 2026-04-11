@@ -9,5 +9,5 @@ class WeatherRetrieval:
     def get_current_weather(self):
         return self._comps.weather_info.get_current_weather()
 
-    def get_5_day_forecast(self):
-        return self._comps.weather_info.get_5_day_forecast()
+    def get_7_day_forecast(self):
+        return self._comps.weather_info.get_7_day_forecast()

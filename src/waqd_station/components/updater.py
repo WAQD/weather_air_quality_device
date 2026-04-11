@@ -6,18 +6,17 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 import waqd
+import waqd_station
 import waqd_station.app as app
 from waqd_station import __version__ as WAQD_VERSION
 from waqd.base.component import CyclicComponent
-from waqd.base.component_reg import ComponentRegistry
 from waqd.base.network import Network
 from waqd_station.settings import AUTO_UPDATER_ENABLED, DISP_INVERTED, UPDATER_USER_BETA_CHANNEL
 from waqd.settings.settings import Settings
 
 if TYPE_CHECKING:
     from github import GitRelease, Repository
-
-
+    from waqd_station.app.component_reg import ComponentRegistry
 class OnlineUpdater(CyclicComponent):
     """
     Updater class, which checks for new releases on GitHub with an access token
@@ -101,7 +100,7 @@ class OnlineUpdater(CyclicComponent):
         from github import Github
 
         github = Github()
-        repo_name = "/".join(waqd.REPO_URL.split("/")[-2:])
+        repo_name = "/".join(waqd_station.REPO_URL.split("/")[-2:])
 
         self._repository = github.get_repo(repo_name)
 
@@ -213,8 +212,8 @@ class OnlineUpdater(CyclicComponent):
             try:
                 # shutdown other components gracefully
                 if app.comp_ctrl:
-                    app.comp_ctrl.unload_all(updating=True)
-                    while not app.comp_ctrl.all_unloaded:
+                    app.comp_ctrl().unload_all(updating=True)
+                    while not app.comp_ctrl().all_unloaded:
                         sleep(1)
                 self._logger.info("Updater: Starting updater")
                 os.system("chmod +x " + str(installer_script))

@@ -17,7 +17,7 @@ from waqd.components.sensor_base import (
     WAQDRemoteSensor,
     WAQDRemoteStation,
 )
-from waqd.components.weather import OpenMeteo, OpenWeatherMap, WeatherProvider
+from waqd.components.weather import OpenMeteo, WeatherProvider
 
 from .display import Display
 from .events import EventHandler

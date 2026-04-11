@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
@@ -11,8 +11,6 @@ from .base_types import (
     Location,
     Weather,
     WeatherProvider,
-    WeatherQuality,
-    is_daytime,
 )
 from .icon_mapping import om_condition_map, om_day_code_to_ico, om_night_code_to_ico
 
@@ -21,25 +19,62 @@ class OpenMeteo(WeatherProvider):
     API_FORECAST_CMD = (
         "https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}"
     )
-    API_GEOCONDING_CMD = (
+    API_GEOCODING_CMD = (
         "https://geocoding-api.open-meteo.com/v1/search?name={query}&language={lang}"
     )
 
-    def __init__(self, longitude=0.0, latitude=0.0):
+    def __init__(
+        self,
+        longitude=0.0,
+        latitude=0.0,
+        geocoding_fetch_rate_seconds: int = 30,
+        daily_fetch_rate_seconds: int = 15 * 60,
+        hourly_fetch_rate_seconds: int = 5 * 60,
+    ):
         super().__init__()
         self._longitude = longitude
         self._latitude = latitude
         self._current_weather: Optional[Weather] = None
-        self._five_day_forecast: List[DailyWeather] = []
+        self._seven_day_forecast: List[DailyWeather] = []
+        self._hourly_forecast: List[List[Weather]] = [[] for _ in range(7)]
         self._ready = True
-        self.daytime_forecast_points: List[List[Weather]] = []
-        self.nighttime_forecast_point: List[List[Weather]] = []
-        self._last_fetch_attempt: Optional[datetime] = None
-        self._last_failed_fetch: Optional[datetime] = None
-        self._fetch_retry_delay = 60 * 2  # 2 minutes retry delay after failure
 
-    def find_location_candidates(self, query: str, lang="en") -> List[Location]:
-        data = self._call_api(self.API_GEOCONDING_CMD, query=quote(query), lang=lang)
+        self._geocoding_fetch_rate_seconds = geocoding_fetch_rate_seconds
+        self._daily_fetch_rate_seconds = daily_fetch_rate_seconds
+        self._hourly_fetch_rate_seconds = hourly_fetch_rate_seconds
+
+        self._last_geocoding_fetch: Dict[str, datetime] = {}
+        self._last_daily_fetch: Optional[datetime] = None
+        self._last_hourly_fetch: Optional[datetime] = None
+
+        self._geocoding_cache: Dict[str, List[Location]] = {}
+
+    def set_fetch_rates(
+        self,
+        geocoding_fetch_rate_seconds: Optional[int] = None,
+        daily_fetch_rate_seconds: Optional[int] = None,
+        hourly_fetch_rate_seconds: Optional[int] = None,
+    ) -> None:
+        if geocoding_fetch_rate_seconds is not None:
+            self._geocoding_fetch_rate_seconds = geocoding_fetch_rate_seconds
+        if daily_fetch_rate_seconds is not None:
+            self._daily_fetch_rate_seconds = daily_fetch_rate_seconds
+        if hourly_fetch_rate_seconds is not None:
+            self._hourly_fetch_rate_seconds = hourly_fetch_rate_seconds
+
+    def find_location_candidates(self, query: str, lang="en", force=False) -> List[Location]:
+        cache_key = f"{lang}:{query.strip().lower()}"
+        if (
+            not force
+            and cache_key in self._geocoding_cache
+            and not self._should_fetch(
+                self._last_geocoding_fetch.get(cache_key),
+                self._geocoding_fetch_rate_seconds,
+            )
+        ):
+            return self._geocoding_cache[cache_key]
+
+        data = self._call_api(self.API_GEOCODING_CMD, query=quote(query), lang=lang)
         locations = []
         for result in data.get("results", []):
             locations.append(
@@ -54,93 +89,60 @@ class OpenMeteo(WeatherProvider):
                     longitude=result.get("longitude", 0),
                 )
             )
+
+        self._geocoding_cache[cache_key] = locations
+        self._last_geocoding_fetch[cache_key] = datetime.now()
         return locations
 
-    def get_current_weather(self) -> Optional[Weather]:
+    def get_current_weather(self, force=False) -> Optional[Weather]:
         """Public API function to get the current weather."""
-        self._fetch_weather()
+        self._fetch_weather(force=force, include_hourly=True)
         return self._current_weather
 
-    def get_5_day_forecast(self) -> List[DailyWeather]:
-        self._fetch_weather()
-        return self._five_day_forecast
+    def get_7_day_forecast(self, force=False) -> List[DailyWeather]:
+        self._fetch_weather(force=force, include_hourly=True)
+        return self._seven_day_forecast
 
-    def _fetch_weather(self):
-        current_date_time = datetime.now()
+    def get_hourly_forecast(self, day: int, force=False) -> List[Weather]:
+        self._fetch_weather(force=force, include_hourly=True)
+        if day < 0 or day >= len(self._hourly_forecast):
+            return []
+        return self._hourly_forecast[day]
 
-        # Check if we recently failed and should back off from retrying
-        if self._last_failed_fetch:
-            time_since_failure = current_date_time - self._last_failed_fetch
-            if time_since_failure.total_seconds() < self._fetch_retry_delay:
-                # Still in backoff period after failure, return cached data
-                remaining_time = int(
-                    self._fetch_retry_delay - time_since_failure.total_seconds()
-                )
-                self._logger.debug(
-                    "OpenMeteo: Skipping fetch, in backoff period (%ss remaining)",
-                    remaining_time,
-                )
-                return
+    def _fetch_weather(self, force=False, include_hourly=False):
+        if force or self._should_fetch(self._last_daily_fetch, self._daily_fetch_rate_seconds):
+            self._fetch_daily_weather()
 
-        # Return if data is up-to-date in a window of 5 minutes
-        if self._current_weather and self._current_weather.fetch_time:
-            time_delta = current_date_time - self._current_weather.fetch_time
-            if time_delta.seconds < 60 * 5:  # 5 minutes
-                return
-
-        # Track fetch attempt
-        self._last_fetch_attempt = current_date_time
-
-        # Attempt to fetch data
-        daily_success = self._fetch_daily_weather()
-        if not daily_success:
-            # Mark failed fetch and return
-            self._last_failed_fetch = current_date_time
-            self._logger.warning(
-                "OpenMeteo: Failed to fetch weather data, will retry in %ss",
-                self._fetch_retry_delay,
-            )
-            return
-
-        self._fetch_hourly_weather()
-        # add pressure, humidty and clouds to cw
-        self._complete_daily_weather()
-        for i, day_points in enumerate(self.daytime_forecast_points):
-            if not day_points:
-                continue
-            daily_weather = self._determine_daily_overall_weather(day_points)
-            if not daily_weather:
-                continue
-            self._five_day_forecast[i].main = daily_weather.main
-            self._five_day_forecast[i].icon = self._get_icon_name(daily_weather.wid, True)
-
-        # Clear failed fetch timestamp on success
-        self._last_failed_fetch = None
+        if include_hourly and (
+            force
+            or self._should_fetch(self._last_hourly_fetch, self._hourly_fetch_rate_seconds)
+        ):
+            self._fetch_hourly_weather()
 
     def _fetch_daily_weather(self):
         response = self._call_api(
             self.API_FORECAST_CMD
-            + "&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,"
+            + "&daily=precipitation_probability_max,weathercode,temperature_2m_max,"
+            + "temperature_2m_min,sunrise,sunset,precipitation_sum,"
             + "rain_sum,showers_sum,snowfall_sum,precipitation_hours,windspeed_10m_max,"
             + "winddirection_10m_dominant&current_weather=true&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude,
             longitude=self._longitude,
         )
         if not response:
-            return False
+            return
 
+        self._seven_day_forecast = []
         current_weather = response.get("current_weather", {})
         daily = response.get("daily", {})
+
         for i in range(len(daily.get("time", []))):
             sunrise = datetime.fromisoformat(daily.get("sunrise", [])[i]).time()
             sunset = datetime.fromisoformat(daily.get("sunset", [])[i]).time()
-            is_day = is_daytime(sunrise, sunset)
             daily_weather = DailyWeather(
                 self._get_main_category(daily.get("weathercode", [])[i]),
                 daily.get("weathercode", [])[i],
-                # "",
                 datetime.fromisoformat(daily.get("time", [])[i]),
-                # always show daytime for forecast
                 self._get_icon_name(daily.get("weathercode", [])[i], True),
                 daily.get("windspeed_10m_max", [])[i],
                 daily.get("winddirection_10m_dominant", [])[i],
@@ -153,230 +155,156 @@ class OpenMeteo(WeatherProvider):
                 0,
                 response.get(
                     "elevation",
-                    [],
+                    0,
                 ),
-                current_weather.get("precipitation_sum"),
+                daily.get("precipitation_sum", [0])[i],
+                daily.get("precipitation_probability_max", [0])[i],
             )
             daily_weather.temp_min = daily.get("temperature_2m_min", [])[i]
             daily_weather.temp_max = daily.get("temperature_2m_max", [])[i]
-            # TODO
             daily_weather.temp_night_min = daily.get("temperature_2m_min", [])[i]
             daily_weather.temp_night_max = daily.get("temperature_2m_min", [])[i]
-            self._five_day_forecast.append(daily_weather)
-        # current weather
-        if not self._five_day_forecast:
+            daily_weather.precipitation_probability_max = daily.get(
+                "precipitation_probability_max", [0]
+            )[i]
+            self._seven_day_forecast.append(daily_weather)
+
+        if not self._seven_day_forecast:
             self._logger.warning("OpenMeteo: No daily forecast weather data received")
-            return False
-        sunrise = self._five_day_forecast[0].sunrise
-        sunset = self._five_day_forecast[0].sunset
-        is_day = is_daytime(sunrise, sunset)
+            return
+
+        sunrise = self._seven_day_forecast[0].sunrise
+        sunset = self._seven_day_forecast[0].sunset
+        is_day = current_weather.get("is_day", 1) == 1
         self._current_weather = Weather(
-            # "",
             self._get_main_category(current_weather.get("weathercode", 0)),
             current_weather.get("weathercode", 0),
-            # "",
-            # current_weather.get("description"), # TODO detail
             datetime.now(),
-            self._get_icon_name(current_weather.get("weathercode", ""), is_day),
-            current_weather.get("windspeed", 0.0) * 3.6,  # km/h -> m/s
+            self._get_icon_name(current_weather.get("weathercode", 0), is_day),
+            current_weather.get("windspeed", 0.0),
             current_weather.get("winddirection", 0.0),
             sunrise,
             sunset,
-            1000.0,  # no data
-            1000.0,  # no data, TODO get from hourly forecast
-            0,  # TODO get from hourly forecast
+            0.0,
+            0.0,
+            0.0,
             0.0,
             current_weather.get("temperature", 0.0),
             response.get("elevation", 0),
-            current_weather.get("precipitation_sum"),
+            current_weather.get("precipitation", 0.0),
+            0.0,
         )
-
-        return True
-
-    def _complete_daily_weather(self):
-        # fill up current weather with hourly data
-        if not self._current_weather:
-            return
-        weather_points = self.daytime_forecast_points[0] + self.nighttime_forecast_points[0]
-        for point in weather_points:
-            if point.date_time + timedelta(hours=1) > datetime.now():
-                self._current_weather.humidity = point.humidity
-                self._current_weather.clouds = point.clouds
-                self._current_weather.pressure = point.pressure
-                self._current_weather.pressure_sea_level = point.pressure_sea_level
-                return
+        self._last_daily_fetch = datetime.now()
 
     def _fetch_hourly_weather(self):
+        if not self._seven_day_forecast:
+            return
+
         response = self._call_api(
             self.API_FORECAST_CMD
-            + "&hourly=temperature_2m,relativehumidity_2m,precipitation,cloudcover,weathercode,pressure_msl,"
-            + "surface_pressure,windspeed_10m,winddirection_10m&windspeed_unit=ms",
+            + "&hourly=precipitation_probability,temperature_2m,relativehumidity_2m,"
+            + "precipitation,cloudcover,weathercode,pressure_msl,surface_pressure,"
+            + "windspeed_10m,winddirection_10m,is_day&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude,
             longitude=self._longitude,
         )
         if not response:
-            return None
-        # now aggregate the data - every 3 hours for 5 days and populate daily_forecast_points
-        daytime_forecast_points: List[List[Weather]] = [[] for i in range(7)]
-        nighttime_forecast_points: List[List[Weather]] = [[] for i in range(7)]
-        # we need sunrise and sunset info from current weather to know what day and night is
-        current_weather = self._current_weather
-        if not current_weather:
-            return ([], [])
+            return
+
+        hourly_forecast: List[List[Weather]] = [[] for _ in range(7)]
+        day_temps: List[List[float]] = [[] for _ in range(7)]
+        night_temps: List[List[float]] = [[] for _ in range(7)]
+
         current_datetime = datetime.now()
         hourly = response.get("hourly", {})
+
         for i in range(len(hourly.get("time", []))):
-            # timezone=auto already returns local time
             entry_date_time = datetime.fromisoformat(hourly.get("time", [])[i])
-            if entry_date_time < current_datetime:  # throw away entries im the past
+            if entry_date_time < current_datetime:
                 continue
+
             time_delta = entry_date_time.date() - current_datetime.date()
             day_idx = time_delta.days
-            if day_idx > 5 or day_idx < 0:
+            if day_idx < 0 or day_idx >= len(hourly_forecast):
                 continue
-            is_day = is_daytime(
-                current_weather.sunrise, current_weather.sunset, entry_date_time
-            )
+
+            if day_idx >= len(self._seven_day_forecast):
+                continue
+
+            day_info = self._seven_day_forecast[day_idx]
+            is_day = hourly.get("is_day", [1])[i] == 1
             weather_point = Weather(
-                # "",  # no name necessary
                 self._get_main_category(hourly.get("weathercode", [i])[i]),
                 hourly.get("weathercode", [i])[i],
                 entry_date_time,
                 self._get_icon_name(hourly.get("weathercode", [])[i], is_day),
                 hourly.get("windspeed_10m", [])[i],
                 hourly.get("winddirection_10m", [])[i],
-                current_weather.sunrise,
-                current_weather.sunset,  # TODO use day
+                day_info.sunrise,
+                day_info.sunset,
                 hourly.get("surface_pressure", [])[i],
                 hourly.get("pressure_msl", [])[i],
                 hourly.get("relativehumidity_2m", [])[i],
                 hourly.get("cloudcover", [])[i],
                 hourly.get("temperature_2m", [])[i],
-                current_weather.altitude,
+                day_info.altitude,
                 hourly.get("precipitation", [])[i],
+                hourly.get("precipitation_probability", [])[i],
             )
+            hourly_forecast[day_idx].append(weather_point)
 
             if is_day:
-                daytime_forecast_points[day_idx].append(weather_point)
-            # this counts as night of the previous day
-            elif entry_date_time.time() < current_weather.sunrise:
-                if day_idx == 0:  # separate handling for today before and after midnight
-                    nighttime_forecast_points[0].append(weather_point)
-                # elif day_idx == 1:  # skip todays night points that fall on next day
-                #     #continue
-                #     nighttime_forecast_points[1].append(weather_point)
-                else:
-                    nighttime_forecast_points[day_idx - 1].append(weather_point)
+                day_temps[day_idx].append(weather_point.temp)
             else:
-                if day_idx == 0:
-                    if entry_date_time.time() > current_weather.sunset:
-                        if current_datetime.time() < current_weather.sunrise:
-                            continue  # ignore for now
-                    nighttime_forecast_points[0].append(weather_point)
-                else:
-                    nighttime_forecast_points[day_idx].append(weather_point)
-        self.daytime_forecast_points = daytime_forecast_points
-        self.nighttime_forecast_points = nighttime_forecast_points
-        # calculate min/max night and daytime temps
-        self._set_min_max_temps(daytime_forecast_points, nighttime_forecast_points)
+                night_temps[day_idx].append(weather_point.temp)
+
+        self._hourly_forecast = hourly_forecast
+        self._set_min_max_temps(day_temps, night_temps)
+        self._update_current_weather_from_hourly()
+        self._last_hourly_fetch = datetime.now()
 
     def _set_min_max_temps(
         self,
-        daytime_forecast_points: List[List[Weather]],
-        nighttime_forecast_points: List[List[Weather]],
+        daytime_temps: List[List[float]],
+        nighttime_temps: List[List[float]],
     ):
-        for day_idx, forecast_points in enumerate(daytime_forecast_points):
-            if not forecast_points:  # empty 0. day before midnight
-                if len(self._five_day_forecast) > day_idx:
-                    self._five_day_forecast[day_idx].temp_max = float("inf")
-                    self._five_day_forecast[day_idx].temp_min = -float("inf")
-                continue
-            max_temp = max([point.temp for point in forecast_points])
-            self._five_day_forecast[day_idx].temp_max = max_temp
-            min_temp = min([point.temp for point in forecast_points])
-            self._five_day_forecast[day_idx].temp_min = min_temp
+        max_days = min(len(self._seven_day_forecast), len(daytime_temps), len(nighttime_temps))
 
-        for day_idx, forecast_points in enumerate(nighttime_forecast_points):
-            if not forecast_points:  # empty 0. day before midnight
-                if len(self._five_day_forecast) > day_idx:
-                    self._five_day_forecast[day_idx].temp_night_max = float("inf")
-                    self._five_day_forecast[day_idx].temp_night_min = -float("inf")
-                continue
-            max_temp = max([point.temp for point in forecast_points])
-            self._five_day_forecast[day_idx].temp_night_max = max_temp
-            min_temp = min([point.temp for point in forecast_points])
-            self._five_day_forecast[day_idx].temp_night_min = min_temp
+        for day_idx in range(max_days):
+            day_values = daytime_temps[day_idx]
+            if day_values:
+                self._seven_day_forecast[day_idx].temp_max = max(day_values)
+                self._seven_day_forecast[day_idx].temp_min = min(day_values)
+
+            night_values = nighttime_temps[day_idx]
+            if night_values:
+                self._seven_day_forecast[day_idx].temp_night_max = max(night_values)
+                self._seven_day_forecast[day_idx].temp_night_min = min(night_values)
+
+    def _update_current_weather_from_hourly(self):
+        if (
+            not self._current_weather
+            or not self._hourly_forecast
+            or not self._hourly_forecast[0]
+        ):
+            return
+
+        now = datetime.now()
+        point = next((p for p in self._hourly_forecast[0] if p.date_time >= now), None)
+        if point is None:
+            point = self._hourly_forecast[0][-1]
+
+        self._current_weather.humidity = point.humidity
+        self._current_weather.clouds = point.clouds
+        self._current_weather.pressure = point.pressure
+        self._current_weather.pressure_sea_level = point.pressure_sea_level
+        self._current_weather.precipitation = point.precipitation
 
     @staticmethod
-    def _determine_daily_overall_weather(
-        measurement_points: Optional[List[Weather]],
-    ) -> Optional[Weather]:
-        """
-        Get the weather to be shown on the forecast icon.
-        The strategy is to first sort after the main category, e.g. rain, snow.
-        All the categories are listed in the WeatherQuality class and are ordered from bad to good.
-        In case there are multiple categories, first try determine the most numerous one.
-        If there are equal in count, take the one with the most bad.
-
-        return : the measurement point (Weather) representing the daily weather(main and description)
-        """
-
-        if not measurement_points:
-            return None
-
-        # first try look in main categories and get enumerate all of them
-        main_count_dict: Dict[str, int] = {}
-        for measurement_point in measurement_points:
-            if measurement_point.main not in main_count_dict:  # filter empty
-                main_count_dict.update({measurement_point.main: 1})
-                continue
-            main_count_dict[measurement_point.main] += 1
-
-        if not main_count_dict:  # something went wrong, no categories were found
-            return None
-
-        # dominant_categories can be a list or a single element
-        max_count = max(main_count_dict.values())
-        max_indices = [i for i, x in enumerate(main_count_dict.values()) if x == max_count]
-        dominant_categories = [list(main_count_dict)[i] for i in max_indices]
-
-        # there are multiple candidates
-        # if isinstance(dominant_categories, list):
-        # get the worst case - we want to know, if it snows in the middle of the day
-        # init with max value
-        worst_idx = max(list(map(lambda c: c.value, WeatherQuality)))
-        for category in dominant_categories:
-            # enum is uppercase
-            category_quality = WeatherQuality[category.upper()]
-            worst_idx = min(worst_idx, category_quality.value)
-        result_category = WeatherQuality(worst_idx)
-        # else:  # one element
-        #     result_category = dominant_categories
-
-        # get the most prevalent detailed description
-        wid = OpenMeteo._find_dominant_detailed_weather(measurement_points, result_category)
-
-        # only need one
-        return [point for point in measurement_points if point.wid == wid][0]
-
-    @staticmethod
-    def _find_dominant_detailed_weather(
-        measurement_points: List[Weather], category: WeatherQuality
-    ):
-        """Tries to find the best matching detailed weather for the day"""
-
-        # count all detailed conditions with the selected main category
-        detail_count_dict = {}
-        for point in measurement_points:
-            if category.name in point.main.upper():  # and point.description:
-                if not point.wid in detail_count_dict:
-                    detail_count_dict[point.wid] = 1
-                    continue
-                detail_count_dict[point.wid] += 1
-        max_count = max(detail_count_dict.values())
-        max_indices = [i for i, x in enumerate(detail_count_dict.values()) if x == max_count]
-        dominant_categories = [list(detail_count_dict)[i] for i in max_indices]
-        return dominant_categories[0]
+    def _should_fetch(last_fetch: Optional[datetime], fetch_rate_seconds: int) -> bool:
+        if last_fetch is None:
+            return True
+        return (datetime.now() - last_fetch).total_seconds() >= fetch_rate_seconds
 
     def _call_api(self, command: str, **kwargs) -> Dict[str, Any]:
         """Call the REST like API of OpenWeatherMap. Return response."""

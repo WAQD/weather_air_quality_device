@@ -22,14 +22,6 @@ if TYPE_CHECKING:
 DEBUG_LEVEL = int(os.getenv("WAQD_DEBUG", "0"))
 LOCAL_TIMEZONE = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
 
-class WeatherDataProviders(Enum):  # promote to settings, after stable
-    OpenWeatherMap = 0
-    AccuWeather = 1  # Currently not implemented
-    OpenMeteo = 2
-
-
-WEATHER_DATA_PROVIDER = 2
-
 # paths to find folders
 base_path = Path(__file__).absolute().parent
 assets_path = base_path.parent / "waqd_assets"

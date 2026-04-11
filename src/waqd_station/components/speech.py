@@ -2,14 +2,17 @@
 import os
 import time
 from threading import Thread
+from typing import TYPE_CHECKING
 
 from gtts import gTTS
 import waqd_station
-from waqd.base.component_reg import Component, ComponentRegistry
+from waqd.base.component_reg import Component
 from waqd.base.network import Network
 from waqd.components.translation import Translation
 from waqd_station.settings import LANG_ENGLISH
 
+if TYPE_CHECKING:
+    from waqd_station.app.component_reg import ComponentRegistry
 
 class TextToSpeach(Component):
     """
@@ -20,6 +23,7 @@ class TextToSpeach(Component):
 
     def __init__(self, components: ComponentRegistry, lang="en"):
         super().__init__(components)
+        self._comps: ComponentRegistry
         self._lang = lang
         self._tts_thread = Thread()
         self._save_dir = waqd_station.user_config_dir / "tts"

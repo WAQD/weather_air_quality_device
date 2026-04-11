@@ -13,6 +13,8 @@ export interface WeatherData {
   pressure: number
   humidity: number
   clouds: number
+  precipitation_probability?: number
+  precipitation?: number
 }
 
 export interface ForecastData {
@@ -32,6 +34,8 @@ export interface ForecastData {
   pressure: number
   humidity: number
   clouds: number
+  precipitation_probability_max?: number
+  precipitation?: number
 }
 
 export interface HourlyWeatherData {
@@ -48,6 +52,8 @@ export interface HourlyWeatherData {
   pressure_sea_level: number
   humidity: number
   clouds: number
+  precipitation_probability?: number
+  precipitation?: number
 }
 
 // Global weather data store (shared across all components)

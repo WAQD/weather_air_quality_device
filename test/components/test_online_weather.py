@@ -45,7 +45,7 @@ def test_open_meteo(base_fixture, mocker):
         om.hourly_test_json = hourly_test_json
         ret = om.get_current_weather()
         assert ret
-        ret = om.get_5_day_forecast()
+        ret = om.get_7_day_forecast()
         assert ret
         assert om.nighttime_forecast_points
         assert om.daytime_forecast_points
