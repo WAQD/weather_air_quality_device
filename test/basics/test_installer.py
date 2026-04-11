@@ -2,7 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 import shutil
-from waqd import __version__
+from waqd_station import __version__
 from waqd_installer import common, setup_system
 from waqd_installer.common import assure_file_does_not_exist
 
@@ -12,8 +12,8 @@ def test_add_to_autostart(base_fixture):
     temp_autostart_file = Path(tempfile.gettempdir()) / "tmp.txt"
 
     shutil.copy(str(auto_update_file), str(temp_autostart_file))
-    setup_system.add_to_autostart(["xscreensaver -no-splash"], temp_autostart_file)
-    setup_system.remove_from_autostart(["waqd"], temp_autostart_file)
+    setup_system.add_to_LXDE_autostart(temp_autostart_file, ["xscreensaver -no-splash"])
+    setup_system.remove_from_autostart(temp_autostart_file, ["waqd"])
 
     with open(temp_autostart_file) as ft:
         read = ft.readlines()
@@ -22,7 +22,7 @@ def test_add_to_autostart(base_fixture):
     assert read[2] == "@xscreensaver -no-splash\n"
 
     # 2nd run - don't change anything
-    setup_system.add_to_autostart(["xscreensaver -no-splash"], temp_autostart_file)
+    setup_system.add_to_LXDE_autostart(temp_autostart_file, ["xscreensaver -no-splash"])
     with open(temp_autostart_file) as ft:
         read = ft.readlines()
     assert read[0] == "@lxpanel --profile LXDE-pi\n"
@@ -45,16 +45,13 @@ def test_get_waqd_bin_dir_name():
 
 def test_get_install_path():
     # reimport with env var set
-    home = os.getenv("HOME", "")
-    if not home:  # for windows
-        home = "/home/pi"
-        os.environ["HOME"] = home
+    home = Path.home()
     from importlib import reload
     from waqd_installer import common
     reload(common)
     install_path = common.get_waqd_install_path(common.installer_root_dir)
     version_suffix = __version__.replace(".", "-")
-    assert install_path.as_posix() == Path(f"{home}/.local/pipx/venvs/waqd-{version_suffix}").as_posix()
+    assert install_path.as_posix() == Path(f"{home}/.local/share/pipx/venvs/waqd-{version_suffix}").as_posix()
 
 
 def test_register_autostart(base_fixture):
@@ -67,7 +64,7 @@ def test_register_autostart(base_fixture):
     tempdir = Path(tempfile.gettempdir())
     temp_autostart_file = tempdir / "tmp.txt"
 
-    copy_file(str(auto_update_file), str(temp_autostart_file))
+    shutil.copyfile(str(auto_update_file), str(temp_autostart_file))
     install.register_waqd_autostart(bin_path=tempdir/"bin",
                                     autostart_file=temp_autostart_file)
     start_waqd_path = tempdir / "bin" / "waqd-start"

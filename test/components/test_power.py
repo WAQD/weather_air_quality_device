@@ -2,7 +2,7 @@
 import time
 from freezegun import freeze_time
 
-from waqd.components.power import (BRIGHTNESS, DAY_STANDBY_TIMEOUT,
+from waqd_station.components.power import (BRIGHTNESS, DAY_STANDBY_TIMEOUT,
                                         MOTION_SENSOR_ENABLED,
                                         NIGHT_MODE_BEGIN,
                                         NIGHT_MODE_BRIGHTNESS, NIGHT_MODE_END,
@@ -10,7 +10,7 @@ from waqd.components.power import (BRIGHTNESS, DAY_STANDBY_TIMEOUT,
                                         NIGHTMODE_WAKEUP_DELTA_BRIGHTNESS,
                                         STANDBY_BRIGHTNESS, ESaver)
 from waqd.settings import Settings
-from waqd.base.component_reg import ComponentRegistry
+from waqd_station.app.component_reg import ComponentRegistry
 
 
 def test_no_standby_if_sensor_is_disabled(base_fixture):

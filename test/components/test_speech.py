@@ -1,6 +1,6 @@
-from waqd.components.speech import TextToSpeach
-from waqd.settings import SOUND_ENABLED, Settings
-from waqd.base.component_reg import ComponentRegistry
+from waqd_station.components.speech import TextToSpeach
+from waqd_station.settings import SOUND_ENABLED, Settings
+from waqd_station.app.component_reg import ComponentRegistry
 
 
 def test_tts_parallel(base_fixture, capsys):
