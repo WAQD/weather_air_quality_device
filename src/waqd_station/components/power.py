@@ -13,16 +13,15 @@ from waqd_station.settings import (
     NIGHT_MODE_END,
     NIGHT_STANDBY_TIMEOUT,
 )
-from waqd.settings.settings import Settings
+from waqd_station.settings.settings import Settings
+
+if TYPE_CHECKING:
+    from waqd_station.app.component_reg import ComponentRegistry
 
 STANDBY_BRIGHTNESS = 20
 NIGHT_MODE_BRIGHTNESS = 0
 NIGHT_STANDBY_BRIGHTNESS = 10
 NIGHTMODE_WAKEUP_DELTA_BRIGHTNESS = 20
-
-if TYPE_CHECKING:
-    from waqd_station.app.component_reg import ComponentRegistry
-
 
 
 class ESaver(CyclicComponent):
@@ -48,6 +47,7 @@ class ESaver(CyclicComponent):
         self._ready = True
 
         from pynput import mouse
+
         self._mouse_listener = mouse.Listener(
             on_move=ESaver._on_mouse_move,
         )

@@ -18,7 +18,7 @@ def test_debug_disabled_for_release():
 
 @pytest.mark.integration
 def test_version_number_valid():
-    from waqd import __version__ as VERSION
+    from waqd_station import __version__ as VERSION
     from packaging.version import Version
     assert Version(VERSION)
 

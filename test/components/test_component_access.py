@@ -1,9 +1,9 @@
 import time
 
-from freezegun import freeze_time
-from waqd.base.component_reg import (Component, ComponentRegistry,
-                                     CyclicComponent)
-from waqd.settings import (BME_280_ENABLED, DHT_22_PIN, MOTION_SENSOR_ENABLED, Settings)
+from waqd.base.component_reg import Component, CyclicComponent
+from waqd_station.app.component_reg import ComponentRegistry
+
+from waqd_station.settings import BME_280_ENABLED, DHT_22_PIN, MOTION_SENSOR_ENABLED, Settings
 
 
 def test_default_component_creation(base_fixture, target_mockup_fixture):
@@ -41,6 +41,7 @@ def test_default_component_creation(base_fixture, target_mockup_fixture):
     assert rt
     ev = comps.event_handler
     assert ev
+
 
 # TODO Add stop component test
 

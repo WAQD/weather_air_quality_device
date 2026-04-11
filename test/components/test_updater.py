@@ -1,7 +1,7 @@
 
 from waqd.settings import Settings
-from waqd.components.updater import OnlineUpdater
-from waqd.base.component_reg import ComponentRegistry
+from waqd_station.components.updater import OnlineUpdater
+from waqd_station.app.component_reg import ComponentRegistry
 
 RASPI_BASE_IMAGE = "raspi/raspbian_py:1"
 WAQD_IMAGE = "raspi/waqd_install:1"

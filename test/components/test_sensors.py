@@ -2,7 +2,7 @@ import pint
 import time
 from threading import Thread
 
-from waqd.components import sensors
+from waqd.components import sensor_base
 from waqd.base.component_reg import ComponentRegistry
 from waqd.settings import LOG_SENSOR_DATA, Settings
 from waqd.base.system import RuntimeSystem
@@ -24,7 +24,7 @@ def test_max_delta(base_fixture, target_mockup_fixture, capsys):
     print(ureg('1e4 ppm').to('pct'))
     import adafruit_dht
     settings = Settings(base_fixture.testdata_path / "integration")
-    sensor = sensors.TempSensor(False, 2)
+    sensor = sensor_base.TempSensor(False, 2)
     sensor._temp_impl._values = [22]  # default value
     sensor._set_temperature(22)  # first value written check
     sensor._set_temperature(59)
@@ -41,9 +41,9 @@ def test_dht22(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
     comps = ComponentRegistry(settings)
     measure_points = 2
-    sensors.DHT22.MEASURE_POINTS = measure_points
-    sensors.DHT22.UPDATE_TIME = 1
-    sensor = sensors.DHT22(pin=22, components=comps, settings=settings)
+    sensor_base.DHT22.MEASURE_POINTS = measure_points
+    sensor_base.DHT22.UPDATE_TIME = 1
+    sensor = sensor_base.DHT22(pin=22, components=comps, settings=settings)
 
     time.sleep(1)
     assert sensor.is_alive
@@ -60,9 +60,9 @@ def test_ccs811(base_fixture, target_mockup_fixture):
     from adafruit_ccs811 import TVOC, CO2
     settings = Settings(base_fixture.testdata_path / "integration")
     measure_points = 2
-    sensors.CCS811.MEASURE_POINTS = measure_points
+    sensor_base.CCS811.MEASURE_POINTS = measure_points
     comps = ComponentRegistry(settings)
-    sensor = sensors.CCS811(comps, settings)
+    sensor = sensor_base.CCS811(comps, settings)
     # disable max delta, otherwise default value will not rise
 
     time.sleep(1)
@@ -79,8 +79,8 @@ def test_mh_z19(base_fixture, target_mockup_fixture, mocker):
     mock_run_on_non_target(mocker)
     assert not RuntimeSystem().is_target_system
     settings = Settings(base_fixture.testdata_path / "integration")
-    sensors.MH_Z19.MEASURE_POINTS = 2
-    sensor = sensors.MH_Z19(settings)
+    sensor_base.MH_Z19.MEASURE_POINTS = 2
+    sensor = sensor_base.MH_Z19(settings)
 
     time.sleep(1)
     assert sensor.is_alive
@@ -88,13 +88,13 @@ def test_mh_z19(base_fixture, target_mockup_fixture, mocker):
 
     # wait until all measurement points are filled up, so that mean value equals the constant value
     # -> takes too long, every call spawns a new python process takes a few seconds
-    time.sleep(sensor.UPDATE_TIME * (sensors.MH_Z19.MEASURE_POINTS + 1))
+    time.sleep(sensor.UPDATE_TIME * (sensor_base.MH_Z19.MEASURE_POINTS + 1))
     from mh_z19 import CO2
     assert sensor.get_co2().magnitude == 735
 
 
 def test_sr501(base_fixture, target_mockup_fixture, mocker):
-    sensor = sensors.SR501(pin=8)  # TODO get from CI config file
+    sensor = sensor_base.SR501(pin=8)  # TODO get from CI config file
     assert not sensor.motion_detected
     # the call blocks, so use a thread
     wake_up_thread = Thread(target=sensor._wake_up_from_sensor, args=[None, ])
@@ -110,11 +110,11 @@ def testBME280(base_fixture, target_mockup_fixture):
     from adafruit_bme280.advanced import TEMP, PRESSURE, HUMIDITY
     settings = Settings(base_fixture.testdata_path / "integration")
     measure_points = 2
-    sensors.BME280.UPDATE_TIME = 1
-    sensors.BME280.MEASURE_POINTS = measure_points
+    sensor_base.BME280.UPDATE_TIME = 1
+    sensor_base.BME280.MEASURE_POINTS = measure_points
 
     comps = ComponentRegistry(settings)
-    sensor = sensors.BME280(comps, settings)
+    sensor = sensor_base.BME280(comps, settings)
     time.sleep(1)
     assert sensor.is_alive
     assert sensor.is_ready
@@ -131,11 +131,11 @@ def test_bmp280(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
 
     measure_points = 2
-    sensors.BMP280.MEASURE_POINTS = measure_points
-    sensors.BMP280.UPDATE_TIME = 1
+    sensor_base.BMP280.MEASURE_POINTS = measure_points
+    sensor_base.BMP280.UPDATE_TIME = 1
 
     comps = ComponentRegistry(settings)
-    sensor = sensors.BMP280(comps, settings)
+    sensor = sensor_base.BMP280(comps, settings)
 
     time.sleep(1)
     assert sensor.is_alive
