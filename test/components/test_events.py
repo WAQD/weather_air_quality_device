@@ -3,16 +3,16 @@ from pathlib import Path
 import shutil
 import tempfile
 import time
-from datetime import date, datetime
+from datetime import datetime
 
 from freezegun import freeze_time
 
+from waqd_station.app.component_reg import ComponentRegistry
 from waqd.base.component_ctrl import ComponentController
 from waqd.base.file_logger import Logger
-from waqd.components.events import (EventHandler, get_time_of_day,
+from waqd_station.components.events import (EventHandler, get_time_of_day,
                                     parse_event_file, write_events_file)
-from waqd.settings import (NIGHT_MODE_BEGIN, NIGHT_MODE_END, SOUND_ENABLED,
-                           Settings)
+from waqd_station.settings import NIGHT_MODE_BEGIN, NIGHT_MODE_END, SOUND_ENABLED, Settings
 
 def test_parser(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
@@ -20,13 +20,13 @@ def test_parser(base_fixture, target_mockup_fixture):
     events = parse_event_file(base_fixture.testdata_path / "events" / "events.json")
     assert events
     assert events[0].name == "Daily Greeting"
-    assert events[1].name == "Wakeup"
+    assert events[1].name == "Christmas1"
     temp_file = tempfile.gettempdir() + "/eventsTest.json"
-    write_events_file(temp_file, events)
+    write_events_file(Path(temp_file), events)
     with open(temp_file) as fp:
         events_read = json.load(fp)
     assert events_read.get("events")[0].get("name") == "Daily Greeting"
-    assert events_read.get("events")[1].get("name") == "Wakeup"
+    assert events_read.get("events")[1].get("name") == "Christmas1"
 
 
 def test_daily_greeting(base_fixture, target_mockup_fixture, monkeypatch):
@@ -36,7 +36,7 @@ def test_daily_greeting(base_fixture, target_mockup_fixture, monkeypatch):
         settings.set(NIGHT_MODE_BEGIN, 22)
         settings.set(NIGHT_MODE_END, 0)
         settings.set(SOUND_ENABLED, True)
-        comp_ctrl = ComponentController(settings)
+        comp_ctrl = ComponentController(settings, ComponentRegistry)
         Logger().info("Start")
         comps = comp_ctrl.components
         comps.energy_saver
@@ -68,7 +68,7 @@ def test_event_scheduler(base_fixture, target_mockup_fixture, monkeypatch):
         settings = Settings(base_fixture.testdata_path / "integration")
         settings.set(NIGHT_MODE_END, "07:30")
         settings.set(SOUND_ENABLED, True)
-        comp_ctrl = ComponentController(settings)
+        comp_ctrl = ComponentController(settings, ComponentRegistry)
         Logger().info("Start")
         comps = comp_ctrl.components
         comps.energy_saver

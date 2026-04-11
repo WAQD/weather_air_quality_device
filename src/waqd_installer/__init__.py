@@ -1,4 +1,11 @@
 from pathlib import Path
+import platform
+
+
+""" TODO: This will switch paths or whole functions depending on the debian version to support
+later versions and avoid problems when updating on old systems. 
+Currently only trixie is supported, but this can be easily extended to support more versions.
+"""
 
 
 def debian_codename() -> str | None:
@@ -12,9 +19,12 @@ def debian_codename() -> str | None:
         return None
     return None
 
+
 if debian_codename() == "trixie":
     from .trixie import AUTOSTART_FILE
 else:
+    if platform.system() == "Linux":
+        raise NotImplementedError(f"Unsupported Debian version: {debian_codename()}")
     # dummy setup:
     AUTOSTART_FILE = Path("/tmp/dummy_autostart_file")
 

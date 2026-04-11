@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from freezegun import freeze_time
 
-from waqd_common.weather import OpenTopoData, OpenWeatherMap, OpenMeteo
+from waqd.components.weather import OpenTopoData, OpenWeatherMap, OpenMeteo
 
 
 class MockOpenMeteo(OpenMeteo):

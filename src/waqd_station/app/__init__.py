@@ -6,6 +6,7 @@ Sets up cmd arguments, settings and starts the gui
 import sys
 import time
 from threading import Thread
+from typing import TYPE_CHECKING
 
 import waqd
 import waqd_station
@@ -15,24 +16,26 @@ from waqd.base.file_logger import Logger
 from waqd.base.singleton import BorgSingleton
 from waqd.base.system import RuntimeSystem
 from waqd_station import MIGRATE_SENSOR_LOGS, user_config_dir
-from waqd_station.app.component_reg import ComponentRegistry
 from waqd_station.settings import STARTUP_JINGLE, Settings
+
+if TYPE_CHECKING:
+    from waqd_station.app.component_reg import ComponentRegistry
 
 # GLOBAL VARIABLES
 
-Logger(output_path=user_config_dir)  # singleton, no assigment needed
-
-class CompCtrlSingleton(BorgSingleton[ComponentController[ComponentRegistry]]):
-    @classmethod
-    def _create_instance(cls, key: object) -> ComponentController[ComponentRegistry]:
-        return ComponentController(settings(), ComponentRegistry)
-
+unit_reg = waqd.unit_reg
 # for global access to settings
 settings = BorgSingleton(Settings, ini_folder=user_config_dir)
+
+class CompCtrlSingleton(BorgSingleton[ComponentController["ComponentRegistry"]]):
+    @classmethod
+    def _create_instance(cls, key: object) -> ComponentController["ComponentRegistry"]:
+        from waqd_station.app.component_reg import ComponentRegistry
+
+        return ComponentController(settings(), ComponentRegistry)
+
 # singleton with access to all backend components
 comp_ctrl = CompCtrlSingleton()
-unit_reg = waqd.unit_reg
-
 
 def basic_setup():
     """
@@ -40,6 +43,7 @@ def basic_setup():
     :param settings_path: Only used for testing to load a settings file.
     """
     global comp_ctrl
+    Logger(output_path=user_config_dir)  # singleton, no assigment needed
 
     sys.excepthook = crash_hook
 

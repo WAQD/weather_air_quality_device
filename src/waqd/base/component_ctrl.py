@@ -1,13 +1,9 @@
 import threading
+from typing import Generic, Optional, TypeVar
 
-from typing import Optional
-from typing import TypeVar
-from typing import Generic
-
+from waqd.base.component_reg import ComponentRegistry, CyclicComponent
 from waqd.base.file_logger import Logger
-from waqd.base.component_reg import ComponentRegistry
 from waqd.base.network import Network
-from waqd.base.component_reg import CyclicComponent
 from waqd.settings import Settings
 
 TRegistry = TypeVar("TRegistry", bound=ComponentRegistry)
