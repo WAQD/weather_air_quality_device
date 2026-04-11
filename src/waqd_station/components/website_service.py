@@ -290,7 +290,7 @@ class WAQDDeviceClient(Component):
         """Collect and send forecast weather data"""
         try:
             weather_retrieval = WeatherRetrieval()
-            forecast = weather_retrieval.get_5_day_forecast()
+            forecast = weather_retrieval.get_7_day_forecast()
             if forecast:
                 # Convert list of dataclasses to list of dicts
                 forecast_list = []
@@ -301,15 +301,6 @@ class WAQDDeviceClient(Component):
                     day_dict['fetch_time'] = day.fetch_time.isoformat()
                     day_dict['sunrise'] = day.sunrise.isoformat()
                     day_dict['sunset'] = day.sunset.isoformat()
-                    
-                    # Filter out entries with invalid temperature values (infinity)
-                    # These indicate incomplete forecast data
-                    if (abs(day_dict.get('temp_min', 0)) == float('inf') or 
-                        abs(day_dict.get('temp_max', 0)) == float('inf') or
-                        abs(day_dict.get('temp_night_min', 0)) == float('inf') or
-                        abs(day_dict.get('temp_night_max', 0)) == float('inf')):
-                        continue
-                    
                     forecast_list.append(day_dict)
                 await self.send_forecast_data(forecast_list)
         except Exception as e:
@@ -338,32 +329,35 @@ class WAQDDeviceClient(Component):
             weather_provider = self._comps.weather_info
             if not weather_provider:
                 return
-            
-            # Get hourly forecast points
-            daytime_points = getattr(weather_provider, 'daytime_forecast_points', [])
-            nighttime_points = getattr(weather_provider, 'nighttime_forecast_points', [])
-            
-            if not daytime_points and not nighttime_points:
+
+            forecast = weather_provider.get_7_day_forecast()
+            if not forecast:
                 return
-            
+
             # Convert hourly data to serializable format
-            def convert_hourly_points(points_list):
-                converted = []
-                for day_points in points_list:
-                    day_converted = []
-                    for point in day_points:
-                        point_dict = asdict(point)
-                        # Convert datetime and time objects to ISO strings
-                        point_dict['date_time'] = point.date_time.isoformat()
-                        point_dict['fetch_time'] = point.fetch_time.isoformat()
-                        point_dict['sunrise'] = point.sunrise.isoformat()
-                        point_dict['sunset'] = point.sunset.isoformat()
-                        day_converted.append(point_dict)
-                    converted.append(day_converted)
-                return converted
-            
-            daytime_data = convert_hourly_points(daytime_points)
-            nighttime_data = convert_hourly_points(nighttime_points)
+            daytime_data = []
+            nighttime_data = []
+
+            for day_idx in range(len(forecast)):
+                day_points = weather_provider.get_hourly_forecast(day_idx)
+                day_daytime = []
+                day_nighttime = []
+
+                for point in day_points:
+                    point_dict = asdict(point)
+                    # Convert datetime and time objects to ISO strings
+                    point_dict['date_time'] = point.date_time.isoformat()
+                    point_dict['fetch_time'] = point.fetch_time.isoformat()
+                    point_dict['sunrise'] = point.sunrise.isoformat()
+                    point_dict['sunset'] = point.sunset.isoformat()
+
+                    if point.is_daytime():
+                        day_daytime.append(point_dict)
+                    else:
+                        day_nighttime.append(point_dict)
+
+                daytime_data.append(day_daytime)
+                nighttime_data.append(day_nighttime)
             
             await self.send_hourly_forecast_data(daytime_data, nighttime_data)
         except Exception as e:

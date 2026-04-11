@@ -6,7 +6,6 @@ from typing import override
 import waqd
 from waqd.components.sensor_base import WAQDRemoteStation
 from waqd.components.weather.open_meteo import OpenMeteo
-from waqd.components.weather.open_weather import OpenWeatherMap
 import waqd_station
 from waqd_station.settings import (
     BME_280_ENABLED,
@@ -19,7 +18,6 @@ from waqd_station.settings import (
     EVENTS_ENABLED,
     LANG,
     LAST_TEMP_C_OUTSIDE,
-    LOCATION_NAME,
     LOCATION_ALTITUDE_M,
     LOCATION_LATITUDE,
     LOCATION_LONGITUDE,
@@ -177,23 +175,13 @@ class ComponentRegistry(ComponentRegistryBase):
     @property
     def weather_info(self) -> "WeatherProvider":
         """Access for OnlineWeather singleton"""
-
-        if waqd.WEATHER_DATA_PROVIDER == waqd.WeatherDataProviders.OpenWeatherMap.value:
-            return self._create_component_instance(
-                OpenWeatherMap,
-                (
-                    self._settings.get(LOCATION_NAME),
-                    self._settings.get(OW_API_KEY),
-                ),
-            )
-        else:  # fallback
-            return self._create_component_instance(
-                OpenMeteo,
-                (
-                    self._settings.get_float(LOCATION_LONGITUDE),
-                    self._settings.get_float(LOCATION_LATITUDE),
-                ),
-            )
+        return self._create_component_instance(
+            OpenMeteo,
+            (
+                self._settings.get_float(LOCATION_LONGITUDE),
+                self._settings.get_float(LOCATION_LATITUDE),
+            ),
+        )
 
     # non-disablable components
 

@@ -2,41 +2,55 @@
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body p-4 sm:p-6">
       <h2 class="card-title text-base sm:text-lg">{{ title }}</h2>
-      
-      <!-- 5-Day Forecast Section -->
+
+      <!-- 7-Day Forecast Section -->
       <div v-if="forecastData && forecastData.length > 0" class="mb-4 sm:mb-6">
-        <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast') }}</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-4">
-          <div v-for="(day, index) in forecastData.slice(0, 5)" :key="index" class="card bg-base-200 shadow-md">
-            <div class="card-body p-2 sm:p-3 lg:p-4 text-center">
-              <!-- Day label -->
-              <h3 class="font-bold text-sm sm:text-base mb-1 sm:mb-2">
-                {{ formatForecastDate(day.date_time) }}
-              </h3>
-              
-              <!-- Weather icon -->
-              <img 
-                v-if="day.icon" 
-                :src="`/static/weather_icons/${day.icon}.svg`" 
-                :alt="day.main"
-                class="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-1 sm:mb-2 weather-icon"
-              />
-              
-              <!-- Weather condition -->
-              <p class="text-sm opacity-70 mb-1 sm:mb-2 truncate">{{ translateWeatherCondition(day) }}</p>
-              
-              <!-- Day temperature -->
-              <div class="mb-1 sm:mb-2">
-                <p class="text-sm opacity-70">{{ t('day') }}</p>
-                <p class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{ day.temp_max.toFixed(0) }}°</p>
+        <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast')
+          }}</h3>
+        <div class="overflow-x-auto -mx-2 px-2">
+          <div class="flex gap-2 sm:gap-3 lg:gap-4 pb-2 min-w-max">
+            <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
+              class="card bg-base-200 shadow-md text-left transition-all duration-150 flex-shrink-0 min-w-[150px] sm:min-w-[170px]"
+              :class="selectedDayIndex === index ? 'ring-2 ring-primary bg-base-300' : 'hover:bg-base-300/70'"
+              @click="selectDay(index)">
+              <div class="card-body p-2 sm:p-3 lg:p-4 text-center">
+                <!-- Day label -->
+                <h3 class="font-bold text-sm sm:text-base mb-1 sm:mb-2">
+                  {{ formatForecastDate(day.date_time) }}
+                </h3>
+
+                <!-- Weather icon -->
+                <img v-if="day.icon" :src="`/static/weather_icons/${day.icon}.svg`" :alt="day.main"
+                  class="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-1 sm:mb-2 weather-icon" />
+
+                <!-- Weather condition -->
+                <p class="text-sm opacity-70 mb-1 sm:mb-2 truncate">{{
+                  translateWeatherCondition(day) }}</p>
+
+                <!-- Day temperature -->
+                <div class="mb-1 sm:mb-2">
+                  <p class="text-sm opacity-70">{{ t('day') }}</p>
+                  <p class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{
+                    day.temp_max.toFixed(0) }}°</p>
+                </div>
+
+                <!-- Night temperature -->
+                <div class="mb-1 sm:mb-2">
+                  <p class="text-sm opacity-70">{{ t('night') }}</p>
+                  <p class="text-sm sm:text-base">{{ day.temp_night_min.toFixed(0) }}° / {{
+                    day.temp_night_max.toFixed(0) }}°</p>
+                </div>
+
+                <!-- Precipitation probability -->
+                <div v-if="day.precipitation_probability_max !== undefined || day.precipitation !== undefined" class="space-y-3">
+                  <p v-if="day.precipitation_probability_max !== undefined" class="text-sm sm:text-base">💧 {{
+                    day.precipitation_probability_max.toFixed(0)
+                    }}%</p>
+                  <p v-if="day.precipitation !== undefined" class="text-sm sm:text-base">🌧️ {{ day.precipitation.toFixed(1) }}mm
+                  </p>
+                </div>
               </div>
-              
-              <!-- Night temperature -->
-              <div>
-                <p class="text-sm opacity-70">{{ t('night') }}</p>
-                <p class="text-sm sm:text-base">{{ day.temp_night_min.toFixed(0) }}° / {{ day.temp_night_max.toFixed(0) }}°</p>
-              </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -47,28 +61,21 @@
           {{ t('hourly_forecast') }} ({{ mergedHourlyData.length }} {{ t('hours')}})
         </h3>
 
-        <!-- Hourly data display in 2 rows max -->
-        <div class="space-y-2 sm:space-y-3">
-          <div 
-            v-for="(row, rowIndex) in chunkedHourlyData" 
-            :key="rowIndex"
-            class="overflow-x-auto -mx-2 px-2"
-          >
-            <div class="flex gap-2 pb-2 min-w-max">
-              <div 
-                v-for="(hour, index) in row" 
-                :key="index"
-                class="flex-shrink-0 card bg-base-200 p-2 sm:p-3 min-w-[90px] sm:min-w-[110px] text-center"
-              >
-                <p class="text-sm opacity-70 mb-1">{{ formatHourlyTime(hour.date_time) }}</p>
-                <img 
-                  v-if="hour.icon" 
-                  :src="`/static/weather_icons/${hour.icon}.svg`" 
-                  :alt="hour.main"
-                  class="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-1 weather-icon"
-                />
-                <p class="font-bold text-base sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
-                <p class="text-sm opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
+        <!-- Hourly data display in a single row -->
+        <div ref="hourlyScroller" class="overflow-x-auto -mx-2 px-2">
+          <div class="flex gap-2 pb-2 min-w-max">
+            <div v-for="(hour, index) in mergedHourlyData" :key="index"
+              class="hourly-card flex-shrink-0 card bg-base-200 p-2 sm:p-3 min-w-[90px] sm:min-w-[110px] text-center"
+              :data-hour="getHourFromDateString(hour.date_time)">
+              <p class="text mb-1">{{ formatHourlyTime(hour.date_time) }}</p>
+              <img v-if="hour.icon" :src="`/static/weather_icons/${hour.icon}.svg`" :alt="hour.main"
+                class="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-1 weather-icon" />
+              <p class="font-bold text-base sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
+              <p class="text-sm opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
+              <div v-if="hour.precipitation_probability !== undefined || hour.precipitation !== undefined" class="mt-2 sm:mt-3 space-y-3">
+                <p v-if="hour.precipitation_probability !== undefined" class="text-sm sm:text-base">💧 {{ hour.precipitation_probability.toFixed(0) }}%
+                </p>
+                <p v-if="hour.precipitation !== undefined" class="text-sm sm:text-base">🌧️ {{ hour.precipitation.toFixed(1) }}mm</p>
               </div>
             </div>
           </div>
@@ -84,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useTranslation } from '../composables/useTranslation'
 import type { ForecastData } from '../composables/useWeather'
 
@@ -104,6 +111,8 @@ interface HourlyWeatherData {
   pressure_sea_level: number
   humidity: number
   clouds: number
+  precipitation_probability?: number
+  precipitation?: number
 }
 
 interface Props {
@@ -119,6 +128,26 @@ const props = withDefaults(defineProps<Props>(), {
   daytimeHourlyData: () => [],
   nighttimeHourlyData: () => []
 })
+
+const selectedDayIndex = ref(0)
+const hourlyScroller = ref<HTMLElement | null>(null)
+
+const displayedForecastData = computed(() => props.forecastData.slice(0, 7))
+
+watch(
+  () => displayedForecastData.value.length,
+  (length) => {
+    if (length === 0) {
+      selectedDayIndex.value = 0
+      return
+    }
+
+    if (selectedDayIndex.value > length - 1) {
+      selectedDayIndex.value = 0
+    }
+  },
+  { immediate: true }
+)
 
 const hasHourlyData = computed(() => {
   return (props.daytimeHourlyData && props.daytimeHourlyData.length > 0) ||
@@ -153,35 +182,22 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
 // Merge day and night hourly data, sorted by time
 const mergedHourlyData = computed(() => {
   const allHours: HourlyWeatherData[] = []
+  const dayIndex = selectedDayIndex.value
   
-  // Add all daytime hours (first day only)
-  if (props.daytimeHourlyData && props.daytimeHourlyData.length > 0) {
-    allHours.push(...(props.daytimeHourlyData[0] || []))
+  // Add all daytime hours from selected day
+  if (props.daytimeHourlyData && props.daytimeHourlyData.length > dayIndex) {
+    allHours.push(...(props.daytimeHourlyData[dayIndex] || []))
   }
   
-  // Add all nighttime hours (first day only)
-  if (props.nighttimeHourlyData && props.nighttimeHourlyData.length > 0) {
-    allHours.push(...(props.nighttimeHourlyData[0] || []))
+  // Add all nighttime hours from selected day
+  if (props.nighttimeHourlyData && props.nighttimeHourlyData.length > dayIndex) {
+    allHours.push(...(props.nighttimeHourlyData[dayIndex] || []))
   }
   
   // Sort by date_time chronologically
   return allHours.sort((a, b) => {
     return new Date(a.date_time).getTime() - new Date(b.date_time).getTime()
   })
-})
-
-// Chunk hourly data into 2 rows max
-const chunkedHourlyData = computed(() => {
-  const data = mergedHourlyData.value
-  const halfLength = Math.ceil(data.length / 2)
-  
-  if (data.length === 0) return []
-  if (data.length <= halfLength) return [data]
-  
-  return [
-    data.slice(0, halfLength),
-    data.slice(halfLength)
-  ]
 })
 
 function formatForecastDate(dateString: string): string {
@@ -222,6 +238,39 @@ function formatHourlyTime(dateString: string): string {
     minute: '2-digit',
     hour12: false 
   })
+}
+
+function getHourFromDateString(dateString: string): number {
+  return new Date(dateString).getHours()
+}
+
+async function selectDay(index: number): Promise<void> {
+  selectedDayIndex.value = index
+  await nextTick()
+  scrollHourlyToSixAm()
+}
+
+function scrollHourlyToSixAm(): void {
+  const scroller = hourlyScroller.value
+  if (!scroller) {
+    return
+  }
+
+  const cards = Array.from(scroller.querySelectorAll<HTMLElement>('.hourly-card'))
+  if (cards.length === 0) {
+    return
+  }
+
+  let target = cards.find((card) => Number(card.dataset.hour) === 6)
+  if (!target) {
+    target = cards.find((card) => Number(card.dataset.hour) > 6) || cards[0]
+  }
+
+  if (!target) {
+    return
+  }
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
 }
 </script>
 

@@ -87,7 +87,7 @@ async def exterior():
         return JSONResponse(response_data.model_dump())
 
     weather_bgr = get_asset_file_relative(current_weather.get_background_image())
-    forecast = WeatherRetrieval().get_5_day_forecast()
+    forecast = WeatherRetrieval().get_7_day_forecast()
 
     response_data.background = weather_bgr
     response_data.weather_icon = get_asset_file_relative(current_weather.get_icon())
@@ -101,7 +101,7 @@ async def exterior():
 
 @rt.get("/forecast", response_class=JSONResponse)
 async def forecast():
-    forecast_values = WeatherRetrieval().get_5_day_forecast()
+    forecast_values = WeatherRetrieval().get_7_day_forecast()
     if not forecast_values:
         # ForecastView with N/A values
         return JSONResponse(ForecastView().model_dump())
