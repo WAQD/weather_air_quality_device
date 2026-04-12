@@ -15,7 +15,7 @@
                                 </div>
                                 <span v-if="cached && currentWeather"
                                     class="badge badge-info badge-outline">{{
-                                        t('home_weather_cached') }}</span>
+                                    t('home_weather_cached') }}</span>
                             </div>
 
                             <div v-if="isLoadingWeather" class="mt-5">
@@ -51,28 +51,110 @@
 
                                 <div class="grid grid-cols-2 gap-3 text-sm">
                                     <div class="rounded-box bg-base-200/80 p-3">
-                                        <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                            t('humidity') }}</p>
-                                        <p class="mt-1 text-lg font-semibold">{{
-                                            currentWeather.humidity.toFixed(0) }}%</p>
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                                <use :href="raindropIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('humidity') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    currentWeather.humidity.toFixed(0) }}%</p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="rounded-box bg-base-200/80 p-3">
-                                        <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                            t('wind') }}</p>
-                                        <p class="mt-1 text-lg font-semibold">{{
-                                            currentWeather.wind_speed.toFixed(1) }} m/s</p>
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 weather-icon flex-none"
+                                                aria-hidden="true"
+                                                :style="{ transform: `rotate(${currentWeather.wind_deg ?? 0}deg)`, transformOrigin: 'center' }">
+                                                <use :href="windDegIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('wind') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    (currentWeather.wind_speed * 3.6).toFixed(1) }}
+                                                    km/h</p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="rounded-box bg-base-200/80 p-3">
-                                        <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                            t('pressure') }}</p>
-                                        <p class="mt-1 text-lg font-semibold">{{
-                                            currentWeather.pressure.toFixed(0) }} hPa</p>
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                                <use :href="pressureIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('pressure') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    currentWeather.pressure.toFixed(0) }} hPa</p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="rounded-box bg-base-200/80 p-3">
-                                        <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                            t('weather_clouds') }}</p>
-                                        <p class="mt-1 text-lg font-semibold">{{
-                                            currentWeather.clouds.toFixed(0) }}%</p>
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                                <use :href="cloudsIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('weather_clouds') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    currentWeather.clouds.toFixed(0) }}%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-box bg-base-200/80 p-3">
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 weather-icon flex-none"
+                                                aria-hidden="true">
+                                                <use :href="sunriseIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('sunrise') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    formatTimeString(currentWeather.sunrise) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-box bg-base-200/80 p-3">
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 weather-icon flex-none"
+                                                aria-hidden="true">
+                                                <use :href="sunsetIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('sunset') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    formatTimeString(currentWeather.sunset) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-box bg-base-200/80 p-3">
+                                        <div class="flex items-center gap-3">
+                                            <svg class="h-6 w-6 weather-icon flex-none"
+                                                aria-hidden="true">
+                                                <use :href="altitudeIconUrl" fill="currentColor" />
+                                            </svg>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                    {{ t('elevation') }}</p>
+                                                <p class="mt-1 text-lg font-semibold">{{
+                                                    currentWeather.altitude ?
+                                                    `${Math.round(currentWeather.altitude)} m` : '-'
+                                                    }}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -105,7 +187,7 @@
                                 <h2 class="card-title text-base sm:text-lg">{{
                                     t('home_weather_saved_location') }}</h2>
                                 <p class="mt-1 text-sm opacity-70">{{ t('home_weather_search_help')
-                                }}</p>
+                                    }}</p>
                             </div>
                         </div>
 
@@ -175,8 +257,7 @@
                         </div>
                         <div class="flex-1 min-w-0 flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <div
-                                    class="text-2xl font-thin truncate whitespace-nowrap">
+                                <div class="text-2xl font-thin truncate whitespace-nowrap">
                                     {{ currentLocation.name }}</div>
                             </div>
                             <div class="shrink-0 text-right max-w-[11rem] sm:max-w-[16rem]">
@@ -225,6 +306,15 @@ const WEATHER_VIEW_KEY = 'website-weather-view'
 
 const route = useRoute()
 const { t, locale } = useTranslation()
+const raindropIconUrl = '/static/weather_icons/wi-raindrops.svg#Layer_1'
+const windDegIconUrl = '/static/weather_icons/wi-wind-deg.svg#Layer_1'
+const sunriseIconUrl = '/static/weather_icons/wi-sunrise.svg#Layer_1'
+const sunsetIconUrl = '/static/weather_icons/wi-sunset.svg#Layer_1'
+const altitudeIconUrl = '/static/general_icons/altitude.svg#main'
+const pressureIconUrl = '/static/weather_icons/wi-barometer.svg#Layer_1'
+const cloudsIconUrl = '/static/weather_icons/wi-cloudy.svg#Layer_1'
+// img-safe URLs (no fragment) for external <img> usage
+// (no img-only fallbacks; use SVG <use> fragments)
 const { setWeatherData, clearWeatherData, getWeatherBackground } = useWeather()
 const {
     currentLocation,
@@ -347,6 +437,18 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
     }
 
     return ''
+}
+
+function formatTimeString(timeStr: string): string {
+    const parsed = new Date(timeStr)
+    if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit', hour12: false })
+    }
+
+    const parts = (timeStr || '').split(':').map(Number)
+    const date = new Date()
+    date.setHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0)
+    return date.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 async function selectLocation(location: WeatherLocationPayload): Promise<void> {
