@@ -1,5 +1,6 @@
 <template>
-  <div class="navbar bg-base-100 shadow-sm p-4 md:p-0 lg:p-2 sticky top-0 z-50">
+  <div
+    class="navbar bg-base-100 shadow-sm p-4 md:p-0 lg:p-2 sticky top-0 z-50 flex-wrap md:flex-nowrap">
     <!-- Toast Container -->
     <div class="toast toast-bottom toast-end z-50">
       <div v-if="showLogoutToast" class="alert alert-success">
@@ -14,11 +15,102 @@
 
     <div class="navbar-start">
       <!-- Mobile Menu -->
-      <router-link to="/public/home" class="btn btn-neutral text-xl md:text-3xl font-bold mx-2 md:mx-4">
+      <router-link to="/public/home"
+        class="btn btn-neutral text-xl md:text-3xl font-bold mx-2 md:mx-4">
         WAQD
       </router-link>
     </div>
-    <div class="navbar-center hidden md:flex"></div>
+    <div class="navbar-center flex-1 hidden md:flex">
+      <div
+        class="order-3 w-full basis-full md:order-none md:flex-none md:w-[clamp(20rem,42vw,56rem)] px-0 md:px-4 mt-2 md:mt-0">
+        <div v-if="isLoggedIn" class="w-full">
+          <div class="dropdown dropdown-bottom w-full">
+            <label
+              class="input input-bordered input-sm lg:input-md flex items-center gap-2 w-full cursor-pointer">
+              <svg viewBox="0 0 24 24" class="h-5 w-5 opacity-60 flex-shrink-0">
+                <path fill="currentColor"
+                  d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z" />
+              </svg>
+              <input v-model="weatherSearchQuery" type="search"
+                :placeholder="t('home_weather_search_placeholder')" class="w-full"
+                :disabled="isSelectingLocation" @focus="openDropdown" @keydown.escape="closeDropdown" />
+              <span v-if="isSearching || isSelectingLocation"
+                class="loading loading-spinner loading-xs opacity-70"></span>
+            </label>
+            <ul v-if="dropdownOpen"
+              class="dropdown-content menu flex flex-col flex-nowrap p-2 shadow bg-base-100 rounded-box w-full mt-1 max-h-96 overflow-y-auto overflow-x-hidden z-50">
+              <!-- Saved Location Section -->
+              <li v-if="hasSavedLocation" class="menu-title">
+                <span>{{ t('home_weather_saved_location') }}</span>
+              </li>
+              <li v-for="location in displayedSavedLocations"
+                :key="`${location.latitude}-${location.longitude}`">
+                <button type="button" class="w-full text-left flex items-center gap-3"
+                  :disabled="isSelectingLocation"
+                  @mousedown.prevent="selectSavedLocation(location)" @click.prevent>
+                  <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
+                    class="w-5 h-4 rounded-sm" />
+                  <div class="flex flex-col text-left">
+                    <span class="font-semibold">{{ location.name }}</span>
+                    <span class="text-xs opacity-70">{{ location.state || location.country }}, {{
+                      location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
+                  </div>
+                  <span v-if="selectingLocationKey === getLocationKey(location)"
+                    class="loading loading-spinner loading-xs ml-auto"></span>
+                </button>
+              </li>
+
+              <!-- Search Results Section -->
+              <li v-if="weatherSearchQuery.length >= 3 && displayedResults.length > 0"
+                class="menu-title">
+                <span>{{ t('search_results') }}</span>
+              </li>
+              <li v-for="(location, idx) in displayedResults" :key="idx">
+                <button type="button" class="w-full text-left flex items-center gap-3"
+                  :disabled="isSelectingLocation"
+                  @mousedown.prevent="selectLocation(location)" @click.prevent>
+                  <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
+                    class="w-5 h-4 rounded-sm" />
+                  <div class="flex flex-col text-left">
+                    <span class="font-semibold">{{ location.name }}</span>
+                    <span class="text-xs opacity-70">{{ location.state || location.country }}, {{
+                      location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
+                  </div>
+                  <span v-if="selectingLocationKey === getLocationKey(location)"
+                    class="loading loading-spinner loading-xs ml-auto"></span>
+                </button>
+              </li>
+
+              <li v-if="weatherSearchQuery.length >= 3 && isSearching"
+                class="text-center text-sm opacity-70 py-2">
+                <span class="inline-flex items-center gap-2">
+                  <span class="loading loading-spinner loading-xs"></span>
+                  Searching locations...
+                </span>
+              </li>
+
+              <li v-if="isSelectingLocation" class="text-center text-sm opacity-70 py-2">
+                <span class="inline-flex items-center gap-2">
+                  <span class="loading loading-spinner loading-xs"></span>
+                  Loading weather for selected location...
+                </span>
+              </li>
+
+              <!-- Prompt for search -->
+              <li v-if="weatherSearchQuery.length === 0 && !hasSavedLocation"
+                class="text-center text-sm opacity-70 py-2">
+                <span>{{ t('home_weather_search_prompt') }}</span>
+              </li>
+              <li v-if="weatherSearchQuery.length > 0 && weatherSearchQuery.length < 3"
+                class="text-center text-sm opacity-70 py-2">
+                <span>{{ t('search_min_chars') }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
     <div class="navbar-end flex gap-1 md:gap-0">
       <!-- Language Switcher -->
       <div class="dropdown dropdown-end z-50">
@@ -43,16 +135,24 @@
             <span>{{ username }}</span>
           </li>
           <li v-if="!isLoggedIn">
-            <router-link to="/public/login" class="btn btn-ghost btn-sm">{{ t('login') }}</router-link>
+            <router-link to="/public/login" class="btn btn-ghost btn-sm">{{ t('login')
+              }}</router-link>
           </li>
           <li v-if="isLoggedIn">
-            <router-link to="/rest/devices" class="btn btn-ghost btn-sm ">{{ t('my_devices') }}</router-link>
+            <router-link to="/rest/devices" class="btn btn-ghost btn-sm ">{{ t('my_devices')
+              }}</router-link>
           </li>
           <li v-if="isLoggedIn">
-            <router-link to="/account" class="btn btn-ghost btn-sm">{{ t('account_settings') }}</router-link>
+            <router-link to="/rest/weather" class="btn btn-ghost btn-sm ">{{ t('home_weather')
+              }}</router-link>
+          </li>
+          <li v-if="isLoggedIn">
+            <router-link to="/account" class="btn btn-ghost btn-sm">{{ t('account_settings')
+              }}</router-link>
           </li>
           <li v-if="isLoggedIn && isAdmin">
-            <router-link to="/admin" class="btn btn-ghost btn-sm">{{ t('admin_controls') }}</router-link>
+            <router-link to="/admin" class="btn btn-ghost btn-sm">{{ t('admin_controls')
+              }}</router-link>
           </li>
           <li v-if="isLoggedIn">
             <a @click="handleLogout" class="btn btn-ghost btn-sm ">{{ t('logout') }}</a>
@@ -69,18 +169,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
+import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
 
 const router = useRouter()
 const { t, locale, setLocale } = useTranslation()
 const { isLoggedIn, username, isAdmin, logout: logoutUser } = useUser()
+const {
+  savedLocation,
+  savedLocations,
+  searchResults,
+  searchLocations,
+  cancelSearch,
+  setCurrentLocation,
+  loadWeatherForLocation,
+  loadSavedLocation,
+  isSearching,
+  isLoadingWeather
+} = useWebsiteWeather()
+
 const theme = ref("purple")
 const showLogoutToast = ref(false)
+const weatherSearchQuery = ref('')
+const dropdownOpen = ref(false)
+const selectingLocationKey = ref<string | null>(null)
 const accountIconUrl = '/static/general_icons/account_circle.svg#main'
 const cancelIconUrl = '/static/general_icons/cancel.svg#main'
+let searchDebounce: number | null = null
+
+const hasSavedLocation = computed(() => savedLocations.value.length > 0 || savedLocation.value !== null)
+const displayedSavedLocations = computed(() => {
+  if (savedLocations.value.length > 0) {
+    return savedLocations.value.slice(0, 6)
+  }
+
+  return savedLocation.value ? [savedLocation.value] : []
+})
+
+const displayedResults = computed(() => {
+  return searchResults.value.slice(0, 6)
+})
+
+const isSelectingLocation = computed(() => selectingLocationKey.value !== null && isLoadingWeather.value)
 
 // Auto-hide logout toast after 5 seconds
 watch(showLogoutToast, (newValue) => {
@@ -91,10 +224,73 @@ watch(showLogoutToast, (newValue) => {
   }
 })
 
+watch(weatherSearchQuery, (query) => {
+  if (!isLoggedIn.value) {
+    return
+  }
+
+  if (isSelectingLocation.value) {
+    return
+  }
+
+  if (searchDebounce) {
+    window.clearTimeout(searchDebounce)
+  }
+
+  if (query.length < 3) {
+    cancelSearch()
+    searchResults.value = []
+    return
+  }
+
+  searchDebounce = window.setTimeout(() => {
+    searchLocations(query, locale.value)
+  }, 250)
+})
+
 function handleLogout() {
   logoutUser()
+  weatherSearchQuery.value = ''
   showLogoutToast.value = true
   router.push('/')
+}
+
+function openDropdown() {
+  dropdownOpen.value = true
+}
+
+function closeDropdown() {
+  dropdownOpen.value = false
+}
+
+function getFlagIconUrl(countryCode: string): string {
+  return `https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.3.2/flags/1x1/${countryCode.toLowerCase()}.svg`
+}
+
+function getLocationKey(location: WeatherLocationPayload): string {
+  return `${location.latitude.toFixed(4)}:${location.longitude.toFixed(4)}`
+}
+
+async function selectLocationAndOpenWeather(location: WeatherLocationPayload): Promise<void> {
+  selectingLocationKey.value = getLocationKey(location)
+  weatherSearchQuery.value = ''
+  setCurrentLocation(location)
+
+  try {
+    await router.push({ name: 'weather' })
+    await loadWeatherForLocation(location)
+    closeDropdown()
+  } finally {
+    selectingLocationKey.value = null
+  }
+}
+
+async function selectSavedLocation(location: WeatherLocationPayload): Promise<void> {
+  await selectLocationAndOpenWeather(location)
+}
+
+async function selectLocation(location: WeatherLocationPayload): Promise<void> {
+  await selectLocationAndOpenWeather(location)
 }
 
 function applyTheme() {
@@ -111,5 +307,8 @@ function toggleTheme() {
 
 onMounted(() => {
   applyTheme()
+  if (isLoggedIn.value) {
+    loadSavedLocation()
+  }
 })
 </script>
