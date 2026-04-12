@@ -7,7 +7,7 @@
         <span>{{ t('logout_success') }}</span>
         <button class="btn btn-square btn-success" @click="showLogoutToast = false">
           <svg viewBox="0 0 24 24" class="h-4">
-            <use :href="cancelIconUrl" fill="black" />
+            <use :href="cancelIconUrl" fill="currentColor" />
           </svg>
         </button>
       </div>
@@ -33,7 +33,8 @@
               </svg>
               <input v-model="weatherSearchQuery" type="search"
                 :placeholder="t('home_weather_search_placeholder')" class="w-full"
-                :disabled="isSelectingLocation" @focus="openDropdown" @keydown.escape="closeDropdown" />
+                :disabled="isSelectingLocation" @focus="openDropdown"
+                @keydown.escape="closeDropdown" />
               <span v-if="isSearching || isSelectingLocation"
                 class="loading loading-spinner loading-xs opacity-70"></span>
             </label>
@@ -46,8 +47,8 @@
               <li v-for="location in displayedSavedLocations"
                 :key="`${location.latitude}-${location.longitude}`">
                 <button type="button" class="w-full text-left flex items-center gap-3"
-                  :disabled="isSelectingLocation"
-                  @mousedown.prevent="selectSavedLocation(location)" @click.prevent>
+                  :disabled="isSelectingLocation" @mousedown.prevent="selectSavedLocation(location)"
+                  @click.prevent>
                   <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
                     class="w-5 h-4 rounded-sm" />
                   <div class="flex flex-col text-left">
@@ -67,8 +68,8 @@
               </li>
               <li v-for="(location, idx) in displayedResults" :key="idx">
                 <button type="button" class="w-full text-left flex items-center gap-3"
-                  :disabled="isSelectingLocation"
-                  @mousedown.prevent="selectLocation(location)" @click.prevent>
+                  :disabled="isSelectingLocation" @mousedown.prevent="selectLocation(location)"
+                  @click.prevent>
                   <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
                     class="w-5 h-4 rounded-sm" />
                   <div class="flex flex-col text-left">
