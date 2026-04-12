@@ -6,7 +6,7 @@
       <!-- 7-Day Forecast Section -->
       <div v-if="forecastData && forecastData.length > 0" class="mb-4 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast')
-        }}</h3>
+          }}</h3>
         <div class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-2 sm:gap-3 lg:gap-4 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
@@ -56,6 +56,17 @@
                     {{ day.precipitation.toFixed(1) }}mm
                   </p>
                 </div>
+                <!-- Daily wind display (moved from details) -->
+                <div v-if="day.wind_speed !== undefined || day.wind_deg !== undefined"
+                  class="mt-2 sm:mt-3 space-y-1">
+                  <p class="text-sm sm:text-base flex items-center justify-center gap-1">
+                    <svg v-if="day.wind_deg !== undefined" class="h-8 w-8 weather-icon" aria-hidden="true"
+                      :style="{ transform: `rotate(${day.wind_deg}deg)`, transformOrigin: 'center' }">
+                      <use :href="windDegIconUrl" fill="currentColor" />
+                    </svg>
+                    {{ formatWind(day.wind_speed, day.wind_deg) }}
+                  </p>
+                </div>
               </div>
             </button>
           </div>
@@ -79,9 +90,10 @@
                 class="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-1 weather-icon" />
               <p class="font-bold text-base sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
               <p class="text-sm opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
+
               <div
                 v-if="hour.precipitation_probability !== undefined || hour.precipitation !== undefined"
-                class="mt-2 sm:mt-3 space-y-1">
+                class="mt-2 sm:mt-3 space-y-2">
                 <p v-if="hour.precipitation_probability !== undefined"
                   class="text-sm sm:text-base flex items-center justify-center gap-1">
                   <img :src="raindropIconUrl" alt="Raindrop" class="h-10 w-10 weather-icon" />
@@ -92,10 +104,22 @@
                   <img :src="showersIconUrl" alt="Showers" class="h-10 w-10 weather-icon" />
                   {{ hour.precipitation.toFixed(1) }}mm
                 </p>
+                <div v-if="hour.wind_speed !== undefined || hour.wind_deg !== undefined">
+                  <p class="text-sm sm:text-base flex items-center justify-center gap-1">
+                    <svg v-if="hour.wind_deg !== undefined" class="h-6 w-6 weather-icon"
+                      aria-hidden="true"
+                      :style="{ transform: `rotate(${hour.wind_deg}deg)`, transformOrigin: 'center' }">
+                      <use :href="windDegIconUrl" fill="currentColor" />
+                    </svg>
+                    {{ formatWind(hour.wind_speed, hour.wind_deg) }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- details moved to main current weather view -->
       </div>
 
       <!-- No data message -->
@@ -114,6 +138,7 @@ import type { ForecastData, HourlyWeatherData } from '../composables/useWeather'
 const { t } = useTranslation()
 const raindropIconUrl = '/static/weather_icons/wi-raindrops.svg'
 const showersIconUrl = '/static/weather_icons/wi-showers.svg'
+const windDegIconUrl = '/static/weather_icons/wi-wind-deg.svg#Layer_1'
 
 interface Props {
   title?: string
@@ -232,7 +257,22 @@ function formatForecastDate(dateString: string): string {
 }
 
 function formatHourlyTime(dateString: string): string {
-  const date = new Date(dateString)
+  const parseTimeString = (timeStr: string): Date => {
+    const parsedDateTime = new Date(timeStr)
+    if (!Number.isNaN(parsedDateTime.getTime())) {
+      return parsedDateTime
+    }
+
+    const parts = timeStr.split(':').map(Number)
+    const hours = parts[0] || 0
+    const minutes = parts[1] || 0
+    const seconds = parts[2] || 0
+    const date = new Date()
+    date.setHours(hours, minutes, seconds, 0)
+    return date
+  }
+
+  const date = parseTimeString(dateString)
   return date.toLocaleTimeString(undefined, {
     hour: '2-digit',
     minute: '2-digit',
@@ -241,7 +281,41 @@ function formatHourlyTime(dateString: string): string {
 }
 
 function getHourFromDateString(dateString: string): number {
-  return new Date(dateString).getHours()
+  const parseTimeString = (timeStr: string): Date => {
+    const parsedDateTime = new Date(timeStr)
+    if (!Number.isNaN(parsedDateTime.getTime())) {
+      return parsedDateTime
+    }
+
+    const parts = timeStr.split(':').map(Number)
+    const hours = parts[0] || 0
+    const minutes = parts[1] || 0
+    const seconds = parts[2] || 0
+    const date = new Date()
+    date.setHours(hours, minutes, seconds, 0)
+    return date
+  }
+
+  return parseTimeString(dateString).getHours()
+}
+
+const selectedDay = computed(() => {
+  return displayedForecastData.value[selectedDayIndex.value] ?? null
+})
+
+function degToCompass(num: number | undefined): string {
+  if (num === undefined || num === null || Number.isNaN(num)) return ''
+  const val = Math.floor((num / 22.5) + 0.5)
+  const arr = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
+  return arr[(val % 16)]
+}
+
+function formatWind(speed: number | undefined, deg: number | undefined): string {
+  if (speed === undefined || speed === null) return '-'
+  const dir = degToCompass(deg)
+  // Convert m/s to km/h for display
+  const sp = `${(Number(speed) * 3.6).toFixed(1)} km/h`
+  return dir ? `${dir} - ${sp}` : sp
 }
 
 async function selectDay(index: number): Promise<void> {

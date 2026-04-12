@@ -59,7 +59,7 @@
                                     class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                                 <div>
                                     <h3 class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1)
-                                    }}°C</h3>
+                                        }}°C</h3>
                                     <p class="text-base opacity-80">{{
                                         translateWeatherCondition(currentWeather) }}</p>
                                 </div>
@@ -76,7 +76,7 @@
                                     <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
                                         t('wind') }}</p>
                                     <p class="mt-1 text-lg font-semibold">{{
-                                        currentWeather.wind_speed.toFixed(1) }} m/s</p>
+                                        (currentWeather.wind_speed * 3.6).toFixed(1) }} km/h</p>
                                 </div>
                                 <div class="rounded-box bg-base-200/80 p-3">
                                     <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
@@ -314,7 +314,9 @@
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                         <a href="https://github.com/WAQD/weather_air_quality_device/wiki/Assembly-and-Software-Setup-Guide"
                             target="_blank" class="btn btn-secondary btn-sm sm:btn-md lg:btn-lg">
-                            <svg class="h-6 w-6 mr-2"><use :href="taskListIconUrl" fill="currentColor" /></svg>
+                            <svg class="h-6 w-6 mr-2">
+                                <use :href="taskListIconUrl" fill="currentColor" />
+                            </svg>
                             {{ t('home_view_assembly') }}
                         </a>
                         <a href="https://github.com/goszpeti/weather_air_quality_device"
@@ -328,7 +330,9 @@
                         </a>
                         <router-link to="/public/about"
                             class="btn btn-primary btn-secondary btn-sm sm:btn-md lg:btn-lg">
-                            <svg class="h-6 w-6 mr-2"><use :href="infoIconUrl" fill="currentColor" /></svg>
+                            <svg class="h-6 w-6 mr-2">
+                                <use :href="infoIconUrl" fill="currentColor" />
+                            </svg>
                             {{ t('settings_tab_about') }}
                         </router-link>
                     </div>
