@@ -46,3 +46,10 @@ onMounted(() => {
   fetchUserInfo()
 })
 </script>
+
+
+<style>
+.weather-icon {
+  filter: brightness(0) invert(1);
+}
+</style>

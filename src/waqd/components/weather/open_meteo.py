@@ -4,8 +4,6 @@ from urllib.parse import quote
 
 import requests
 
-from waqd.base.network import Network
-
 from .base_types import (
     DailyWeather,
     Location,
@@ -310,11 +308,7 @@ class OpenMeteo(WeatherProvider):
         """Call the REST like API of OpenWeatherMap. Return response."""
         if self._disabled:
             return {}
-        # wait a little bit for connection
-        is_connected = Network().wait_for_internet()
-        if not is_connected:
-            self._logger.error("OpenMeteo: Timeout while wating for network connection")
-            return {}
+
         try:
             command = command.format(**kwargs)
             response = requests.get(command, timeout=5)
