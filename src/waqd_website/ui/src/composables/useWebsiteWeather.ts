@@ -314,7 +314,6 @@ async function saveLocation(location: WeatherLocationPayload, setAsHome = true):
       currentLocation.value = payload.location
     }
     clearSearchResults()
-    await loadWeather(true)
     return payload.location
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to save location'

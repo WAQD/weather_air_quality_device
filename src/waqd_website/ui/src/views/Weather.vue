@@ -68,7 +68,7 @@
                                         <div class="flex items-center gap-3">
                                             <svg class="h-6 w-6 weather-icon flex-none"
                                                 aria-hidden="true"
-                                                :style="{ transform: `rotate(${currentWeather.wind_deg ?? 0}deg)`, transformOrigin: 'center' }">
+                                                :style="{ transform: `rotate(${((currentWeather.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                                                 <use :href="windDegIconUrl" fill="currentColor" />
                                             </svg>
                                             <div class="min-w-0">
@@ -216,24 +216,16 @@
                                 {{ t('saved_locations') }}</p>
                             <div v-for="location in savedLocations" :key="getLocationKey(location)"
                                 class="rounded-box border border-base-300 bg-base-200/70 p-3">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div class="min-w-0">
-                                        <p class="font-semibold truncate">{{ location.name }}</p>
-                                        <p class="text-xs opacity-70">{{ location.state ||
-                                            location.country }}</p>
-                                    </div>
+                                <div class="min-w-0">
+                                    <p class="font-semibold truncate break-words">{{ location.name }}</p>
+                                </div>
+
+                                <div class="mt-2 flex items-center justify-between gap-3">
+                                    <div class="text-xs opacity-70">{{ location.state || location.country }}</div>
                                     <div class="flex gap-2 shrink-0">
-                                        <button class="btn btn-xs" type="button"
-                                            @click="selectLocation(location)">{{ t('open')
-                                            }}</button>
-                                        <button class="btn btn-xs btn-outline" type="button"
-                                            :disabled="isSavingLocation"
-                                            @click="setAsHome(location)">{{ t('set_home')
-                                            }}</button>
-                                        <button class="btn btn-xs btn-ghost" type="button"
-                                            :disabled="isSavingLocation"
-                                            @click="removeSavedLocation(location)">{{ t('delete')
-                                            }}</button>
+                                        <button class="btn btn-xs" type="button" @click="selectLocation(location)">{{ t('open') }}</button>
+                                        <button class="btn btn-xs btn-outline" type="button" :disabled="isSavingLocation" @click="setAsHome(location)">{{ t('set_home') }}</button>
+                                        <button class="btn btn-xs btn-ghost" type="button" :disabled="isSavingLocation" @click="removeSavedLocation(location)">{{ t('delete') }}</button>
                                     </div>
                                 </div>
                             </div>
