@@ -15,6 +15,7 @@ from waqd.base.file_logger import Logger
 from .api.device.routes import rt as device_router
 from .api.public.routes import rt as public_router
 from .api.user.routes import rt as user_router
+from .api.weather.routes import rt as weather_router
 from .auth.authentication import (
     ADMIN_PERMISSION,
     RequiresLoginException,
@@ -71,6 +72,7 @@ web_app.get("/api/devices")(get_connected_devices)
 web_app.include_router(public_router, prefix="/api/public")
 web_app.include_router(user_router, prefix="/api/user")
 web_app.include_router(device_router, prefix="/api/user")
+web_app.include_router(weather_router, prefix="/api/user/weather")
 
 
 # Root redirect - register early

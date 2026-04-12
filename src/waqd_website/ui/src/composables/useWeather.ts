@@ -5,14 +5,17 @@ export interface WeatherData {
   temp: number
   icon: string
   date_time: string
+  fetch_time?: string
   wid: number
   wind_speed: number
   wind_deg: number
   sunrise: string
   sunset: string
   pressure: number
+  pressure_sea_level?: number
   humidity: number
   clouds: number
+  altitude?: number
   precipitation_probability?: number
   precipitation?: number
 }
@@ -26,14 +29,17 @@ export interface ForecastData {
   temp_night_max: number
   icon: string
   date_time: string
+  fetch_time?: string
   wid: number
   wind_speed: number
   wind_deg: number
   sunrise: string
   sunset: string
   pressure: number
+  pressure_sea_level?: number
   humidity: number
   clouds: number
+  altitude?: number
   precipitation_probability_max?: number
   precipitation?: number
 }
@@ -43,6 +49,7 @@ export interface HourlyWeatherData {
   temp: number
   icon: string
   date_time: string
+  fetch_time?: string
   wid: number
   wind_speed: number
   wind_deg: number
@@ -52,6 +59,7 @@ export interface HourlyWeatherData {
   pressure_sea_level: number
   humidity: number
   clouds: number
+  altitude?: number
   precipitation_probability?: number
   precipitation?: number
 }
@@ -157,9 +165,14 @@ export function useWeather() {
 
   const isDay = (weather: WeatherData): boolean => {
     const now = new Date()
-    
-    // Parse time strings in format "HH:MM:SS" to today's date
+
+    // Accept time-only strings and full ISO date/time values.
     const parseTimeString = (timeStr: string): Date => {
+      const parsedDateTime = new Date(timeStr)
+      if (!Number.isNaN(parsedDateTime.getTime())) {
+        return parsedDateTime
+      }
+
       const parts = timeStr.split(':').map(Number)
       const hours = parts[0] || 0
       const minutes = parts[1] || 0

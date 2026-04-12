@@ -6,6 +6,7 @@ import Admin from '../views/Admin.vue'
 import Account from '../views/Account.vue'
 import Devices from '../views/Devices.vue'
 import Device from '../views/Device.vue'
+import Weather from '../views/Weather.vue'
 import ForgotPassword from '../views/ForgotPassword.vue'
 import ResetPassword from '../views/ResetPassword.vue'
 import { useUser } from '../composables/useUser'
@@ -47,6 +48,12 @@ const router = createRouter({
       path: '/rest/device/:id',
       name: 'device',
       component: Device,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/rest/weather',
+      name: 'weather',
+      component: Weather,
       meta: { requiresAuth: true }
     },
     {
