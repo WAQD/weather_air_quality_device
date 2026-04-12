@@ -59,7 +59,7 @@
                                     class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                                 <div>
                                     <h3 class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1)
-                                        }}°C</h3>
+                                    }}°C</h3>
                                     <p class="text-base opacity-80">{{
                                         translateWeatherCondition(currentWeather) }}</p>
                                 </div>
@@ -314,12 +314,7 @@
                     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                         <a href="https://github.com/WAQD/weather_air_quality_device/wiki/Assembly-and-Software-Setup-Guide"
                             target="_blank" class="btn btn-secondary btn-sm sm:btn-md lg:btn-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
+                            <svg class="h-6 w-6 mr-2"><use :href="taskListIconUrl" fill="currentColor" /></svg>
                             {{ t('home_view_assembly') }}
                         </a>
                         <a href="https://github.com/goszpeti/weather_air_quality_device"
@@ -333,6 +328,7 @@
                         </a>
                         <router-link to="/public/about"
                             class="btn btn-primary btn-secondary btn-sm sm:btn-md lg:btn-lg">
+                            <svg class="h-6 w-6 mr-2"><use :href="infoIconUrl" fill="currentColor" /></svg>
                             {{ t('settings_tab_about') }}
                         </router-link>
                     </div>
@@ -364,16 +360,19 @@ const { t } = useTranslation()
 const { isLoggedIn, username, fetchUserInfo, isLoading: isUserLoading } = useUser()
 const { setWeatherData } = useWeather()
 const {
-  homeLocation,
-  currentWeather,
-  cached,
-  isLoadingWeather,
-  loadSavedLocation,
-  loadWeather
+    homeLocation,
+    currentWeather,
+    cached,
+    isLoadingWeather,
+    loadSavedLocation,
+    loadWeather
 } = useWebsiteWeather()
 const version = packageJson.version
 const devices = ref<Device[]>([])
 const homeDevice = computed(() => devices.value[0] || null)
+
+const taskListIconUrl = '/static/general_icons/task_list.svg#main'
+const infoIconUrl = '/static/general_icons/info.svg#main'
 
 const mainGuiImg = '/static/doc_images/main_gui.png'
 const waqdStationImg = '/static/doc_images/waqd_station.jpg'
@@ -381,10 +380,10 @@ const sensorCaseImg = '/static/doc_images/sensor_case.png'
 const optionsImg = '/static/doc_images/options.png'
 
 watch(isLoggedIn, async (loggedIn) => {
-  if (!loggedIn) {
+    if (!loggedIn) {
         devices.value = []
-    return
-  }
+        return
+    }
 
     await Promise.all([
         initializeHomeWeather(),
@@ -393,14 +392,14 @@ watch(isLoggedIn, async (loggedIn) => {
 }, { immediate: true })
 
 onMounted(async () => {
-  if (!isLoggedIn.value && !isUserLoading.value) {
-    await fetchUserInfo()
-  }
+    if (!isLoggedIn.value && !isUserLoading.value) {
+        await fetchUserInfo()
+    }
 })
 
 async function initializeHomeWeather(): Promise<void> {
-  await loadSavedLocation()
-  await loadWeather()
+    await loadSavedLocation()
+    await loadWeather()
 }
 
 async function loadDevices(): Promise<void> {
@@ -432,117 +431,120 @@ function connectToDevice(device: Device): void {
 }
 
 function formatLocationLabel(location: WeatherLocationPayload): string {
-  return [location.name, location.state || location.county, location.country]
-    .filter(Boolean)
-    .join(', ')
+    return [location.name, location.state || location.county, location.country]
+        .filter(Boolean)
+        .join(', ')
 }
 
 function translateWeatherCondition(weather: { wid?: number, main?: string }): string {
-  if (weather.wid !== undefined) {
-    const key = `weather_${weather.wid}`
-    const translated = t(key)
-    if (translated !== key) {
-      return translated
-    }
-  }
-
-  if (weather.main) {
-    const key = `weather_${weather.main.toLowerCase()}`
-    const translated = t(key)
-    if (translated !== key) {
-      return translated
+    if (weather.wid !== undefined) {
+        const key = `weather_${weather.wid}`
+        const translated = t(key)
+        if (translated !== key) {
+            return translated
+        }
     }
 
-    return weather.main
-  }
+    if (weather.main) {
+        const key = `weather_${weather.main.toLowerCase()}`
+        const translated = t(key)
+        if (translated !== key) {
+            return translated
+        }
 
-  return ''
+        return weather.main
+    }
+
+    return ''
 }
 
 async function refreshWeather(force = false): Promise<void> {
-  await loadWeather(force)
+    await loadWeather(force)
 }
 </script>
 
 <style scoped>
 .scroll-container {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: calc(100vh - 4rem);
-  width: 100%;
-  max-width: 100vw;
+    scroll-snap-type: y mandatory;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: calc(100vh - 4rem);
+    width: 100%;
+    max-width: 100vw;
 }
 
 .snap-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  overflow-x: hidden;
-  max-width: 100vw;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 .snap-section img {
-  max-width: 100%;
-  height: auto;
+    max-width: 100%;
+    height: auto;
 }
 
 .hero-content {
-  max-width: 100%;
-  box-sizing: border-box;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .hero-bg-main {
-  background-image: url(/static/gui_base/pascal-debrunner-UjyUlxr1Yjo-unsplash.avif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url(/static/gui_base/pascal-debrunner-UjyUlxr1Yjo-unsplash.avif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-bg-features {
-  background-image: url(/static/gui_base/wolfgang-hasselmann-bR_-gllg7Bs-unsplash.avif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url(/static/gui_base/wolfgang-hasselmann-bR_-gllg7Bs-unsplash.avif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-bg-hardware {
-  background-image: url(/static/gui_base/ish-consul-Ozlzi3DXuGg-unsplash.avif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url(/static/gui_base/ish-consul-Ozlzi3DXuGg-unsplash.avif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-bg-3dprint {
-  background-image: url(/static/gui_base/miguel-dias-coelho-ZbGwGW_u8zI-unsplash.avif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url(/static/gui_base/miguel-dias-coelho-ZbGwGW_u8zI-unsplash.avif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-bg-custom {
-  background-image: url(/static/gui_base/joe-r-harris-KOnl4LFvwHE-unsplash.avif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url(/static/gui_base/joe-r-harris-KOnl4LFvwHE-unsplash.avif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .hero-bg-cta {
-  background-image: url(/static/gui_base/gaspar-uhas-Y3vsGbFCX-o-unsplash.avif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+    background-image: url(/static/gui_base/gaspar-uhas-Y3vsGbFCX-o-unsplash.avif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 @keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 .animate-bounce {
-  animation: bounce 2s infinite;
+    animation: bounce 2s infinite;
 }
 </style>

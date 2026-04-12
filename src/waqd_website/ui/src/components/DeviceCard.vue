@@ -12,30 +12,15 @@
 
       <div class="space-y-2 text-sm opacity-70 flex-grow">
         <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-            fill="currentColor">
-            <path fill-rule="evenodd"
-              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-              clip-rule="evenodd" />
-          </svg>
+          <svg class="h-6 w-6"><use :href="locationIconUrl" fill="currentColor" /></svg>
           <span>{{ props.device.location || t('no_location') }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-            fill="currentColor">
-            <path fill-rule="evenodd"
-              d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z"
-              clip-rule="evenodd" />
-          </svg>
+          <svg class="h-6 w-6"><use :href="codeXmlIconUrl" fill="currentColor" /></svg>
           <span class="font-mono text-xs">{{ props.device.device_id }}</span>
         </div>
         <div v-if="props.device.last_seen" class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-            fill="currentColor">
-            <path fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-              clip-rule="evenodd" />
-          </svg>
+          <svg class="h-6 w-6"><use :href="lastSeenIconUrl" fill="currentColor" /></svg>
           <span>{{ t('last_seen') }}: {{ formatDate(props.device.last_seen) }}</span>
         </div>
       </div>
@@ -104,6 +89,9 @@ defineEmits<{
 
 const { t } = useTranslation()
 const { getWeatherBackground } = useWeather()
+const lastSeenIconUrl = '/static/weather_icons/wi-time-8.svg#Layer_1'
+const codeXmlIconUrl = '/static/general_icons/code_xml.svg#main'
+const locationIconUrl = '/static/general_icons/location.svg#main'
 
 function formatDate(dateString: string) {
   const date = new Date(dateString)

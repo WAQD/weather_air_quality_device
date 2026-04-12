@@ -13,10 +13,8 @@
     </div>
     <!-- Beta Warning Alert -->
     <div class="alert alert-warning shadow-lg w-full">
-      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
-        viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      <svg class="stroke-current shrink-0 h-6 w-6">
+        <use :href="warningIconUrl" fill="currentColor" />
       </svg>
       <div>
         <h3 class="font-bold">{{ t('closed_beta') }}</h3>
@@ -46,16 +44,17 @@
 
               <label class="label text-sm sm:text-base">{{ t('password') }}</label>
 
-              <div class="flex items-center">
+              <div class="join w-full">
                 <input :type="passwordVisible ? 'text' : 'password'" id="password"
-                  v-model="password" class="input input-bordered flex-grow text-sm sm:text-base"
+                  v-model="password"
+                  class="join-item input input-bordered w-full text-sm sm:text-base"
                   autocomplete="password" :placeholder="t('password')" @keyup.enter="login" />
                 <button type="button"
-                  :class="['btn btn-square ml-1 sm:ml-2 min-h-0 h-12', { 'btn-active btn-primary': passwordVisible }]"
-                  @click="togglePasswordVisibility">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6"
-                    viewBox="0 0 24 24">
-                    <use :href="visibilityIconUrl" fill="white" />
+                  :class="['join-item btn h-12 min-h-0', { 'btn-active btn-primary': passwordVisible }]"
+                  @click="togglePasswordVisibility" aria-label="Toggle password visibility">
+                  <svg class="h-6 w-6">
+                    <use :href="passwordVisible ? visibilityOffIconUrl : visibilityIconUrl"
+                      fill="currentColor" />
                   </svg>
                 </button>
               </div>
@@ -64,14 +63,16 @@
                   {{ t('forgot_password') }}
                 </router-link>
               </div>
-              <label class="label cursor-pointer justify-start gap-3 mt-2">
-                <input type="checkbox" v-model="rememberMe" class="checkbox checkbox-primary" />
-                <span class="label-text text-sm sm:text-base">{{ t('remember_me_30_days') }}</span>
-              </label>
-              <button class="btn btn-primary mt-4 text-base sm:text-lg" @click="login">
-                {{ t('login') }}
-                <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
-              </button>
+              <div class="flex items-center justify-start gap-3 mt-4 flex-wrap">
+                <button class="btn btn-primary w-full text-base sm:text-lg" @click="login">
+                  {{ t('login') }}
+                  <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
+                </button>
+                <label class="flex items-center text-xs sm:text-sm gap-2">
+                  <input type="checkbox" v-model="rememberMe" class="checkbox h-4 w-4" />
+                  <span class="label-text">{{ t('remember_me_30_days') }}</span>
+                </label>
+              </div>
             </fieldset>
           </div>
         </div>
@@ -91,7 +92,9 @@ const { t } = useTranslation()
 const { fetchUserInfo } = useUser()
 
 const visibilityIconUrl = '/static/general_icons/visibility.svg#main'
+const visibilityOffIconUrl = '/static/general_icons/visibility_off.svg#main'
 const cancelIconUrl = '/static/general_icons/cancel.svg#main'
+const warningIconUrl = '/static/general_icons/warning.svg#main'
 const username = ref('')
 const password = ref('')
 const loading = ref(false)
