@@ -61,7 +61,7 @@
                   class="mt-2 sm:mt-3 space-y-1">
                   <p class="text-sm sm:text-base flex items-center justify-center gap-1">
                     <svg v-if="day.wind_deg !== undefined" class="h-8 w-8 weather-icon" aria-hidden="true"
-                      :style="{ transform: `rotate(${day.wind_deg}deg)`, transformOrigin: 'center' }">
+                      :style="{ transform: `rotate(${((day.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
                     {{ formatWind(day.wind_speed, day.wind_deg) }}
@@ -108,7 +108,7 @@
                   <p class="text-sm sm:text-base flex items-center justify-center gap-1">
                     <svg v-if="hour.wind_deg !== undefined" class="h-6 w-6 weather-icon"
                       aria-hidden="true"
-                      :style="{ transform: `rotate(${hour.wind_deg}deg)`, transformOrigin: 'center' }">
+                      :style="{ transform: `rotate(${((hour.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
                     {{ formatWind(hour.wind_speed, hour.wind_deg) }}
@@ -299,23 +299,10 @@ function getHourFromDateString(dateString: string): number {
   return parseTimeString(dateString).getHours()
 }
 
-const selectedDay = computed(() => {
-  return displayedForecastData.value[selectedDayIndex.value] ?? null
-})
-
-function degToCompass(num: number | undefined): string {
-  if (num === undefined || num === null || Number.isNaN(num)) return ''
-  const val = Math.floor((num / 22.5) + 0.5)
-  const arr = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
-  return arr[(val % 16)]
-}
-
 function formatWind(speed: number | undefined, deg: number | undefined): string {
   if (speed === undefined || speed === null) return '-'
-  const dir = degToCompass(deg)
-  // Convert m/s to km/h for display
-  const sp = `${(Number(speed) * 3.6).toFixed(1)} km/h`
-  return dir ? `${dir} - ${sp}` : sp
+  // Convert m/s to km/h for display (show speed only)
+  return `${(Number(speed) * 3.6).toFixed(1)} km/h`
 }
 
 async function selectDay(index: number): Promise<void> {
