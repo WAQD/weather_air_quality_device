@@ -122,7 +122,7 @@ class OpenMeteo(WeatherProvider):
             self.API_FORECAST_CMD
             + "&daily=precipitation_probability_max,weathercode,temperature_2m_max,"
             + "temperature_2m_min,sunrise,sunset,precipitation_sum,"
-            + "rain_sum,showers_sum,snowfall_sum,precipitation_hours,windspeed_10m_max,"
+            + "windspeed_10m_max,"
             + "winddirection_10m_dominant&current_weather=true&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude,
             longitude=self._longitude,
