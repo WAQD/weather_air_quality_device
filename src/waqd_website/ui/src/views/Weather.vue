@@ -1,186 +1,188 @@
 <template>
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-full">
-        <div class="grid grid-cols-1 gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <div class="space-y-6">
-                <div class="card bg-base-100 shadow-xl overflow-hidden" :style="weatherHeroStyle">
-                    <div class="bg-base-100/82 backdrop-blur-md">
-                        <div class="card-body p-5 sm:p-6">
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <p
-                                        class="text-xs font-semibold uppercase tracking-[0.22em] opacity-60">
-                                        {{ t('current_weather') }}</p>
-                                    <h1 class="mt-2 text-2xl sm:text-3xl font-bold">{{
-                                        t('home_weather') }}</h1>
-                                </div>
-                                <span v-if="cached && currentWeather"
-                                    class="badge badge-info badge-outline">{{
+    <div id="weather_container"
+        class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-full">
+        <div id="weather_grid"
+            class="flex flex-col xl:grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+            <div class="contents xl:block xl:space-y-6">
+                <div id="current_weather_card"
+                    class="order-2 xl:order-none card bg-base-100 shadow-xl overflow-hidden"
+                    :style="weatherHeroStyle">
+                    <div class="card-body p-5 sm:p-6 bg-base-100/82 backdrop-blur-md">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p
+                                    class="text-xs font-semibold uppercase tracking-[0.22em] opacity-60">
+                                    {{ t('current_weather') }}</p>
+                                <h1 class="mt-2 text-2xl sm:text-3xl font-bold">{{
+                                    t('home_weather') }}</h1>
+                            </div>
+                            <span v-if="cached && currentWeather"
+                                class="badge badge-info badge-outline">{{
                                     t('home_weather_cached') }}</span>
-                            </div>
+                        </div>
 
-                            <div v-if="isLoadingWeather" class="mt-5">
-                                <div class="rounded-box border border-base-300 bg-base-200/70 p-4">
-                                    <div class="flex items-center gap-3 text-sm sm:text-base">
-                                        <span class="loading loading-spinner loading-sm"></span>
-                                        <span>Loading weather data...</span>
-                                    </div>
+                        <div v-if="isLoadingWeather" class="mt-5">
+                            <div class="rounded-box border border-base-300 bg-base-200/70 p-4">
+                                <div class="flex items-center gap-3 text-sm sm:text-base">
+                                    <span class="loading loading-spinner loading-sm"></span>
+                                    <span>Loading weather data...</span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div v-else-if="currentWeather" class="mt-5 space-y-4">
-                                <div class="flex items-center gap-4">
-                                    <img v-if="currentWeather.icon"
-                                        :src="`/static/weather_icons/${currentWeather.icon}.svg`"
-                                        :alt="currentWeather.main"
-                                        class="h-16 w-16 brightness-0 invert-0 weather-icon" />
-                                    <div>
-                                        <p class="text-4xl font-bold">{{
-                                            currentWeather.temp.toFixed(1) }}°C</p>
-                                        <p class="text-sm sm:text-base opacity-75">{{
-                                            translateWeatherCondition(currentWeather) }}</p>
-                                    </div>
-                                </div>
-
+                        <div v-else-if="currentWeather" class="mt-5 space-y-4">
+                            <div class="flex items-center gap-4">
+                                <img v-if="currentWeather.icon"
+                                    :src="`/static/weather_icons/${currentWeather.icon}.svg`"
+                                    :alt="currentWeather.main"
+                                    class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                                 <div>
-                                    <p class="font-semibold text-base">{{ currentLocation ?
-                                        formatLocationLabel(currentLocation) : t('no_location') }}
-                                    </p>
-                                    <p class="text-sm opacity-70">{{ t('last_updated') }}: {{
-                                        currentWeatherUpdatedAt }}</p>
+                                    <p class="text-4xl font-bold">{{
+                                        currentWeather.temp.toFixed(1) }}°C</p>
+                                    <p class="text-sm sm:text-base opacity-75">{{
+                                        translateWeatherCondition(currentWeather) }}</p>
                                 </div>
+                            </div>
 
-                                <div class="grid grid-cols-2 gap-3 text-sm">
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 flex-none" aria-hidden="true">
-                                                <use :href="raindropIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('humidity') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    currentWeather.humidity.toFixed(0) }}%</p>
-                                            </div>
+                            <div>
+                                <p class="font-semibold text-base">{{ currentLocation ?
+                                    formatLocationLabel(currentLocation) : t('no_location') }}
+                                </p>
+                                <p class="text-sm opacity-70">{{ t('last_updated') }}: {{
+                                    currentWeatherUpdatedAt }}</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                            <use :href="raindropIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('humidity') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.humidity.toFixed(0) }}%</p>
                                         </div>
                                     </div>
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 weather-icon flex-none"
-                                                aria-hidden="true"
-                                                :style="{ transform: `rotate(${((currentWeather.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
-                                                <use :href="windDegIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('wind') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    (currentWeather.wind_speed * 3.6).toFixed(1) }}
-                                                    km/h</p>
-                                            </div>
+                                </div>
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                            aria-hidden="true"
+                                            :style="{ transform: `rotate(${((currentWeather.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
+                                            <use :href="windDegIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('wind') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                (currentWeather.wind_speed * 3.6).toFixed(1) }}
+                                                km/h</p>
                                         </div>
                                     </div>
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 flex-none" aria-hidden="true">
-                                                <use :href="pressureIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('pressure') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    currentWeather.pressure.toFixed(0) }} hPa</p>
-                                            </div>
+                                </div>
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                            <use :href="pressureIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('pressure') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.pressure.toFixed(0) }} hPa</p>
                                         </div>
                                     </div>
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 flex-none" aria-hidden="true">
-                                                <use :href="cloudsIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('weather_clouds') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    currentWeather.clouds.toFixed(0) }}%</p>
-                                            </div>
+                                </div>
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                            <use :href="cloudsIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('weather_clouds') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.clouds.toFixed(0) }}%</p>
                                         </div>
                                     </div>
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 weather-icon flex-none"
-                                                aria-hidden="true">
-                                                <use :href="sunriseIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('sunrise') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    formatTimeString(currentWeather.sunrise) }}</p>
-                                            </div>
+                                </div>
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                            aria-hidden="true">
+                                            <use :href="sunriseIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('sunrise') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                formatTimeString(currentWeather.sunrise) }}</p>
                                         </div>
                                     </div>
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 weather-icon flex-none"
-                                                aria-hidden="true">
-                                                <use :href="sunsetIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('sunset') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    formatTimeString(currentWeather.sunset) }}</p>
-                                            </div>
+                                </div>
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                            aria-hidden="true">
+                                            <use :href="sunsetIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('sunset') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                formatTimeString(currentWeather.sunset) }}</p>
                                         </div>
                                     </div>
-                                    <div class="rounded-box bg-base-200/80 p-3">
-                                        <div class="flex items-center gap-3">
-                                            <svg class="h-6 w-6 weather-icon flex-none"
-                                                aria-hidden="true">
-                                                <use :href="altitudeIconUrl" fill="currentColor" />
-                                            </svg>
-                                            <div class="min-w-0">
-                                                <p
-                                                    class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                    {{ t('elevation') }}</p>
-                                                <p class="mt-1 text-lg font-semibold">{{
-                                                    currentWeather.altitude ?
+                                </div>
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                            aria-hidden="true">
+                                            <use :href="altitudeIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('elevation') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.altitude ?
                                                     `${Math.round(currentWeather.altitude)} m` : '-'
-                                                    }}</p>
-                                            </div>
+                                            }}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div v-else
-                                class="mt-5 rounded-box border border-dashed border-base-300 bg-base-200/60 p-4 text-sm opacity-80">
-                                {{ t('home_weather_needs_location') }}
-                            </div>
+                        <div v-else
+                            class="mt-5 rounded-box border border-dashed border-base-300 bg-base-200/60 p-4 text-sm opacity-80">
+                            {{ t('home_weather_needs_location') }}
+                        </div>
 
-                            <div class="mt-5 flex flex-col gap-3">
-                                <button class="btn btn-secondary" type="button"
-                                    :disabled="isLoadingWeather || !currentLocation"
-                                    @click="refreshWeather(true)">
-                                    {{ t('home_weather_refresh') }}
-                                </button>
-                                <button class="btn btn-ghost" type="button"
-                                    :disabled="isSavingLocation || !homeLocation"
-                                    @click="removeHomeLocation">
-                                    {{ t('delete') }}
-                                </button>
-                            </div>
+                        <div class="mt-5 flex flex-col gap-3">
+                            <button class="btn btn-secondary" type="button"
+                                :disabled="isLoadingWeather || !currentLocation"
+                                @click="refreshWeather(true)">
+                                {{ t('home_weather_refresh') }}
+                            </button>
+                            <button class="btn btn-ghost" type="button"
+                                :disabled="isSavingLocation || !homeLocation"
+                                @click="removeHomeLocation">
+                                {{ t('delete') }}
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="card bg-base-100 shadow-xl">
+                <div id="saved_locations" class="order-4 xl:order-none card bg-base-100 shadow-xl">
                     <div class="card-body p-5 sm:p-6">
                         <div class="flex items-start justify-between gap-3">
                             <div>
@@ -217,15 +219,26 @@
                             <div v-for="location in savedLocations" :key="getLocationKey(location)"
                                 class="rounded-box border border-base-300 bg-base-200/70 p-3">
                                 <div class="min-w-0">
-                                    <p class="font-semibold truncate break-words">{{ location.name }}</p>
+                                    <p class="font-semibold truncate break-words">{{ location.name
+                                        }}</p>
                                 </div>
 
                                 <div class="mt-2 flex items-center justify-between gap-3">
-                                    <div class="text-xs opacity-70">{{ location.state || location.country }}</div>
+                                    <div class="text-xs opacity-70">{{ location.state ||
+                                        location.country }}</div>
                                     <div class="flex gap-2 shrink-0">
-                                        <button class="btn btn-xs" type="button" @click="selectLocation(location)">{{ t('open') }}</button>
-                                        <button class="btn btn-xs btn-outline" type="button" :disabled="isSavingLocation" @click="setAsHome(location)">{{ t('set_home') }}</button>
-                                        <button class="btn btn-xs btn-ghost" type="button" :disabled="isSavingLocation" @click="removeSavedLocation(location)">{{ t('delete') }}</button>
+                                        <button class="btn btn-xs" type="button"
+                                            @click="selectLocation(location)">{{ t('open')
+                                            }}</button>
+                                        <button class="btn btn-xs btn-outline" type="button"
+                                            :disabled="isSavingLocation"
+                                            @click="setAsHome(location)">{{
+                                                t('set_home')
+                                            }}</button>
+                                        <button class="btn btn-xs btn-ghost" type="button"
+                                            :disabled="isSavingLocation"
+                                            @click="removeSavedLocation(location)">{{ t('delete')
+                                            }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -234,9 +247,9 @@
                 </div>
             </div>
 
-            <div class="min-w-0 space-y-6">
-                <div v-if="currentLocation"
-                    class="rounded-box border border-base-300 bg-base-200/70 p-4">
+            <div id="forecast_container" class="contents xl:block xl:min-w-0 xl:space-y-6">
+                <div v-if="currentLocation" id="current_location_banner"
+                    class="order-1 xl:order-none rounded-box border border-base-300 bg-base-200/70 p-4">
                     <div class="flex items-start gap-3">
                         <div
                             class="text-2xl font-thin  tabular-nums hidden sm:block min-w-10 text-center">
@@ -255,22 +268,23 @@
                             <div class="shrink-0 text-right max-w-[11rem] sm:max-w-[16rem]">
                                 <div class="text-xs uppercase font-semibold opacity-60 truncate">
                                     {{ currentLocation.state || currentLocation.county ||
-                                    currentLocation.country }}
+                                        currentLocation.country }}
                                 </div>
                                 <div class="text-sm opacity-80 truncate">LAT: {{
                                     currentLocation.latitude.toFixed(3) }}, LONG: {{
-                                    currentLocation.longitude.toFixed(3) }}</div>
+                                        currentLocation.longitude.toFixed(3) }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div v-else
-                    class="rounded-box border border-dashed border-base-300 bg-base-200/60 p-4 text-sm opacity-80">
+                <div v-else id="no_location_banner"
+                    class="order-1 xl:order-none rounded-box border border-dashed border-base-300 bg-base-200/60 p-4 text-sm opacity-80">
                     {{ t('home_weather_needs_location') }}
                 </div>
 
-                <div v-if="isLoadingWeather" class="card bg-base-100 shadow-xl">
+                <div v-if="isLoadingWeather" id="forecast_loading"
+                    class="order-3 xl:order-none card bg-base-100 shadow-xl">
                     <div class="card-body p-4 sm:p-6">
                         <div class="flex items-center gap-3 text-sm sm:text-base">
                             <span class="loading loading-spinner loading-md"></span>
@@ -278,8 +292,9 @@
                         </div>
                     </div>
                 </div>
-                <WeatherForecast v-else class="w-full" :title="t('home_weather_forecast_title')"
-                    :forecast-data="forecastData" :daytime-hourly-data="hourlyDaytimeData"
+                <WeatherForecast v-else class="order-3 xl:order-none w-full"
+                    :title="t('home_weather_forecast_title')" :forecast-data="forecastData"
+                    :daytime-hourly-data="hourlyDaytimeData"
                     :nighttime-hourly-data="hourlyNighttimeData" />
             </div>
         </div>
