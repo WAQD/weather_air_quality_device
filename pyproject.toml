@@ -45,13 +45,16 @@ build-backend = "pdm.backend"
 [tool.pdm.build]
 includes = [
     "src/waqd",
-    "src/waqd_common",
+    "src/waqd_station",
     "src/waqd_assets"
 ]
 source-includes = []
 
 [tool.setuptools.package-data]
 "waqd" = [
+    "**/*.py",
+]
+"waqd_assets" = [
     "**/*.pyi",
     "**/*.html",
     "**/*.ini",
@@ -60,7 +63,7 @@ source-includes = []
     "ui/**/*.in",
     "ui/web/**/*.*",
 ]
-"waqd_assets" = [
+waqd_station = [
     "**/*.pyi",
     "**/*.html",
     "**/*.ini",
