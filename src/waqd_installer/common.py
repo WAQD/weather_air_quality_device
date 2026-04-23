@@ -10,7 +10,8 @@ from typing import Dict, List
 USERNAME = os.environ.get("SUDO_USER", "")  # the original user
 if not USERNAME:
     USERNAME = os.environ.get("USER", "pi")
-HOME = Path.home()
+# we exceurte this script as root, but we want to install waqd for the original user
+HOME = Path("/home") / USERNAME
 
 LOCAL_BIN_PATH = HOME / ".local" / "bin"
 INSTALL_TARGET_ROOT = HOME / ".local/share/pipx/venvs"
