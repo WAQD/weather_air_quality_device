@@ -1,4 +1,3 @@
-
 import os
 import time
 from threading import Thread
@@ -14,6 +13,7 @@ from waqd_station.settings import LANG_ENGLISH
 if TYPE_CHECKING:
     from waqd_station.app.component_reg import ComponentRegistry
 
+
 class TextToSpeach(Component):
     """
     This class uses Google TTS and VLC player for TTS functionality.
@@ -21,9 +21,9 @@ class TextToSpeach(Component):
     A little delay is normal, since TTS is computed in the cloud and the file sent back.
     """
 
-    def __init__(self, components: ComponentRegistry, lang="en"):
+    def __init__(self, components: "ComponentRegistry", lang="en"):
         super().__init__(components)
-        self._comps: ComponentRegistry
+        self._comps: "ComponentRegistry"
         self._lang = lang
         self._tts_thread = Thread()
         self._save_dir = waqd_station.user_config_dir / "tts"
@@ -52,12 +52,18 @@ class TextToSpeach(Component):
             return
 
         self._tts_thread = Thread(
-            name="google_TTS", target=self._call_tts, args=(text, lang, filename,)
+            name="google_TTS",
+            target=self._call_tts,
+            args=(
+                text,
+                lang,
+                filename,
+            ),
         )
         self._tts_thread.start()
 
     def wait_for_tts(self):
-        """ Bock until speech is finished """
+        """Bock until speech is finished"""
         if self._tts_thread:
             while self._tts_thread.is_alive():
                 time.sleep(1)
@@ -70,8 +76,13 @@ class TextToSpeach(Component):
         try:
             if not filename:
                 # remove most likeable pitfalls. Is not comprehensive!
-                normalized_text = text.replace(' ', '_').replace(
-                '.', '_').replace('/', '').replace(',', '_').strip()
+                normalized_text = (
+                    text.replace(" ", "_")
+                    .replace(".", "_")
+                    .replace("/", "")
+                    .replace(",", "_")
+                    .strip()
+                )
                 filename = normalized_text[0:30]
             audio_file = self._save_dir / f"{filename}_{lang}.mp3"
             # only download, if file does not exist
@@ -79,7 +90,7 @@ class TextToSpeach(Component):
                 Network().wait_for_internet()
                 gtts = gTTS(text, lang=lang)
                 gtts.save(audio_file)
-            if self._comps: # Play sound
+            if self._comps:  # Play sound
                 self._comps.sound.play(audio_file)
             self._logger.debug("Speech: Finished: %s", text)
         except Exception as error:

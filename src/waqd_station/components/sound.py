@@ -30,9 +30,9 @@ class SoundVLC(SoundInterface):
     """
     lock = Lock()  # lock for playing
 
-    def __init__(self, components: ComponentRegistry, enabled=True):
+    def __init__(self, components: "ComponentRegistry", enabled=True):
         super().__init__(components, enabled=enabled)
-        self._comps: ComponentRegistry
+        self._comps: "ComponentRegistry"
         self._sound_thread = Thread()
         self._ready = True
 
