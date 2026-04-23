@@ -40,7 +40,6 @@ from .website_service import WAQDDeviceClient
 __all__ = [
     "Display",
     "EventHandler",
-    "OpenWeatherMap",
     "OpenMeteo",
     "WeatherProvider",
     "ESaver",

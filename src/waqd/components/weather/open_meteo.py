@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
-
+from threading import Lock
 import requests
 
 from .base_types import (
@@ -36,6 +36,7 @@ class OpenMeteo(WeatherProvider):
         self._seven_day_forecast: List[DailyWeather] = []
         self._hourly_forecast: List[List[Weather]] = [[] for _ in range(7)]
         self._ready = True
+        self._fetch_lock = Lock()
 
         self._geocoding_fetch_rate_seconds = geocoding_fetch_rate_seconds
         self._daily_fetch_rate_seconds = daily_fetch_rate_seconds
@@ -108,22 +109,25 @@ class OpenMeteo(WeatherProvider):
         return self._hourly_forecast[day]
 
     def _fetch_weather(self, force=False, include_hourly=False):
-        if force or self._should_fetch(self._last_daily_fetch, self._daily_fetch_rate_seconds):
-            self._fetch_daily_weather()
+        # lock to prevent multiple fetches at the same time
+        with self._fetch_lock:
+            if force or self._should_fetch(self._last_daily_fetch, self._daily_fetch_rate_seconds):
+                self._fetch_daily_weather()
 
-        if include_hourly and (
-            force
-            or self._should_fetch(self._last_hourly_fetch, self._hourly_fetch_rate_seconds)
-        ):
-            self._fetch_hourly_weather()
+            if include_hourly and (
+                force
+                or self._should_fetch(self._last_hourly_fetch, self._hourly_fetch_rate_seconds)
+            ):
+                self._fetch_hourly_weather()
 
     def _fetch_daily_weather(self):
         response = self._call_api(
             self.API_FORECAST_CMD
             + "&daily=precipitation_probability_max,weathercode,temperature_2m_max,"
             + "temperature_2m_min,sunrise,sunset,precipitation_sum,"
-            + "windspeed_10m_max,"
-            + "winddirection_10m_dominant&current_weather=true&windspeed_unit=ms&timezone=auto",
+            + "windspeed_10m_max,winddirection_10m_dominant"
+            + "&current=relative_humidity_2m,temperature_2m,precipitation,weather_code,"
+            "pressure_msl,cloud_cover,surface_pressure,wind_speed_10m,winddirection_10m&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude,
             longitude=self._longitude,
         )
@@ -131,9 +135,8 @@ class OpenMeteo(WeatherProvider):
             return
 
         self._seven_day_forecast = []
-        current_weather = response.get("current_weather", {})
+        current_weather = response.get("current", {})
         daily = response.get("daily", {})
-
         for i in range(len(daily.get("time", []))):
             sunrise = datetime.fromisoformat(daily.get("sunrise", [])[i]).time()
             sunset = datetime.fromisoformat(daily.get("sunset", [])[i]).time()
@@ -179,15 +182,18 @@ class OpenMeteo(WeatherProvider):
             current_weather.get("weathercode", 0),
             datetime.now(),
             self._get_icon_name(current_weather.get("weathercode", 0), is_day),
-            current_weather.get("windspeed", 0.0),
-            current_weather.get("winddirection", 0.0),
+            current_weather.get("wind_speed_10m", 0.0),
+            current_weather.get("winddirection_10m", 0.0),  # TODO
             sunrise,
             sunset,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            current_weather.get("temperature", 0.0),
+            current_weather.get(
+                "surface_pressure",
+                0,
+            ),
+            current_weather.get("pressure_msl", 0),
+            current_weather.get("relative_humidity_2m", 0),
+            current_weather.get("cloud_cover", 0),
+            current_weather.get("temperature_2m", 0.0),
             response.get("elevation", 0),
             current_weather.get("precipitation", 0.0),
             0.0,
@@ -258,7 +264,6 @@ class OpenMeteo(WeatherProvider):
 
         self._hourly_forecast = hourly_forecast
         self._set_min_max_temps(day_temps, night_temps)
-        self._update_current_weather_from_hourly()
         self._last_hourly_fetch = datetime.now()
 
     def _set_min_max_temps(
@@ -279,24 +284,24 @@ class OpenMeteo(WeatherProvider):
                 self._seven_day_forecast[day_idx].temp_night_max = max(night_values)
                 self._seven_day_forecast[day_idx].temp_night_min = min(night_values)
 
-    def _update_current_weather_from_hourly(self):
-        if (
-            not self._current_weather
-            or not self._hourly_forecast
-            or not self._hourly_forecast[0]
-        ):
-            return
+    # def _update_current_weather_from_hourly(self):
+# '        if (
+#             not self._current_weather
+#             or not self._hourly_forecast
+#             or not self._hourly_forecast[0]
+#         ):
+#             return
 
-        now = datetime.now()
-        point = next((p for p in self._hourly_forecast[0] if p.date_time >= now), None)
-        if point is None:
-            point = self._hourly_forecast[0][-1]
+#         now = datetime.now()
+#         point = next((p for p in self._hourly_forecast[0] if p.date_time >= now), None)
+#         if point is None:
+#             point = self._hourly_forecast[0][-1]
 
-        self._current_weather.humidity = point.humidity
-        self._current_weather.clouds = point.clouds
-        self._current_weather.pressure = point.pressure
-        self._current_weather.pressure_sea_level = point.pressure_sea_level
-        self._current_weather.precipitation = point.precipitation
+#         self._current_weather.humidity = point.humidity
+#         self._current_weather.clouds = point.clouds
+#         self._current_weather.pressure = point.pressure
+#         self._current_weather.pressure_sea_level = point.pressure_sea_level
+#         self._current_weather.precipitation = point.precipitation'
 
     @staticmethod
     def _should_fetch(last_fetch: Optional[datetime], fetch_rate_seconds: int) -> bool:
