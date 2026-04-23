@@ -127,7 +127,8 @@ class OpenMeteo(WeatherProvider):
             + "temperature_2m_min,sunrise,sunset,precipitation_sum,"
             + "windspeed_10m_max,winddirection_10m_dominant"
             + "&current=relative_humidity_2m,temperature_2m,precipitation,weather_code,"
-            "pressure_msl,cloud_cover,surface_pressure,wind_speed_10m,winddirection_10m&windspeed_unit=ms&timezone=auto",
+            "pressure_msl,cloud_cover,surface_pressure,wind_speed_10m,winddirection_10m,is_day"
+            "&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude,
             longitude=self._longitude,
         )
