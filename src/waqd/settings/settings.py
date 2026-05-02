@@ -5,19 +5,19 @@ from pathlib import Path
 from typing import Dict, Union
 
 
-from waqd_station import PROG_NAME
-
 def strtobool(value: str) -> bool:
     value = value.lower()
     if value in ("y", "yes", "on", "1", "true", "t"):
         return True
     return False
 
+
 class Settings:
     """
     Settings mechanism with an ini file to use as a storage.
     File and entries are automatically created form the default value of the entry.
     """
+
     _SECRET_SECTION_NAME = "Secrets"
 
     def __init__(self, ini_folder=None, auto_save=True):
@@ -25,7 +25,7 @@ class Settings:
         Read waqd.ini file to load settings.
         Verify waqd.ini existence, if folder is passed.
         """
-        self._logger = logging.getLogger(PROG_NAME)
+        self._logger = logging.getLogger("WAQD")
         self._parser = configparser.ConfigParser()
         self._ini_file_path = Path()
         if ini_folder is not None:
@@ -42,7 +42,6 @@ class Settings:
         ### default setting values ###
         self._init_values()
         self._read_ini()
-
 
     def _init_values(self):
         self._values = {}

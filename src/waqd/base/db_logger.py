@@ -7,8 +7,13 @@ from typing import List, Optional, Tuple
 from waqd import LOCAL_TIMEZONE
 from waqd.base.file_logger import Logger
 
-from influxdb_client import InfluxDBClient, Point, WritePrecision  # type: ignore
-from influxdb_client.client.write_api import SYNCHRONOUS
+try:
+    from influxdb_client import InfluxDBClient, Point, WritePrecision  # type: ignore
+    from influxdb_client.client.write_api import SYNCHRONOUS
+except ImportError:
+    Logger().warning(
+        "InfluxDB client library not found. Sensor data will not be logged to InfluxDB."
+    )
 
 
 INFLUX_DB_ORG = "waqd-local"

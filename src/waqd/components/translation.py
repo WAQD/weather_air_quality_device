@@ -1,6 +1,6 @@
 import json
 import datetime
-from waqd_station.settings import LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN
+from waqd.settings import LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN
 from waqd.base.assets import get_asset_file
 from waqd.base.file_logger import Logger
 
