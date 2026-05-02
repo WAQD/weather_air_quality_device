@@ -1,9 +1,14 @@
 import re
-from time import sleep
 import uuid
+from time import sleep
 
-import nmcli
-from nmcli import NetworkConnectivity
+from waqd.base.file_logger import Logger
+
+try:
+    import nmcli
+    from nmcli import NetworkConnectivity
+except ImportError:
+    Logger().warning("nmcli library not found.")
 from waqd.base.file_logger import Logger
 from waqd.base.system import RuntimeSystem
 
