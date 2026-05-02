@@ -469,7 +469,6 @@ async function refreshWeather(force = false): Promise<void> {
 
 <style scoped>
 .scroll-container {
-    scroll-snap-type: y mandatory;
     overflow-y: auto;
     overflow-x: hidden;
     height: calc(100vh - 4rem);
@@ -477,11 +476,22 @@ async function refreshWeather(force = false): Promise<void> {
     max-width: 100vw;
 }
 
+@media (min-width: 768px) {
+    .scroll-container {
+        scroll-snap-type: y mandatory;
+    }
+}
+
 .snap-section {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
     overflow-x: hidden;
     max-width: 100vw;
+}
+
+@media (min-width: 768px) {
+    .snap-section {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
 }
 
 .snap-section img {
