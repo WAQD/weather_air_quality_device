@@ -223,6 +223,9 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
   
   // Create new Highcharts chart
   chart = (Highcharts as any).chart(chartContainer.value as HTMLElement, {
+    time: {
+      useUTC: false
+    },
     chart: {
       type: 'line',
       backgroundColor: 'transparent',
