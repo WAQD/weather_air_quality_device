@@ -41,25 +41,27 @@
             <ul v-if="dropdownOpen"
               class="dropdown-content menu flex flex-col flex-nowrap p-2 shadow bg-base-100 rounded-box w-full mt-1 max-h-96 overflow-y-auto overflow-x-hidden z-50">
               <!-- Saved Location Section -->
-              <li v-if="hasSavedLocation" class="menu-title">
-                <span>{{ t('home_weather_saved_location') }}</span>
-              </li>
-              <li v-for="location in displayedSavedLocations"
-                :key="`${location.latitude}-${location.longitude}`">
-                <button type="button" class="w-full text-left flex items-center gap-3"
-                  :disabled="isSelectingLocation" @mousedown.prevent="selectSavedLocation(location)"
-                  @click.prevent>
-                  <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
-                    class="w-5 h-4 rounded-sm" />
-                  <div class="flex flex-col text-left">
-                    <span class="font-semibold">{{ location.name }}</span>
-                    <span class="text-xs opacity-70">{{ location.state || location.country }}, {{
-                      location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
-                  </div>
-                  <span v-if="selectingLocationKey === getLocationKey(location)"
-                    class="loading loading-spinner loading-xs ml-auto"></span>
-                </button>
-              </li>
+              <template v-if="hasSavedLocation && weatherSearchQuery.length === 0">
+                <li class="menu-title">
+                  <span>{{ t('home_weather_saved_location') }}</span>
+                </li>
+                <li v-for="location in displayedSavedLocations"
+                  :key="`${location.latitude}-${location.longitude}`">
+                  <button type="button" class="w-full text-left flex items-center gap-3"
+                    :disabled="isSelectingLocation" @mousedown.prevent="selectSavedLocation(location)"
+                    @click.prevent>
+                    <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
+                      class="w-5 h-4 rounded-sm" />
+                    <div class="flex flex-col text-left">
+                      <span class="font-semibold">{{ location.name }}</span>
+                      <span class="text-xs opacity-70">{{ location.state || location.country }}, {{
+                        location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
+                    </div>
+                    <span v-if="selectingLocationKey === getLocationKey(location)"
+                      class="loading loading-spinner loading-xs ml-auto"></span>
+                  </button>
+                </li>
+              </template>
 
               <!-- Search Results Section -->
               <li v-if="weatherSearchQuery.length >= 3 && displayedResults.length > 0"
