@@ -20,9 +20,9 @@
         WAQD
       </router-link>
     </div>
-    <div class="navbar-center flex-1 hidden md:flex">
-      <div
-        class="order-3 w-full basis-full md:order-none md:flex-none md:w-[clamp(20rem,42vw,56rem)] px-0 md:px-4 mt-2 md:mt-0">
+    <div class="navbar-center flex-1 flex w-full order-last md:order-none md:w-auto mt-2 md:mt-0">
+      <div id="search_bar"
+        class="w-full basis-full md:flex-none md:w-[clamp(20rem,42vw,56rem)] px-0 md:px-4">
         <div v-if="isLoggedIn" class="w-full">
           <div class="dropdown dropdown-bottom w-full">
             <label

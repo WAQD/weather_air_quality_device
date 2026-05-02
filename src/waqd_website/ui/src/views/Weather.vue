@@ -262,7 +262,7 @@
                         </div>
                         <div class="flex-1 min-w-0 flex items-start justify-between gap-3">
                             <div class="min-w-0">
-                                <div class="text-2xl font-thin truncate whitespace-nowrap">
+                                <div class="text-2xl font-thin whitespace-nowrap">
                                     {{ currentLocation.name }}</div>
                             </div>
                             <div class="shrink-0 text-right max-w-[11rem] sm:max-w-[16rem]">
@@ -270,9 +270,6 @@
                                     {{ currentLocation.state || currentLocation.county ||
                                         currentLocation.country }}
                                 </div>
-                                <div class="text-sm opacity-80 truncate">LAT: {{
-                                    currentLocation.latitude.toFixed(3) }}, LONG: {{
-                                        currentLocation.longitude.toFixed(3) }}</div>
                             </div>
                         </div>
                     </div>
