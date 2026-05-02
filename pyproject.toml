@@ -28,8 +28,9 @@ dependencies = [
     "PyJWT>=2.10.1",               # MIT License
     "libpass>=1.9.0",     # BSD License - password hashing
     "htmlmin2>=0.1.13",             # BSD License - HTML minifier
+    "requests==2.33.1",          # Apache License
+    "adafruit-platformdetect>=3.88", # MIT License
 ]
-
 readme = "README.md"
 
 [project.urls]
