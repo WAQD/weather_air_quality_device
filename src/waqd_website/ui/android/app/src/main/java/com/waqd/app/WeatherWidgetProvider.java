@@ -1,8 +1,10 @@
 package com.waqd.app;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,21 +34,62 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final String BASE_URL = "https://waqd.de"; // Match capacitor.config.ts http://192.168.178.57:8000
+    private static final String ACTION_CLOCK_TICK = "com.waqd.app.CLOCK_TICK";
+
+    @Override
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        for (int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId);
+        }
+        scheduleClockTick(context);
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        super.onEnabled(context);
+        scheduleClockTick(context);
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        super.onDisabled(context);
+        cancelClockTick(context);
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        // Handle time ticks for the clock
-        if (Intent.ACTION_TIME_TICK.equals(intent.getAction()) || 
-            Intent.ACTION_TIME_CHANGED.equals(intent.getAction()) || 
-            Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())) {
-            
-            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new android.content.ComponentName(context, WeatherWidgetProvider.class));
-            for (int appWidgetId : appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId);
+        if (ACTION_CLOCK_TICK.equals(intent.getAction())) {
+            AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+            int[] ids = mgr.getAppWidgetIds(new ComponentName(context, WeatherWidgetProvider.class));
+            for (int id : ids) {
+                updateAppWidget(context, mgr, id);
             }
+            scheduleClockTick(context); // reschedule for next minute
         }
+    }
+
+    private static void scheduleClockTick(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+        Intent intent = new Intent(context, WeatherWidgetProvider.class);
+        intent.setAction(ACTION_CLOCK_TICK);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        // Fire at the top of the next minute - use set() which requires no special permission
+        long now = System.currentTimeMillis();
+        long nextMinute = now + (60_000L - (now % 60_000L));
+        alarmManager.set(AlarmManager.RTC, nextMinute, pi);
+    }
+
+    private static void cancelClockTick(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+        Intent intent = new Intent(context, WeatherWidgetProvider.class);
+        intent.setAction(ACTION_CLOCK_TICK);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        alarmManager.cancel(pi);
     }
 
     private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
