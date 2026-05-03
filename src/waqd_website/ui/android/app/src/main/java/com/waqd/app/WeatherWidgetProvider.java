@@ -31,18 +31,33 @@ import java.util.concurrent.Executors;
 public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private static final String BASE_URL = "http://192.168.178.57:8000"; // Match capacitor.config.ts
+    private static final String BASE_URL = "https://waqd.de"; // Match capacitor.config.ts http://192.168.178.57:8000
 
     @Override
-    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        // Handle time ticks for the clock
+        if (Intent.ACTION_TIME_TICK.equals(intent.getAction()) || 
+            Intent.ACTION_TIME_CHANGED.equals(intent.getAction()) || 
+            Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())) {
+            
+            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new android.content.ComponentName(context, WeatherWidgetProvider.class));
+            for (int appWidgetId : appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId);
+            }
         }
     }
 
     private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
         // Read data from Capacitor preferences
         SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        
+        // Fallback for APK builds where storage name might differ
+        if (!prefs.contains("widget_weather_data")) {
+            prefs = context.getSharedPreferences(context.getPackageName() + "_preferences", Context.MODE_PRIVATE);
+        }
+
         String weatherDataRaw = prefs.getString("widget_weather_data", "{}");
         android.util.Log.d("WeatherWidget", "Raw data from prefs: " + weatherDataRaw);
 
