@@ -23,3 +23,8 @@ build-reports
 *.njsproj
 *.sln
 *.sw?
+
+# Generated Capacitor Assets
+android/app/src/main/res/drawable-*/
+android/app/src/main/res/mipmap-*/
+icons/

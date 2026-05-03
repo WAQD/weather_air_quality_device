@@ -8,8 +8,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 
-from waqd import DEBUG_LEVEL
-from waqd import assets_path as waqd_assets
 from waqd.base.file_logger import Logger
 
 from .api.device.routes import rt as device_router
