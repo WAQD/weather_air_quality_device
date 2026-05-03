@@ -5,19 +5,22 @@
   </div>
   
   <!-- PWA Update Notification -->
-  <div v-if="showUpdateNotification" class="toast toast-top toast-center z-50">
-    <div class="alert alert-info">
+  <div v-if="needRefresh" class="toast toast-top toast-center z-50"> 
+    <div class="alert alert-info shadow-lg">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
-      <span>New version available!</span>
-      <button class="btn btn-sm btn-primary" @click="updateApp">Update Now</button>
+      <div>
+        <h3 class="font-bold">Update available</h3>
+        <div class="text-xs">Current version: {{ appVersion }}</div>
+      </div>
+      <button class="btn btn-sm btn-primary" @click="updateApp">Apply</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import Navbar from './components/Navbar.vue'
 import { useUser } from './composables/useUser'
 import { useTokenRefresh } from './composables/useTokenRefresh'
@@ -25,13 +28,10 @@ import { useRegisterSW } from 'virtual:pwa-register/vue'
 
 const { fetchUserInfo } = useUser()
 const { stopRefreshTimer } = useTokenRefresh()
-const showUpdateNotification = ref(false)
+const appVersion = __APP_VERSION__
 
 // PWA update handling
 const { needRefresh, updateServiceWorker } = useRegisterSW({
-  onNeedRefresh() {
-    showUpdateNotification.value = true
-  },
   onOfflineReady() {
     console.log('App ready to work offline')
   },
@@ -39,7 +39,6 @@ const { needRefresh, updateServiceWorker } = useRegisterSW({
 
 function updateApp() {
   updateServiceWorker(true)
-  showUpdateNotification.value = false
 }
 
 onMounted(() => {
