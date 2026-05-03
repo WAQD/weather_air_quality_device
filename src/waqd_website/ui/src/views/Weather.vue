@@ -370,15 +370,6 @@ const currentWeatherUpdatedAt = computed(() => {
 
 const successMessage = ref('')
 
-watch(currentWeather, (weather) => {
-    if (weather) {
-        setWeatherData(WEATHER_VIEW_KEY, weather)
-        return
-    }
-
-    clearWeatherData(WEATHER_VIEW_KEY)
-}, { immediate: true })
-
 watch(routeQuery, async (query) => {
     successMessage.value = ''
     clearError()

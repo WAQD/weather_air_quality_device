@@ -1,0 +1,82 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="100dp"
+    android:height="120dp"
+    android:viewportWidth="100"
+    android:viewportHeight="120">
+    
+    <!-- Background Card / Bottom Card Layer -->
+    <path
+        android:fillColor="#F8FFFFFF"
+        android:pathData="M8,0 L92,0 Q100,0 100,8 L100,112 Q100,120 92,120 L8,120 Q0,120 0,112 L0,8 Q0,0 8,0 Z" />
+
+    <!-- Top Cards Stack simulating flip effect -->
+    <!-- Card layer behind (highest up) -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M8,1 L92,1 Q99,1 99,8 L99,60 L1,60 L1,8 Q1,1 8,1 Z" />
+        
+    <!-- Main Top Half -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M8,3 L92,3 Q100,3 100,11 L100,60 L0,60 L0,11 Q0,3 8,3 Z" />
+
+    <!-- Top Edge Highlight -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,3 L92,3 Q100,3 100,11 L99,11 Q99,4 92,4 L8,4 Q1,4 1,11 L0,11 Q0,3 8,3 Z" />
+
+    <!-- Top Half Gradient/Shadow -->
+    <path android:pathData="M8,3 L92,3 Q100,3 100,11 L100,60 L0,60 L0,11 Q0,3 8,3 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startY="3"
+                android:endY="60"
+                android:type="linear">
+                <item android:offset="0" android:color="#00000000" />
+                <item android:offset="1" android:color="#35000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Center Gap / Crease Line -->
+    <path
+        android:strokeColor="#50000000"
+        android:strokeWidth="1.5"
+        android:pathData="M0,60 L100,60" />
+    <!-- Crease Highlight -->
+    <path
+        android:strokeColor="#60FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M0,61.5 L100,61.5" />
+        
+    <!-- Bottom Half Gradient/Shadow -->
+    <path android:pathData="M0,61 L100,61 L100,112 Q100,120 92,120 L8,120 Q0,120 0,112 L0,61 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startY="61"
+                android:endY="120"
+                android:type="linear">
+                <item android:offset="0" android:color="#25000000" />
+                <item android:offset="1" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Bottom Cards Stack simulating flip effect -->
+    <!-- Card layer behind (lowest down) -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M1,60 L99,60 L99,112 Q99,119 92,119 L8,119 Q1,119 1,112 Z" />
+
+    <!-- Bottom Shadow/Depth -->
+    <path
+        android:fillColor="#05000000"
+        android:pathData="M8,112 Q0,112 0,115 Q0,120 8,120 L92,120 Q100,120 100,115 Q100,112 92,112 Z" />
+
+    <!-- Boundary Stroke -->
+    <path
+        android:strokeColor="#25000000"
+        android:strokeWidth="1"
+        android:pathData="M8,0.5 L92,0.5 Q99.5,0.5 99.5,8 L99.5,112 Q99.5,119.5 92,119.5 L8,119.5 Q0.5,119.5 0.5,112 L0.5,8 Q0.5,0.5 8,0.5 Z" />
+</vector>
