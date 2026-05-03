@@ -4,7 +4,7 @@ from typing import Optional
 from sqlmodel import Session, select
 
 from waqd.components.weather.base_types import Location
-from waqd_website.database import UserWeatherLocation, engine
+from waqd_website.database import UserWeatherLocation, UserSavedWeatherLocation, engine
 
 
 def get_user_weather_location(user_id: int) -> Optional[Location]:
@@ -58,3 +58,66 @@ def clear_user_weather_location(user_id: int) -> bool:
         session.delete(saved_location)
         session.commit()
         return True
+
+
+def get_user_saved_locations(user_id: int) -> list[Location]:
+    with Session(engine) as session:
+        statement = select(UserSavedWeatherLocation).where(UserSavedWeatherLocation.user_id == user_id)
+        saved_locations = session.exec(statement).all()
+        
+        return [
+            Location(
+                name=loc.name,
+                country=loc.country,
+                state=loc.state,
+                county=loc.county,
+                country_code=loc.country_code,
+                altitude=loc.altitude,
+                latitude=loc.latitude,
+                longitude=loc.longitude,
+            )
+            for loc in saved_locations
+        ]
+
+
+def add_user_saved_location(user_id: int, location: Location) -> None:
+    with Session(engine) as session:
+        # Check if already exists based on lat/lon (approximate)
+        statement = select(UserSavedWeatherLocation).where(
+            UserSavedWeatherLocation.user_id == user_id
+        )
+        existing = session.exec(statement).all()
+        for loc in existing:
+            if abs(loc.latitude - location.latitude) < 0.001 and abs(loc.longitude - location.longitude) < 0.001:
+                return  # already saved
+
+        new_loc = UserSavedWeatherLocation(
+            user_id=user_id,
+            name=location.name,
+            country=location.country,
+            state=location.state,
+            county=location.county,
+            country_code=location.country_code,
+            altitude=location.altitude,
+            latitude=location.latitude,
+            longitude=location.longitude,
+        )
+        session.add(new_loc)
+        session.commit()
+
+
+def delete_user_saved_location(user_id: int, latitude: float, longitude: float) -> bool:
+    with Session(engine) as session:
+        statement = select(UserSavedWeatherLocation).where(UserSavedWeatherLocation.user_id == user_id)
+        all_locs = session.exec(statement).all()
+        
+        deleted_any = False
+        for loc in all_locs:
+            if abs(loc.latitude - latitude) < 0.001 and abs(loc.longitude - longitude) < 0.001:
+                session.delete(loc)
+                deleted_any = True
+                
+        if deleted_any:
+            session.commit()
+            
+        return deleted_any

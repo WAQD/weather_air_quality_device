@@ -6,7 +6,13 @@ from typing import Any, Optional
 from waqd.base.file_logger import Logger
 from waqd.components.weather.base_types import DailyWeather, Location, Weather
 from waqd.components.weather.open_meteo import OpenMeteo
-from waqd_website.database.weather import get_user_weather_location, save_user_weather_location
+from waqd_website.database.weather import (
+    get_user_weather_location,
+    save_user_weather_location,
+    get_user_saved_locations,
+    add_user_saved_location,
+    delete_user_saved_location,
+)
 
 
 class WebsiteWeatherService:
@@ -46,6 +52,15 @@ class WebsiteWeatherService:
         saved_location = save_user_weather_location(user_id, location)
         self._invalidate_weather_cache(saved_location)
         return saved_location
+
+    def get_saved_locations_list(self, user_id: int) -> list[Location]:
+        return get_user_saved_locations(user_id)
+
+    def add_saved_location(self, user_id: int, location: Location) -> None:
+        add_user_saved_location(user_id, location)
+
+    def remove_saved_location(self, user_id: int, latitude: float, longitude: float) -> bool:
+        return delete_user_saved_location(user_id, latitude, longitude)
 
     def get_weather_for_user(self, user_id: int, force: bool = False) -> dict[str, Any]:
         location = self.get_saved_location(user_id)
