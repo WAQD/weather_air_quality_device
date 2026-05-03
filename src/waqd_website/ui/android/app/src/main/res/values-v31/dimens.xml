@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Smaller sizes for Android 12+ tight 5x2 grids -->
+    <dimen name="widget_clock_text_size">72sp</dimen>
+    <dimen name="widget_temp_text_size">28sp</dimen>
+    <dimen name="widget_padding">8dp</dimen>
+    <dimen name="widget_clock_margin">4dp</dimen>
+</resources>

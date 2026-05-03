@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Waqd App',
   webDir: 'dist',
   server: {
-    url: 'https://waqd.de', // http://192.168.178.57:8000
+    url: 'https://waqd.de',
     cleartext: true
   }
 };
