@@ -179,8 +179,9 @@ export default defineConfig({
           dest: 'static/general_icons'
         },
         {
-          src: '../../waqd_assets/weather_icons/**/*.svg',
-          dest: 'static/weather_icons'
+          // Copy entire folder preserving nested structure (keep 'google' subfolder)
+          src: '../../waqd_assets/weather_icons',
+          dest: 'static/'
         },
         {
           src: '../../waqd_assets/weather_bgrs/**/*.jpg',
