@@ -144,19 +144,31 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   clearError()
 
   try {
-    const response = await fetch('/api/user/weather/location', {
-      credentials: 'include'
-    })
+    const [response, savedResponse] = await Promise.all([
+      fetch('/api/user/weather/location', { credentials: 'include' }),
+      fetch('/api/user/weather/saved-locations', { credentials: 'include' })
+    ])
 
     if (!response.ok) {
       throw new Error(await extractErrorMessage(response, 'Failed to load saved location'))
     }
+    if (!savedResponse.ok) {
+      throw new Error(await extractErrorMessage(savedResponse, 'Failed to load saved locations list'))
+    }
 
     const payload = await response.json() as SavedLocationResponse
+    const savedPayload = await savedResponse.json() as LocationSearchResponse
+    
     savedLocation.value = payload.location
     homeLocation.value = payload.location
 
-    const localSaved = readLocalSavedLocations()
+    let localSaved = readLocalSavedLocations()
+    if (savedPayload.locations && savedPayload.locations.length > 0) {
+      // Merge backend list with local storage
+      savedPayload.locations.forEach(loc => upsertSavedLocation(loc))
+      localSaved = readLocalSavedLocations()
+    }
+    
     savedLocations.value = localSaved
 
     if (payload.location) {
@@ -293,6 +305,14 @@ async function saveLocation(location: WeatherLocationPayload, setAsHome = true):
 
   try {
     upsertSavedLocation(location)
+    
+    // Always persist to the saved-locations list backend
+    fetch('/api/user/weather/saved-locations', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(location)
+    }).catch(() => { /* silent fallback on backend failure */ })
 
     if (!setAsHome) {
       return location
@@ -368,6 +388,12 @@ async function setHomeLocation(location: WeatherLocationPayload): Promise<Weathe
 
 async function removeSavedLocation(location: WeatherLocationPayload): Promise<boolean> {
   removeSavedLocationEntry(location)
+
+  // Remove from backend list
+  fetch(`/api/user/weather/saved-locations?latitude=${location.latitude}&longitude=${location.longitude}`, {
+    method: 'DELETE',
+    credentials: 'include'
+  }).catch(() => { /* silent fallback */ })
 
   if (homeLocation.value && getLocationKey(homeLocation.value) === getLocationKey(location)) {
     return deleteLocation()

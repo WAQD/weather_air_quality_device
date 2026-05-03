@@ -108,6 +108,24 @@ class UserWeatherLocation(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class UserSavedWeatherLocation(SQLModel, table=True):
+    """Persisted list of user weather locations."""
+
+    __tablename__ = "user_saved_weather_location"  # type: ignore
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, foreign_key="user.id")
+    name: str = Field(default="", max_length=255)
+    country: str = Field(default="", max_length=255)
+    state: str = Field(default="", max_length=255)
+    county: str = Field(default="", max_length=255)
+    country_code: str = Field(default="", max_length=16)
+    altitude: float = Field(default=0.0)
+    latitude: float = Field(default=0.0)
+    longitude: float = Field(default=0.0)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class PasswordResetToken(SQLModel, table=True):
     """Short-lived, single-use tokens for password reset via email"""
 

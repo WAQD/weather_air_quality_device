@@ -90,6 +90,45 @@ async def delete_saved_location(current_user: User = user_exception_check):
     return {"deleted": deleted}
 
 
+@rt.get("/saved-locations", response_model=LocationSearchResponse)
+async def get_saved_locations(current_user: User = user_exception_check):
+    if current_user.id is None:
+        raise HTTPException(status_code=400, detail="Current user has no id")
+
+    locations = weather_service.get_saved_locations_list(current_user.id)
+    return LocationSearchResponse(
+        locations=[WeatherLocationPayload(**location.model_dump()) for location in locations]
+    )
+
+
+@rt.put("/saved-locations")
+async def add_saved_location(
+    location: WeatherLocationPayload,
+    current_user: User = user_exception_check,
+):
+    if current_user.id is None:
+        raise HTTPException(status_code=400, detail="Current user has no id")
+
+    weather_service.add_saved_location(
+        current_user.id,
+        Location(**location.model_dump()),
+    )
+    return {"added": True}
+
+
+@rt.delete("/saved-locations")
+async def remove_saved_location(
+    latitude: float,
+    longitude: float,
+    current_user: User = user_exception_check,
+):
+    if current_user.id is None:
+        raise HTTPException(status_code=400, detail="Current user has no id")
+
+    deleted = weather_service.remove_saved_location(current_user.id, latitude, longitude)
+    return {"deleted": deleted}
+
+
 @rt.get("", response_model=WebsiteWeatherResponse)
 async def get_weather(
     force: bool = Query(default=False),
