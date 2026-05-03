@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="4dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Glossy Background (Expanded upwards to cover ~80% of height) -->
+    <!-- Note: using FrameLayout instead of View because generic View is not supported in App Widgets (RemoteViews) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/widget_glossy_bg" />
+
+    <!-- Content layout preserving original proportions -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:padding="12dp">
+
+        <!-- Top Section: HTC Style Clock Panels -->
+        <LinearLayout
+            android:id="@+id/clock_section"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2.2"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="8dp">
+
+                <TextView
+                    android:id="@+id/widget_clock_hour"
+                    android:layout_width="140dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/clock_panel"
+                    android:gravity="center"
+                    android:text="10"
+                    android:textColor="#222222"
+                    android:textSize="96sp"
+                    android:fontFamily="sans-serif-condensed-light"
+                    android:textStyle="normal"
+                    android:shadowColor="#40000000"
+                    android:shadowDx="0"
+                    android:shadowDy="4"
+                    android:shadowRadius="4" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp">
+
+                <TextView
+                    android:id="@+id/widget_clock_minute"
+                    android:layout_width="140dp"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/clock_panel"
+                    android:gravity="center"
+                    android:text="10"
+                    android:textColor="#222222"
+                    android:textSize="96sp"
+                    android:fontFamily="sans-serif-condensed-light"
+                    android:textStyle="normal"
+                    android:shadowColor="#40000000"
+                    android:shadowDx="0"
+                    android:shadowDy="4"
+                    android:shadowRadius="4" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Bottom Section: Weather Info -->
+        <RelativeLayout
+            android:id="@+id/weather_section"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.2"
+            android:layout_marginTop="4dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
+
+            <!-- Left: Location & Condition -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Alafaya"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="normal"
+                    android:shadowColor="#CC000000"
+                    android:shadowDx="2"
+                    android:shadowDy="2"
+                    android:shadowRadius="3" />
+
+                <TextView
+                    android:id="@+id/widget_condition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cloudy"
+                    android:textColor="#DDFFFFFF"
+                    android:textSize="14sp" />
+                    
+                <TextView
+                    android:id="@+id/widget_update_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Updated: --:--"
+                    android:textColor="#88FFFFFF"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- Right: Temps -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="58°"
+                    android:textColor="#FFFFFF"
+                    android:textSize="36sp"
+                    android:shadowColor="#CC000000"
+                    android:shadowDx="2"
+                    android:shadowDy="2"
+                    android:shadowRadius="3" />
+
+                <TextView
+                    android:id="@+id/widget_daily_temp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="62° / 50°"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:shadowColor="#CC000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2" />
+            </LinearLayout>
+
+            <!-- Center: Icon -->
+            <ImageView
+                android:id="@+id/widget_icon"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="-35dp"
+                android:src="@android:drawable/ic_menu_report_image" />
+        </RelativeLayout>
+    </LinearLayout>
+</FrameLayout>

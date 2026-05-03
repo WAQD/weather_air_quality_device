@@ -37,12 +37,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build Vue.js frontend
-        run: |
-          cd src/waqd_website/ui
-          npm ci
-          npm run build
-
       - name: Get package.json version
         id: package_version
         run: |

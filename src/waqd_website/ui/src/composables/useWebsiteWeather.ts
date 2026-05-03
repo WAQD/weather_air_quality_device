@@ -1,5 +1,7 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { Preferences } from '@capacitor/preferences'
 import type { AvailableLocale } from '../i18n'
+import i18n from '../i18n'
 import type { ForecastData, HourlyWeatherData, WeatherData } from './useWeather'
 
 export interface WeatherLocationPayload {
@@ -216,6 +218,9 @@ async function loadWeather(force = false): Promise<void> {
     hourlyDaytimeData.value = payload.hourly_daytime ?? []
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
+
+    // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
+    await updateWidgetData(currentWeather.value, forecastData.value, currentLocation.value)
   } catch (error) {
     resetWeatherData()
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'
@@ -422,11 +427,59 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     hourlyDaytimeData.value = payload.hourly_daytime ?? []
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
+
+    // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
+    await updateWidgetData(currentWeather.value, forecastData.value, location)
   } catch (error) {
     resetWeatherData()
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'
   } finally {
     isLoadingWeather.value = false
+  }
+}
+
+// Explicitly updating data inside load functions now instead of detached watchers
+
+function translateWeatherCondition(weather: { wid?: number, main?: string }): string {
+  // Try wid first (Open Meteo code)
+  if (weather.wid !== undefined) {
+    const key = `weather_${weather.wid}`
+    const translated = i18n.global.t(key)
+    if (translated !== key) return translated
+  }
+  
+  // Fall back to main string (lowercase for consistency)
+  if (weather.main) {
+    const key = `weather_${weather.main.toLowerCase()}`
+    const translated = i18n.global.t(key)
+    if (translated !== key) return translated
+    
+    // If no translation found, return the main string as is
+    return weather.main
+  }
+  
+  return ''
+}
+
+async function updateWidgetData(weather: any, forecast: any[], location: WeatherLocationPayload | null) {
+  if (!weather) return
+
+  try {
+    const todayForecast = forecast?.[0]
+    await Preferences.set({
+      key: 'widget_weather_data',
+      value: JSON.stringify({
+        temp: Math.round(weather.temp),
+        temp_min: todayForecast?.temp_min ? Math.round(todayForecast.temp_min) : Math.round(weather.temp),
+        temp_max: todayForecast?.temp_max ? Math.round(todayForecast.temp_max) : Math.round(weather.temp),
+        main: translateWeatherCondition(weather),
+        icon: weather.icon,
+        locationName: location?.name || 'Unknown Location',
+        updateTime: new Date().getTime()
+      })
+    })
+  } catch {
+    // Ignore on web
   }
 }
 
