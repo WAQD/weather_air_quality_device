@@ -9,11 +9,13 @@ import compression from 'vite-plugin-compression'
 import { execSync } from 'node:child_process'
 import pkg from './package.json'
 
-let gitHash = ''
-try {
-  gitHash = execSync('git rev-parse --short=6 HEAD').toString().trim()
-} catch (e) {
-  gitHash = 'unknown'
+let gitHash = process.env.VCS_REF || ''
+if (!gitHash) {
+  try {
+    gitHash = execSync('git rev-parse --short=6 HEAD').toString().trim()
+  } catch (e) {
+    gitHash = 'unknown'
+  }
 }
 const appVersion = `${pkg.version}+${gitHash}`
 
