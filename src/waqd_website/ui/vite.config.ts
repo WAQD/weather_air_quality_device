@@ -5,10 +5,22 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { VitePWA } from 'vite-plugin-pwa'
-import { visualizer } from 'rollup-plugin-visualizer'
 import compression from 'vite-plugin-compression'
+import { execSync } from 'node:child_process'
+import pkg from './package.json'
+
+let gitHash = ''
+try {
+  gitHash = execSync('git rev-parse --short=6 HEAD').toString().trim()
+} catch (e) {
+  gitHash = 'unknown'
+}
+const appVersion = `${pkg.version}+${gitHash}`
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   plugins: [
     vue({
       script: {
@@ -24,7 +36,7 @@ export default defineConfig({
 
     // PWA Configuration
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'WAQD - Weather & Air Quality Device',
@@ -235,14 +247,6 @@ export default defineConfig({
     compression({
       algorithm: 'brotliCompress',
       ext: '.br',
-    }),
-
-    // Bundle visualizer
-    visualizer({
-      filename: 'build-reports/stats.html',
-      open: true,
-      gzipSize: true,
-      brotliSize: true,
     }),
   ],
 

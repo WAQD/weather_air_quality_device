@@ -357,7 +357,6 @@ import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/u
 import { useWeather } from '../composables/useWeather'
 import DeviceCard from '../components/DeviceCard.vue'
 import type { Device } from '../types/device'
-import packageJson from '../../package.json'
 
 const router = useRouter()
 const { t } = useTranslation()
@@ -371,7 +370,8 @@ const {
     loadSavedLocation,
     loadWeather
 } = useWebsiteWeather()
-const version = packageJson.version
+const version = __APP_VERSION__
+
 const devices = ref<Device[]>([])
 const homeDevice = computed(() => devices.value[0] || null)
 
