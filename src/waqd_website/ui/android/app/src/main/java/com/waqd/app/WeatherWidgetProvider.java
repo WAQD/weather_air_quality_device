@@ -16,6 +16,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuffColorFilter;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.RemoteViews;
@@ -33,7 +34,7 @@ import java.util.concurrent.Executors;
 public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private static final String BASE_URL = "https://waqd.de"; // Match capacitor.config.ts http://192.168.178.57:8000
+    private static final String BASE_URL = "https://waqd.de";
     private static final String ACTION_CLOCK_TICK = "com.waqd.app.CLOCK_TICK";
 
     @Override
@@ -54,6 +55,12 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     public void onDisabled(Context context) {
         super.onDisabled(context);
         cancelClockTick(context);
+    }
+
+    @Override
+    public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
+        updateAppWidget(context, appWidgetManager, appWidgetId);
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
     @Override
@@ -137,7 +144,16 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             e.printStackTrace();
         }
 
-        final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+        Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
+        int maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
+
+        // Portrait height (maxHeight):
+        // 5x2 is ~183dp
+        // 5x3 is ~280dp
+        // Threshold set to 220dp to cleanly split the difference
+        int layoutId = maxHeight >= 220 ? R.layout.widget_layout_large : R.layout.widget_layout;
+        
+        final RemoteViews views = new RemoteViews(context.getPackageName(), layoutId);
 
         // Update Clock panels
         SimpleDateFormat hourFormat = new SimpleDateFormat("HH", Locale.getDefault());
@@ -153,7 +169,6 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_location, locationStr);
         views.setTextViewText(R.id.widget_condition, conditionStr);
         views.setTextViewText(R.id.widget_daily_temp, dailyTempStr);
-        views.setTextViewText(R.id.widget_update_time, updateStr);
 
         // Click to open app
         Intent intent = new Intent(context, MainActivity.class);
@@ -162,7 +177,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
         // Fetch Icon Async (Option B)
         if (!iconName.isEmpty()) {
-            final String finalIconUrl = BASE_URL + "/static/weather_icons/" + iconName + ".svg";
+            final String mappedIconName = getGoogleIconName(iconName);
+            final String finalIconUrl = BASE_URL + "/static/weather_icons/google/v0/light/" + mappedIconName + ".svg";
             executor.execute(() -> {
                 try {
                     URL url = new URL(finalIconUrl);
@@ -184,16 +200,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                         // Render SVG onto bitmap
                         svg.renderToCanvas(canvas);
 
-                        // Create grey-tinted bitmap (preserve alpha)
-                        Bitmap tintedBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
-                        Canvas tintedCanvas = new Canvas(tintedBitmap);
-                        tintedCanvas.drawColor(Color.parseColor("#9f9f9f"));
-                        Paint maskPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                        maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
-                        tintedCanvas.drawBitmap(bitmap, 0, 0, maskPaint);
-                        maskPaint.setXfermode(null);
-
-                        final Bitmap finalBitmap = tintedBitmap;
+                        final Bitmap finalBitmap = bitmap;
 
                         new Handler(Looper.getMainLooper()).post(() -> {
                             views.setImageViewBitmap(R.id.widget_icon, finalBitmap);
@@ -207,5 +214,41 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         }
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
+    }
+    
+    private static String getGoogleIconName(String iconName) {
+        if (iconName == null) return "not_available";
+        
+        switch (iconName) {
+            case "wi-day-sunny": return "clear_day";
+            case "wi-night-clear": return "clear_night";
+            case "wi-day-sunny-overcast": return "partly_cloudy_day";
+            case "wi-night-alt-partly-cloudy": return "partly_cloudy_night";
+            case "wi-day-cloudy": return "mostly_cloudy_day";
+            case "wi-night-alt-cloudy": return "mostly_cloudy_night";
+            case "wi-cloudy": return "cloudy";
+            case "wi-day-fog": case "wi-night-fog": case "wi-fog": return "haze_fog_dust_smoke";
+            case "wi-day-sprinkle": case "wi-night-alt-sprinkle": return "drizzle";
+            case "wi-day-sleet": case "wi-night-alt-sleet": case "wi-day-hail": case "wi-night-alt-hail": case "wi-night-alt-snow-thunderstorm": return "sleet_hail";
+            case "wi-day-rain-mix": case "wi-night-alt-rain-mix": return "mixed_rain_hail_sleet";
+            case "wi-day-rain": case "wi-night-alt-rain": return "heavy_rain";
+            case "wi-day-snow": case "wi-night-alt-snow": return "heavy_snow";
+            case "wi-day-showers": return "scattered_showers_day";
+            case "wi-night-alt-showers": return "scattered_showers_night";
+            case "wi-day-thunderstorm": return "isolated_scattered_tstorms_day";
+            case "wi-night-alt-thunderstorm": return "isolated_scattered_tstorms_night";
+            case "wi-day-lightning": case "wi-night-alt-lightning": return "isolated_tstorms";
+            case "wi-smoke": case "wi-dust": return "haze_fog_dust_smoke";
+            case "wi-tornado": case "wi-hurricane": return "tropical_storm_hurricane";
+            case "wi-snowflake-cold": return "very_cold";
+            case "wi-hot": return "very_hot";
+            case "wi-strong-wind": case "wi-windy": case "wi-day-windy": return "windy_breezy";
+            default:
+                if (iconName.contains("thunderstorm")) return "strong_tstorms";
+                if (iconName.contains("snow")) return "snow_showers_snow";
+                if (iconName.contains("rain")) return "showers_rain";
+                if (iconName.contains("cloud")) return "cloudy";
+                return "not_available";
+        }
     }
 }

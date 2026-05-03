@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="widget_clock_text_size">96sp</dimen>
+    <dimen name="widget_temp_text_size">36sp</dimen>
+    <dimen name="widget_padding">12dp</dimen>
+    <dimen name="widget_clock_margin">8dp</dimen>
+</resources>
