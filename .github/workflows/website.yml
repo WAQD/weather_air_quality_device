@@ -52,10 +52,11 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             TAGS="$TAGS -t goszpeti/waqd_website:${{ steps.package_version.outputs.version }}"
           fi
+          VCS_REF=$(git rev-parse --short=6 HEAD)
           docker buildx build \
             --platform linux/amd64 \
             --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-            --build-arg VCS_REF=$(git rev-parse HEAD) \
+            --build-arg VCS_REF=$VCS_REF \
             --build-arg VERSION=$(git describe --tags || echo "dev") \
             $TAGS \
             --load \
