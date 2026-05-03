@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # docker build --tag waqd_website:latest . -f src/waqd_website/Dockerfile
 # Stage 1: Build the Vue.js frontend
 FROM node:20-alpine AS frontend-builder
@@ -26,11 +27,14 @@ COPY --chown=waqd:waqd src/waqd_website/__init__.py src/waqd_website/__init__.py
 
 RUN . pdm-venv/bin/activate && \
     pdm install --frozen-lockfile -G website && \
-    rm -rf ~/.cache/pdm
+    rm -rf ~/.cache
 
 COPY --chown=waqd:waqd src/waqd src/waqd
-COPY --chown=waqd:waqd src/waqd_website src/waqd_website
+# Exclude the frontend source folder from the final image
+COPY --exclude=ui --chown=waqd:waqd src/waqd_website src/waqd_website
+
 # Copy the built frontend from Stage 1
 COPY --from=frontend-builder --chown=waqd:waqd /app/src/waqd_website/ui/dist /home/waqd/src/waqd_website/ui/dist
 
 ENTRYPOINT ["/bin/sh", "-c", ". ./pdm-venv/bin/activate && uvicorn waqd_website.main:web_app --host 0.0.0.0 --port 8080"]
+EXPOSE 8080
