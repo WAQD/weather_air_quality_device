@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import Navbar from './components/Navbar.vue'
 import { useUser } from './composables/useUser'
 import { useTokenRefresh } from './composables/useTokenRefresh'
@@ -32,9 +32,24 @@ const appVersion = __APP_VERSION__
 
 // PWA update handling
 const { needRefresh, updateServiceWorker } = useRegisterSW({
+  onRegistered(r: ServiceWorkerRegistration | undefined) {
+    // Check for updates every hour
+    if (r) {
+      setInterval(() => {
+        r.update()
+      }, 3600000)
+    }
+  },
   onOfflineReady() {
     console.log('App ready to work offline')
   },
+})
+
+// Auto-trigger update when detected
+watch(needRefresh, (newVal) => {
+  if (newVal) {
+    updateServiceWorker(true)
+  }
 })
 
 function updateApp() {
