@@ -25,11 +25,6 @@ class OpenTopoData:
         ):
             return self._altitude_info.get("elevation", 0.0)
 
-        # wait a little bit for connection
-        is_connected = Network().wait_for_internet()
-        if not is_connected:
-            Logger().error("OpenTopo: Timeout while wating for network connection")
-            return 0
         response_file = None
         try:
             response_file = urllib.request.urlretrieve(
