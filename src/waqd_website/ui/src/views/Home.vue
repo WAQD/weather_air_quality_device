@@ -41,9 +41,18 @@
                                     {{ t('current_weather') }}</p>
                                 <h2 class="mt-2 text-2xl sm:text-3xl font-bold">{{
                                     t('home_weather_today') }}</h2>
-                                <p class="mt-2 text-sm sm:text-base opacity-80">{{ homeLocation ?
-                                    formatLocationLabel(homeLocation) :
+                                <p class="mt-2 text-sm sm:text-base opacity-80">{{ 
+                                    locationMode === 'gps' && currentLocation ? formatLocationLabel(currentLocation) :
+                                    homeLocation ? formatLocationLabel(homeLocation) :
                                     t('home_weather_needs_location') }}</p>
+                                <div class="mt-3 join">
+                                    <button class="btn btn-xs join-item" :class="locationMode === 'home' ? 'btn-primary' : 'btn-ghost'" @click="setLocationMode('home')">
+                                        🏠 {{ t('home') }}
+                                    </button>
+                                    <button class="btn btn-xs join-item" :class="locationMode === 'gps' ? 'btn-primary' : 'btn-ghost'" @click="setLocationMode('gps')">
+                                        🛰️ GPS
+                                    </button>
+                                </div>
                             </div>
                             <span v-if="cached && currentWeather"
                                 class="badge badge-info badge-outline whitespace-nowrap">
@@ -94,7 +103,7 @@
 
                             <div class="flex flex-col gap-3 sm:flex-row">
                                 <button class="btn btn-secondary" type="button"
-                                    :disabled="isLoadingWeather || !homeLocation"
+                                    :disabled="isLoadingWeather || (!homeLocation && locationMode === 'home')"
                                     @click="refreshWeather(true)">
                                     {{ t('home_weather_refresh') }}
                                 </button>
@@ -349,8 +358,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { App } from '@capacitor/app'
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
 import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
@@ -364,16 +374,73 @@ const { isLoggedIn, username, fetchUserInfo, isLoading: isUserLoading } = useUse
 const { setWeatherData } = useWeather()
 const {
     homeLocation,
+    currentLocation,
     currentWeather,
     cached,
     isLoadingWeather,
+    locationMode,
     loadSavedLocation,
-    loadWeather
+    loadWeather,
+    setLocationMode,
+    loadWeatherByGps
 } = useWebsiteWeather()
 const version = __APP_VERSION__
 
 const devices = ref<Device[]>([])
 const homeDevice = computed(() => devices.value[0] || null)
+
+let weatherInterval: any = null
+
+watch(isLoggedIn, async (loggedIn) => {
+    if (!loggedIn) {
+        devices.value = []
+        stopWeatherPolling()
+        return
+    }
+
+    await Promise.all([
+        initializeHomeWeather(),
+        loadDevices()
+    ])
+    startWeatherPolling()
+}, { immediate: true })
+
+onMounted(async () => {
+    if (!isLoggedIn.value && !isUserLoading.value) {
+        await fetchUserInfo()
+    }
+
+    try {
+        App.addListener('appStateChange', ({ isActive }) => {
+            if (isActive) {
+                startWeatherPolling()
+                refreshWeather(false)
+            } else {
+                stopWeatherPolling()
+            }
+        })
+    } catch {
+        // Not on mobile
+    }
+})
+
+onUnmounted(() => {
+    stopWeatherPolling()
+})
+
+function startWeatherPolling() {
+    stopWeatherPolling()
+    if (!isLoggedIn.value) return
+    // Refresh weather every 30 minutes while app is in foreground
+    weatherInterval = setInterval(() => refreshWeather(), 30 * 60 * 1000)
+}
+
+function stopWeatherPolling() {
+    if (weatherInterval) {
+        clearInterval(weatherInterval)
+        weatherInterval = null
+    }
+}
 
 const taskListIconUrl = '/static/general_icons/task_list.svg#main'
 const infoIconUrl = '/static/general_icons/info.svg#main'
@@ -382,24 +449,6 @@ const mainGuiImg = '/static/doc_images/main_gui.png'
 const waqdStationImg = '/static/doc_images/waqd_station.jpg'
 const sensorCaseImg = '/static/doc_images/sensor_case.png'
 const optionsImg = '/static/doc_images/options.png'
-
-watch(isLoggedIn, async (loggedIn) => {
-    if (!loggedIn) {
-        devices.value = []
-        return
-    }
-
-    await Promise.all([
-        initializeHomeWeather(),
-        loadDevices()
-    ])
-}, { immediate: true })
-
-onMounted(async () => {
-    if (!isLoggedIn.value && !isUserLoading.value) {
-        await fetchUserInfo()
-    }
-})
 
 async function initializeHomeWeather(): Promise<void> {
     await loadSavedLocation()
@@ -463,7 +512,11 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
 }
 
 async function refreshWeather(force = false): Promise<void> {
-    await loadWeather(force)
+    if (locationMode.value === 'gps') {
+        await loadWeatherByGps()
+    } else {
+        await loadWeather(force)
+    }
 }
 </script>
 
