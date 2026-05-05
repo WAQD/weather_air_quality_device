@@ -200,31 +200,37 @@ class WAQDDeviceClient(Component):
             
             history_data = {}
             
-            for sensor in sensors:
+            # Helper function for threaded execution
+            def fetch_history(sensor):
                 try:
-                    # Get sensor history from logger
-                    time_value_pairs = SensorValueLogger.get_sensor_values(
+                    return sensor['type'], SensorValueLogger.get_sensor_values(
                         sensor['location'],
                         sensor['type'],
                         minutes_to_read=sensor['hours'] * 60
                     )
-                    
-                    # Convert to serializable format
-                    data_points = [
-                        {
-                            'timestamp': dt.isoformat(),
-                            'value': float(value)
-                        }
-                        for dt, value in time_value_pairs
-                    ]
-                    
-                    history_data[sensor['type']] = data_points
                 except Exception as e:
-                    self._logger.warning(
-                        "WS: Failed to get history for %s: %s",
-                        sensor['type'],
-                        e
-                    )
+                    self._logger.warning("WS: Failed to get history for %s: %s", sensor['type'], e)
+                    return sensor['type'], []
+
+            # Use thread pool to avoid blocking async loop with synchronous DB/File IO
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=len(sensors)) as executor:
+                results = list(executor.map(fetch_history, sensors))
+
+            for sensor_type_name, time_value_pairs in results:
+                if not time_value_pairs:
+                    continue
+                
+                # Convert to serializable format
+                data_points = [
+                    {
+                        'timestamp': dt.isoformat(),
+                        'value': float(value)
+                    }
+                    for dt, value in time_value_pairs
+                ]
+                
+                history_data[sensor_type_name] = data_points
             
             if history_data:
                 await self.send_sensor_history_data(history_data)
