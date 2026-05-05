@@ -40,13 +40,14 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/widget_clock_margin">
 
-                <TextView
+                <TextClock
                     android:id="@+id/widget_clock_hour"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/clock_panel"
                     android:gravity="center"
-                    android:text="10"
+                    android:format12Hour="hh"
+                    android:format24Hour="HH"
                     android:textColor="#222222"
                     android:textSize="@dimen/widget_clock_text_size"
                     android:fontFamily="sans-serif-condensed-light"
@@ -63,13 +64,14 @@
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/widget_clock_margin">
 
-                <TextView
+                <TextClock
                     android:id="@+id/widget_clock_minute"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/clock_panel"
                     android:gravity="center"
-                    android:text="10"
+                    android:format12Hour="mm"
+                    android:format24Hour="mm"
                     android:textColor="#222222"
                     android:textSize="@dimen/widget_clock_text_size"
                     android:fontFamily="sans-serif-condensed-light"

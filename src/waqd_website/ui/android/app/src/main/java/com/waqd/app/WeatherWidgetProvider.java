@@ -30,31 +30,33 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final String BASE_URL = "https://waqd.de";
-    private static final String ACTION_CLOCK_TICK = "com.waqd.app.CLOCK_TICK";
+    private static final String ACTION_WEATHER_UPDATE = "com.waqd.app.WEATHER_UPDATE";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
-        scheduleClockTick(context);
+        scheduleWeatherUpdate(context);
     }
 
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
-        scheduleClockTick(context);
+        scheduleWeatherUpdate(context);
     }
 
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        cancelClockTick(context);
+        cancelWeatherUpdate(context);
     }
 
     @Override
@@ -66,39 +68,48 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        if (ACTION_CLOCK_TICK.equals(intent.getAction())) {
+        String action = intent.getAction();
+        if (ACTION_WEATHER_UPDATE.equals(action) || Intent.ACTION_USER_PRESENT.equals(action)) {
+            android.util.Log.d("WeatherWidget", "Update triggered by: " + action);
             AppWidgetManager mgr = AppWidgetManager.getInstance(context);
             int[] ids = mgr.getAppWidgetIds(new ComponentName(context, WeatherWidgetProvider.class));
             for (int id : ids) {
                 updateAppWidget(context, mgr, id);
             }
-            scheduleClockTick(context); // reschedule for next minute
+            if (ACTION_WEATHER_UPDATE.equals(action)) {
+                scheduleWeatherUpdate(context);
+            }
         }
     }
 
-    private static void scheduleClockTick(Context context) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager == null) return;
-        Intent intent = new Intent(context, WeatherWidgetProvider.class);
-        intent.setAction(ACTION_CLOCK_TICK);
-        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        // Fire at the top of the next minute - use set() which requires no special permission
-        long now = System.currentTimeMillis();
-        long nextMinute = now + (60_000L - (now % 60_000L));
-        alarmManager.set(AlarmManager.RTC, nextMinute, pi);
+    private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
+        // ... (data reading logic)
     }
 
-    private static void cancelClockTick(Context context) {
+    private static void scheduleWeatherUpdate(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) return;
         Intent intent = new Intent(context, WeatherWidgetProvider.class);
-        intent.setAction(ACTION_CLOCK_TICK);
+        intent.setAction(ACTION_WEATHER_UPDATE);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        
+        // Use setAndAllowWhileIdle for background updates every 30 mins
+        // This is battery-friendly but ensures we get data eventually even in Doze
+        long triggerAtMillis = System.currentTimeMillis() + 30 * 60 * 1000L;
+        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC, triggerAtMillis, pi);
+    }
+
+    private static void cancelWeatherUpdate(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) return;
+        Intent intent = new Intent(context, WeatherWidgetProvider.class);
+        intent.setAction(ACTION_WEATHER_UPDATE);
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         alarmManager.cancel(pi);
     }
-
+    
     private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
         // Read data from Capacitor preferences
         SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
@@ -155,15 +166,6 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         
         final RemoteViews views = new RemoteViews(context.getPackageName(), layoutId);
 
-        // Update Clock panels
-        SimpleDateFormat hourFormat = new SimpleDateFormat("HH", Locale.getDefault());
-        SimpleDateFormat minuteFormat = new SimpleDateFormat("mm", Locale.getDefault());
-        String hour = hourFormat.format(new Date());
-        String minute = minuteFormat.format(new Date());
-        
-        views.setTextViewText(R.id.widget_clock_hour, hour);
-        views.setTextViewText(R.id.widget_clock_minute, minute);
-
         // Update Weather data
         views.setTextViewText(R.id.widget_temp, tempStr);
         views.setTextViewText(R.id.widget_location, locationStr);
@@ -175,33 +177,49 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
 
-        // Fetch Icon Async (Option B)
+        // Fetch Icon Async with Caching
         if (!iconName.isEmpty()) {
             final String mappedIconName = getGoogleIconName(iconName);
             final String finalIconUrl = BASE_URL + "/static/weather_icons/google/v0/light/" + mappedIconName + ".svg";
+            final String cacheKey = "icon_" + mappedIconName + ".png";
+            
             executor.execute(() -> {
                 try {
-                    URL url = new URL(finalIconUrl);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-                    
-                    SVG svg = SVG.getFromInputStream(input);
-                    if (svg != null) {
-                        // Create a bitmap to render the SVG into
-                        // Using 192px for a sharp result on widget
-                        float width = (svg.getDocumentWidth() != -1) ? svg.getDocumentWidth() : 192f;
-                        float height = (svg.getDocumentHeight() != -1) ? svg.getDocumentHeight() : 192f;
-                        
-                        final Bitmap bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-                        Canvas canvas = new Canvas(bitmap);
-                        
-                        // Render SVG onto bitmap
-                        svg.renderToCanvas(canvas);
+                    File cacheFile = new File(context.getCacheDir(), cacheKey);
+                    Bitmap bitmap = null;
 
+                    if (cacheFile.exists()) {
+                        bitmap = BitmapFactory.decodeFile(cacheFile.getAbsolutePath());
+                    }
+
+                    if (bitmap == null) {
+                        URL url = new URL(finalIconUrl);
+                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                        connection.setConnectTimeout(5000);
+                        connection.setReadTimeout(5000);
+                        connection.setDoInput(true);
+                        connection.connect();
+                        InputStream input = connection.getInputStream();
+                        
+                        SVG svg = SVG.getFromInputStream(input);
+                        if (svg != null) {
+                            float width = (svg.getDocumentWidth() != -1) ? svg.getDocumentWidth() : 192f;
+                            float height = (svg.getDocumentHeight() != -1) ? svg.getDocumentHeight() : 192f;
+                            
+                            bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+                            Canvas canvas = new Canvas(bitmap);
+                            svg.renderToCanvas(canvas);
+
+                            // Cache the bitmap as PNG
+                            try (FileOutputStream out = new FileOutputStream(cacheFile)) {
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                            }
+                        }
+                        input.close();
+                    }
+
+                    if (bitmap != null) {
                         final Bitmap finalBitmap = bitmap;
-
                         new Handler(Looper.getMainLooper()).post(() -> {
                             views.setImageViewBitmap(R.id.widget_icon, finalBitmap);
                             appWidgetManager.updateAppWidget(appWidgetId, views);
