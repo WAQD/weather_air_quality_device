@@ -1,5 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import { Preferences } from '@capacitor/preferences'
+import { Geolocation } from '@capacitor/geolocation'
+import { NativeSettings, AndroidSettings } from 'capacitor-native-settings'
 import type { AvailableLocale } from '../i18n'
 import i18n from '../i18n'
 import type { ForecastData, HourlyWeatherData, WeatherData } from './useWeather'
@@ -33,7 +35,11 @@ interface WebsiteWeatherResponse {
 }
 
 const SAVED_LOCATIONS_KEY = 'waqd.website.savedLocations'
+const LOCATION_MODE_KEY = 'waqd.website.locationMode'
 
+export type LocationMode = 'home' | 'gps'
+
+const locationMode = ref<LocationMode>('home')
 const savedLocation = ref<WeatherLocationPayload | null>(null)
 const savedLocations = ref<WeatherLocationPayload[]>([])
 const currentLocation = ref<WeatherLocationPayload | null>(null)
@@ -144,6 +150,11 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   clearError()
 
   try {
+    const modeRes = await Preferences.get({ key: LOCATION_MODE_KEY })
+    if (modeRes.value === 'gps' || modeRes.value === 'home') {
+      locationMode.value = modeRes.value as LocationMode
+    }
+
     const [response, savedResponse] = await Promise.all([
       fetch('/api/user/weather/location', { credentials: 'include' }),
       fetch('/api/user/weather/saved-locations', { credentials: 'include' })
@@ -382,8 +393,97 @@ function setCurrentLocation(location: WeatherLocationPayload | null): void {
   currentLocation.value = location
 }
 
+async function setLocationMode(mode: LocationMode): Promise<void> {
+  locationMode.value = mode
+  await Preferences.set({ key: LOCATION_MODE_KEY, value: mode })
+  if (mode === 'home' && homeLocation.value) {
+    await loadWeatherForLocation(homeLocation.value)
+  } else if (mode === 'gps') {
+    await loadWeatherByGps()
+  }
+}
+
+async function loadWeatherByGps(): Promise<void> {
+  isLoadingWeather.value = true
+  clearError()
+  console.log('GPS: Starting acquisition...')
+  try {
+    // Check/Request permissions first for better UX
+    try {
+      const perm = await Geolocation.checkPermissions()
+      console.log('GPS: Permission status:', perm.location)
+      if (perm.location !== 'granted') {
+        console.log('GPS: Requesting permissions...')
+        const req = await Geolocation.requestPermissions()
+        console.log('GPS: Request result:', req.location)
+        if (req.location !== 'granted') {
+          console.log('GPS: Permission denied. Opening system settings...')
+          await NativeSettings.open({
+            option: AndroidSettings.ApplicationDetails
+          })
+          throw new Error('Location permission denied. Please enable in settings.')
+        }
+      }
+    } catch (e) {
+      console.warn('GPS: Permission check failed:', e)
+    }
+
+    console.log('GPS: Calling getCurrentPosition...')
+    const coordinates = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: 60000
+    })
+    console.log('GPS: Received coordinates:', coordinates.coords.latitude, coordinates.coords.longitude)
+
+    const params = new URLSearchParams({
+      latitude: coordinates.coords.latitude.toString(),
+      longitude: coordinates.coords.longitude.toString(),
+      name: 'Selected location' // Trigger backend reverse geocoding
+    })
+    const url = `/api/user/weather/preview?${params.toString()}`
+    console.log('GPS: Fetching weather from:', url)
+    const response = await fetch(url, {
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      console.error('GPS: Weather fetch failed status:', response.status)
+      throw new Error('Failed to load GPS weather data')
+    }
+
+    const payload = await response.json() as WebsiteWeatherResponse
+    console.log('GPS: Weather payload received for:', payload.location?.name)
+    currentLocation.value = payload.location
+    currentWeather.value = payload.current_weather
+    forecastData.value = payload.forecast ?? []
+    hourlyDaytimeData.value = payload.hourly_daytime ?? []
+    hourlyNighttimeData.value = payload.hourly_nighttime ?? []
+    cached.value = Boolean(payload.cached)
+
+    await updateWidgetData(currentWeather.value, forecastData.value, payload.location)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'GPS error'
+    errorMessage.value = `GPS failed: ${msg}. Switching to Home.`
+    console.error('GPS error:', error)
+    
+    // Fallback to Home mode on failure
+    if (homeLocation.value) {
+      locationMode.value = 'home'
+      await Preferences.set({ key: LOCATION_MODE_KEY, value: 'home' })
+      await loadWeatherForLocation(homeLocation.value)
+    }
+  } finally {
+    isLoadingWeather.value = false
+  }
+}
+
 async function setHomeLocation(location: WeatherLocationPayload): Promise<WeatherLocationPayload | null> {
-  return saveLocation(location, true)
+  const result = await saveLocation(location, true)
+  if (result) {
+    setCurrentLocation(result)
+  }
+  return result
 }
 
 async function removeSavedLocation(location: WeatherLocationPayload): Promise<boolean> {
@@ -535,6 +635,7 @@ export function useWebsiteWeather() {
     hasSavedLocation,
     hasWeather,
     isBusy,
+    locationMode,
     clearError,
     clearSearchResults,
     cancelSearch,
@@ -546,6 +647,8 @@ export function useWebsiteWeather() {
     deleteLocation,
     removeSavedLocation,
     setHomeLocation,
+    setLocationMode,
+    loadWeatherByGps,
     setCurrentLocation,
     loadWeatherForLocation
   }

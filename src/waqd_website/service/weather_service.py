@@ -6,6 +6,7 @@ from typing import Any, Optional
 from waqd.base.file_logger import Logger
 from waqd.components.weather.base_types import DailyWeather, Location, Weather
 from waqd.components.weather.open_meteo import OpenMeteo
+from waqd.components.weather.nominatim import NominatimGeocoding
 from waqd_website.database.weather import (
     get_user_weather_location,
     save_user_weather_location,
@@ -47,6 +48,9 @@ class WebsiteWeatherService:
 
     def get_saved_location(self, user_id: int) -> Optional[Location]:
         return get_user_weather_location(user_id)
+
+    def resolve_location_name(self, latitude: float, longitude: float) -> Optional[Location]:
+        return NominatimGeocoding().reverse_geocoding(latitude, longitude)
 
     def save_location(self, user_id: int, location: Location) -> Location:
         saved_location = save_user_weather_location(user_id, location)

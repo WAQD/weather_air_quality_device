@@ -177,6 +177,13 @@ async def get_weather_preview(
     )
 
     payload, cached = weather_service.get_weather_for_location(location, force=force)
+    
+    # If the location name is generic (latitude/longitude string), try to resolve a better name
+    if name == "Selected location" or not name.strip():
+        resolved = weather_service.resolve_location_name(latitude, longitude)
+        if resolved:
+            location = resolved
+
     return WebsiteWeatherResponse(
         location=WeatherLocationPayload(**location.model_dump()),
         current_weather=payload.get("current_weather"),
