@@ -36,7 +36,7 @@ import java.io.FileOutputStream;
 public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private static final String BASE_URL = "http://192.168.178.57:8000";
+    private static final String BASE_URL = "https://waqd.de";
     private static final String ACTION_WEATHER_UPDATE = "com.waqd.app.WEATHER_UPDATE";
 
     @Override
