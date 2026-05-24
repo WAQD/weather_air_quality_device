@@ -32,7 +32,7 @@ class NominatimGeocoding:
                 address = data.get("address", {})
                 
                 # Determine a suitable name
-                name = data.get("name") or address.get("city") or address.get("town") or address.get("village") or address.get("suburb") or "Unknown location"
+                name = address.get("city") or address.get("town") or address.get("village") or address.get("suburb") or "Unknown location"
                 
                 return Location(
                     name=name,
