@@ -65,6 +65,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
+    private static final String ACTION_GPS_WIDGET_REFRESH = "com.waqd.app.GPS_WIDGET_REFRESH";
+    private static final String PREF_LOCATION_MODE_KEY = "waqd.website.locationMode";
+
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -79,6 +82,22 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             if (ACTION_WEATHER_UPDATE.equals(action)) {
                 scheduleWeatherUpdate(context);
             }
+            // On unlock, tell the app to do a GPS refresh if GPS mode is active
+            if (Intent.ACTION_USER_PRESENT.equals(action)) {
+                triggerGpsRefreshIfNeeded(context);
+            }
+        }
+    }
+
+    private static void triggerGpsRefreshIfNeeded(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        String locationMode = prefs.getString(PREF_LOCATION_MODE_KEY, "home");
+        android.util.Log.d("WeatherWidget", "Location mode on unlock: " + locationMode);
+        if ("gps".equals(locationMode)) {
+            android.util.Log.d("WeatherWidget", "GPS mode active, sending refresh broadcast to app");
+            Intent gpsIntent = new Intent(ACTION_GPS_WIDGET_REFRESH);
+            gpsIntent.setPackage(context.getPackageName());
+            context.sendBroadcast(gpsIntent);
         }
     }
 

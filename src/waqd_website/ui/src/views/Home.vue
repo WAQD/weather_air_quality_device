@@ -422,10 +422,13 @@ onMounted(async () => {
     } catch {
         // Not on mobile
     }
+
+    window.addEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
 })
 
 onUnmounted(() => {
     stopWeatherPolling()
+    window.removeEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
 })
 
 function startWeatherPolling() {
@@ -439,6 +442,12 @@ function stopWeatherPolling() {
     if (weatherInterval) {
         clearInterval(weatherInterval)
         weatherInterval = null
+    }
+}
+
+async function handleWidgetGpsRefresh(): Promise<void> {
+    if (isLoggedIn.value && locationMode.value === 'gps') {
+        await refreshWeather(true)
     }
 }
 
