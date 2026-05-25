@@ -308,10 +308,10 @@ function formatWind(speed: number | undefined, deg: number | undefined): string 
 async function selectDay(index: number): Promise<void> {
   selectedDayIndex.value = index
   await nextTick()
-  scrollHourlyToSixAm()
+  scrollHourlyToTargetHour(index)
 }
 
-function scrollHourlyToSixAm(): void {
+function scrollHourlyToTargetHour(index: number): void {
   const scroller = hourlyScroller.value
   if (!scroller) {
     return
@@ -322,9 +322,12 @@ function scrollHourlyToSixAm(): void {
     return
   }
 
-  let target = cards.find((card) => Number(card.dataset.hour) === 6)
+  // Use current hour for the first day (index 0, usually today), otherwise 6 AM
+  const targetHour = index === 0 ? new Date().getHours() : 6
+
+  let target = cards.find((card) => Number(card.dataset.hour) === targetHour)
   if (!target) {
-    target = cards.find((card) => Number(card.dataset.hour) > 6) || cards[0]
+    target = cards.find((card) => Number(card.dataset.hour) > targetHour) || cards[0]
   }
 
   if (!target) {

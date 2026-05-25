@@ -22,6 +22,7 @@ import android.os.Looper;
 import android.widget.RemoteViews;
 import com.caverock.androidsvg.SVG;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -143,6 +144,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         String dailyTempStr = "--° / --°";
         String updateStr = "Updated: --:--";
         String iconName = "";
+        String widgetStyle = "simple";
+        JSONArray forecastDataArr = null;
         
         try {
             JSONObject data = new JSONObject(weatherDataRaw);
@@ -166,6 +169,12 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
                 updateStr = "Updated: " + sdf.format(new Date(timeMs));
             }
+            if (data.has("widget_style")) {
+                widgetStyle = data.getString("widget_style");
+            }
+            if (data.has("forecast_3_days")) {
+                forecastDataArr = data.getJSONArray("forecast_3_days");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -187,66 +196,120 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_condition, conditionStr);
         views.setTextViewText(R.id.widget_daily_temp, dailyTempStr);
 
-        // Click to open app
+        // Click to open app (default for the whole widget)
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
 
-        // Fetch Icon Async with Caching
-        if (!iconName.isEmpty()) {
-            final String mappedIconName = getGoogleIconName(iconName);
-            final String finalIconUrl = BASE_URL + "/static/weather_icons/google/v0/light/" + mappedIconName + ".svg";
-            final String cacheKey = "icon_" + mappedIconName + ".png";
-            
-            executor.execute(() -> {
+        // Click to open clock app
+        Intent clockIntent = new Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS);
+        clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent clockPendingIntent = PendingIntent.getActivity(context, 1, clockIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        views.setOnClickPendingIntent(R.id.clock_section, clockPendingIntent);
+
+        // Show/Hide forecast section
+        if (layoutId == R.layout.widget_layout_large) {
+            if ("forecast".equals(widgetStyle) && forecastDataArr != null && forecastDataArr.length() >= 3) {
+                views.setViewVisibility(R.id.forecast_section, android.view.View.VISIBLE);
                 try {
-                    File cacheFile = new File(context.getCacheDir(), cacheKey);
-                    Bitmap bitmap = null;
+                    for (int i = 0; i < 3; i++) {
+                        JSONObject dayObj = forecastDataArr.getJSONObject(i);
+                        String fDay = dayObj.getString("day");
+                        String fTempMin = String.valueOf(dayObj.getInt("temp_min"));
+                        String fTempMax = String.valueOf(dayObj.getInt("temp_max"));
+                        String fTempStr = fTempMax + "°\n" + fTempMin + "°";
 
-                    if (cacheFile.exists()) {
-                        bitmap = BitmapFactory.decodeFile(cacheFile.getAbsolutePath());
-                    }
-
-                    if (bitmap == null) {
-                        URL url = new URL(finalIconUrl);
-                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                        connection.setConnectTimeout(5000);
-                        connection.setReadTimeout(5000);
-                        connection.setDoInput(true);
-                        connection.connect();
-                        InputStream input = connection.getInputStream();
+                        int dayId = context.getResources().getIdentifier("forecast_day_" + (i+1), "id", context.getPackageName());
+                        int tempId = context.getResources().getIdentifier("forecast_temp_" + (i+1), "id", context.getPackageName());
                         
-                        SVG svg = SVG.getFromInputStream(input);
-                        if (svg != null) {
-                            float width = (svg.getDocumentWidth() != -1) ? svg.getDocumentWidth() : 192f;
-                            float height = (svg.getDocumentHeight() != -1) ? svg.getDocumentHeight() : 192f;
-                            
-                            bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-                            Canvas canvas = new Canvas(bitmap);
-                            svg.renderToCanvas(canvas);
-
-                            // Cache the bitmap as PNG
-                            try (FileOutputStream out = new FileOutputStream(cacheFile)) {
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-                            }
-                        }
-                        input.close();
-                    }
-
-                    if (bitmap != null) {
-                        final Bitmap finalBitmap = bitmap;
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            views.setImageViewBitmap(R.id.widget_icon, finalBitmap);
-                            appWidgetManager.updateAppWidget(appWidgetId, views);
-                        });
+                        views.setTextViewText(dayId, fDay);
+                        views.setTextViewText(tempId, fTempStr);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            });
+            } else {
+                views.setViewVisibility(R.id.forecast_section, android.view.View.GONE);
+            }
         }
 
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+        // Fetch Icons Async with Caching
+        final JSONArray finalForecastData = forecastDataArr;
+        final String finalWidgetStyle = widgetStyle;
+        if (!iconName.isEmpty()) {
+            final String mappedIconName = getGoogleIconName(iconName);
+            executor.execute(() -> {
+                try {
+                    Bitmap mainBitmap = fetchIcon(context, mappedIconName);
+                    
+                    // Fetch forecast bitmaps
+                    Bitmap[] forecastBitmaps = new Bitmap[3];
+                    if (layoutId == R.layout.widget_layout_large && "forecast".equals(finalWidgetStyle) && finalForecastData != null && finalForecastData.length() >= 3) {
+                        for (int i = 0; i < 3; i++) {
+                            String fIconName = finalForecastData.getJSONObject(i).getString("icon");
+                            forecastBitmaps[i] = fetchIcon(context, getGoogleIconName(fIconName));
+                        }
+                    }
+
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        if (mainBitmap != null) {
+                            views.setImageViewBitmap(R.id.widget_icon, mainBitmap);
+                        }
+                        if (layoutId == R.layout.widget_layout_large && "forecast".equals(finalWidgetStyle)) {
+                            for (int i = 0; i < 3; i++) {
+                                if (forecastBitmaps[i] != null) {
+                                    int iconId = context.getResources().getIdentifier("forecast_icon_" + (i+1), "id", context.getPackageName());
+                                    views.setImageViewBitmap(iconId, forecastBitmaps[i]);
+                                }
+                            }
+                        }
+                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        }
+    }
+    
+    private static Bitmap fetchIcon(Context context, String mappedIconName) throws Exception {
+        String cacheKey = "icon_" + mappedIconName + ".png";
+        File cacheFile = new File(context.getCacheDir(), cacheKey);
+        Bitmap bitmap = null;
+
+        if (cacheFile.exists()) {
+            bitmap = BitmapFactory.decodeFile(cacheFile.getAbsolutePath());
+        }
+
+        if (bitmap == null) {
+            String finalIconUrl = BASE_URL + "/static/weather_icons/google/v0/light/" + mappedIconName + ".svg";
+            URL url = new URL(finalIconUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            
+            SVG svg = SVG.getFromInputStream(input);
+            if (svg != null) {
+                float width = (svg.getDocumentWidth() != -1) ? svg.getDocumentWidth() : 192f;
+                float height = (svg.getDocumentHeight() != -1) ? svg.getDocumentHeight() : 192f;
+                
+                bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                svg.renderToCanvas(canvas);
+
+                // Cache the bitmap as PNG
+                try (FileOutputStream out = new FileOutputStream(cacheFile)) {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                }
+            }
+            input.close();
+        }
+        return bitmap;
     }
     
     private static String getGoogleIconName(String iconName) {

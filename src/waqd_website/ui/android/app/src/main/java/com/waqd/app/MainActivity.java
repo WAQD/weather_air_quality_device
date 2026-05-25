@@ -38,7 +38,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
         gpsRefreshReceiver = new BroadcastReceiver() {
             @Override
@@ -62,7 +62,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
         if (gpsRefreshReceiver != null) {
             unregisterReceiver(gpsRefreshReceiver);
