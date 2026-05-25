@@ -9,16 +9,25 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     private BroadcastReceiver gpsRefreshReceiver;
+    private String pendingNavigatePath = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Store any deep-link navigation from widget tap (cold start)
+        Intent launchIntent = getIntent();
+        if (launchIntent != null && launchIntent.hasExtra("navigate_to")) {
+            pendingNavigatePath = launchIntent.getStringExtra("navigate_to");
+        }
 
         SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
         prefListener = (sharedPreferences, key) -> {
@@ -35,6 +44,41 @@ public class MainActivity extends BridgeActivity {
             }
         };
         prefs.registerOnSharedPreferenceChangeListener(prefListener);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && intent.hasExtra("navigate_to")) {
+            String path = intent.getStringExtra("navigate_to");
+            if (path != null) {
+                // App already running — dispatch after a short delay to ensure WebView is ready
+                new Handler(Looper.getMainLooper()).postDelayed(() -> dispatchNavigation(path), 300);
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Cold start: navigate after WebView has had time to load
+        if (pendingNavigatePath != null) {
+            final String path = pendingNavigatePath;
+            pendingNavigatePath = null;
+            new Handler(Looper.getMainLooper()).postDelayed(() -> dispatchNavigation(path), 500);
+        }
+    }
+
+    private void dispatchNavigation(String path) {
+        if (getBridge() == null || getBridge().getWebView() == null) return;
+        String escapedPath = path.replace("'", "\\'");
+        // Try the global router function first (app already fully loaded).
+        // Fall back to sessionStorage so App.vue picks it up on mount (cold start).
+        String js = "if(window.__waqdNavigate){window.__waqdNavigate('" + escapedPath + "')}else{sessionStorage.setItem('waqd_pending_nav','" + escapedPath + "')}";
+        getBridge().getWebView().post(() ->
+            getBridge().getWebView().evaluateJavascript(js, null)
+        );
     }
 
     @Override
