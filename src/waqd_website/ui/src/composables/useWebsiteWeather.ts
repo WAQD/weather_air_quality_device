@@ -36,10 +36,13 @@ interface WebsiteWeatherResponse {
 
 const SAVED_LOCATIONS_KEY = 'waqd.website.savedLocations'
 const LOCATION_MODE_KEY = 'waqd.website.locationMode'
+const WIDGET_STYLE_KEY = 'waqd.website.widgetStyle'
 
 export type LocationMode = 'home' | 'gps'
+export type WidgetStyle = 'simple' | 'forecast'
 
 const locationMode = ref<LocationMode>('home')
+const widgetStyle = ref<WidgetStyle>('simple')
 const savedLocation = ref<WeatherLocationPayload | null>(null)
 const savedLocations = ref<WeatherLocationPayload[]>([])
 const currentLocation = ref<WeatherLocationPayload | null>(null)
@@ -150,9 +153,17 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   clearError()
 
   try {
-    const modeRes = await Preferences.get({ key: LOCATION_MODE_KEY })
+    const [modeRes, styleRes] = await Promise.all([
+      Preferences.get({ key: LOCATION_MODE_KEY }),
+      Preferences.get({ key: WIDGET_STYLE_KEY })
+    ])
+    
     if (modeRes.value === 'gps' || modeRes.value === 'home') {
       locationMode.value = modeRes.value as LocationMode
+    }
+    
+    if (styleRes.value === 'simple' || styleRes.value === 'forecast') {
+      widgetStyle.value = styleRes.value as WidgetStyle
     }
 
     const [response, savedResponse] = await Promise.all([
@@ -403,6 +414,15 @@ async function setLocationMode(mode: LocationMode): Promise<void> {
   }
 }
 
+async function setWidgetStyle(style: WidgetStyle): Promise<void> {
+  widgetStyle.value = style
+  await Preferences.set({ key: WIDGET_STYLE_KEY, value: style })
+  // Force update widget with current data
+  if (currentWeather.value) {
+    await updateWidgetData(currentWeather.value, forecastData.value, currentLocation.value)
+  }
+}
+
 async function loadWeatherByGps(): Promise<void> {
   isLoadingWeather.value = true
   clearError()
@@ -592,6 +612,23 @@ async function updateWidgetData(weather: any, forecast: any[], location: Weather
 
   try {
     const todayForecast = forecast?.[0]
+    
+    // Generate 3 day forecast array for Android Widget, starting from tomorrow (index 1 to 4)
+    const forecast3Days = forecast?.slice(1, 4).map((day: any) => {
+      // Get short day name (e.g. "Mon")
+      const dateStr = day.date_time
+      const dateObj = new Date(dateStr)
+      // use standard formatter to get short day
+      const shortDay = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(dateObj)
+      
+      return {
+        day: shortDay,
+        icon: day.icon,
+        temp_min: Math.round(day.temp_min),
+        temp_max: Math.round(day.temp_max)
+      }
+    }) || []
+
     await Preferences.set({
       key: 'widget_weather_data',
       value: JSON.stringify({
@@ -601,7 +638,9 @@ async function updateWidgetData(weather: any, forecast: any[], location: Weather
         main: translateWeatherCondition(weather),
         icon: weather.icon,
         locationName: location?.name || 'Unknown Location',
-        updateTime: new Date().getTime()
+        updateTime: new Date().getTime(),
+        widget_style: widgetStyle.value,
+        forecast_3_days: forecast3Days
       })
     })
   } catch {
@@ -636,6 +675,7 @@ export function useWebsiteWeather() {
     hasWeather,
     isBusy,
     locationMode,
+    widgetStyle,
     clearError,
     clearSearchResults,
     cancelSearch,
@@ -648,6 +688,7 @@ export function useWebsiteWeather() {
     removeSavedLocation,
     setHomeLocation,
     setLocationMode,
+    setWidgetStyle,
     loadWeatherByGps,
     setCurrentLocation,
     loadWeatherForLocation
