@@ -408,7 +408,7 @@ async function setLocationMode(mode: LocationMode): Promise<void> {
   locationMode.value = mode
   await Preferences.set({ key: LOCATION_MODE_KEY, value: mode })
   if (mode === 'home' && homeLocation.value) {
-    await loadWeatherForLocation(homeLocation.value)
+    await loadWeatherForLocation(homeLocation.value, false, true)
   } else if (mode === 'gps') {
     await loadWeatherByGps()
   }
@@ -531,7 +531,7 @@ async function removeSavedLocation(location: WeatherLocationPayload): Promise<bo
   return true
 }
 
-async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false): Promise<void> {
+async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false, updateWidget = false): Promise<void> {
   if (!location) {
     resetWeatherData()
     return
@@ -574,8 +574,10 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
 
-    // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
-    await updateWidgetData(currentWeather.value, forecastData.value, location)
+    // Only update widget for home/GPS loads, not for search previews
+    if (updateWidget) {
+      await updateWidgetData(currentWeather.value, forecastData.value, location)
+    }
   } catch (error) {
     resetWeatherData()
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'

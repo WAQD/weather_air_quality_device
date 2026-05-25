@@ -196,8 +196,10 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_condition, conditionStr);
         views.setTextViewText(R.id.widget_daily_temp, dailyTempStr);
 
-        // Click to open app (default for the whole widget)
+        // Click to open weather page in app
         Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra("navigate_to", "/rest/weather");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
 

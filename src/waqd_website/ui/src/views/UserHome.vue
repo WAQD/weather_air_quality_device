@@ -4,7 +4,7 @@
             <div class="hero-overlay bg-opacity-60"></div>
             <div class="hero-content flex-col max-w-7xl w-full px-4 sm:px-6 lg:px-8 relative z-10">
                 <div
-                    class="w-full glass rounded-box p-4 sm:p-6 lg:p-8 bg-primary/80 backdrop-blur-sm text-center lg:text-left">
+                    class="w-full glass rounded-box p-4 sm:p-6 lg:p-8 bg-secondary/80 backdrop-blur-sm text-center lg:text-left">
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold">{{
                         t('home_welcome_back', { username }) }}</h1>
                 </div>
