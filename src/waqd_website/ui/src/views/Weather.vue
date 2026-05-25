@@ -51,8 +51,21 @@
                                 <p class="text-sm opacity-70">{{ t('last_updated') }}: {{
                                     currentWeatherUpdatedAt }}</p>
                             </div>
-
-                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="rounded-box bg-base-200/80 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                            <use :href="cloudsIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                                {{ t('weather_clouds') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.clouds.toFixed(0) }}%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <div class="grid grid-cols-1 gap-3 text-sm">
                                 <div class="rounded-box bg-base-200/80 p-3">
                                     <div class="flex items-center gap-3">
                                         <svg class="h-6 w-6 flex-none" aria-hidden="true">
@@ -95,20 +108,6 @@
                                                 {{ t('pressure') }}</p>
                                             <p class="mt-1 text-lg font-semibold">{{
                                                 currentWeather.pressure.toFixed(0) }} hPa</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
-                                    <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
-                                            <use :href="cloudsIconUrl" fill="currentColor" />
-                                        </svg>
-                                        <div class="min-w-0">
-                                            <p
-                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                {{ t('weather_clouds') }}</p>
-                                            <p class="mt-1 text-lg font-semibold">{{
-                                                currentWeather.clouds.toFixed(0) }}%</p>
                                         </div>
                                     </div>
                                 </div>
@@ -223,10 +222,10 @@
                                         }}</p>
                                 </div>
 
-                                <div class="mt-2 flex items-center justify-between gap-3">
+                                <div class="mt-2 flex flex-col gap-2">
                                     <div class="text-xs opacity-70">{{ location.state ||
                                         location.country }}</div>
-                                    <div class="flex gap-2 shrink-0">
+                                    <div class="flex flex-wrap gap-2">
                                         <button class="btn btn-xs" type="button"
                                             @click="selectLocation(location)">{{ t('open')
                                             }}</button>
