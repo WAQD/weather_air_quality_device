@@ -53,6 +53,14 @@
                                         🛰️ GPS
                                     </button>
                                 </div>
+                                <div v-if="Capacitor.isNativePlatform()" class="mt-2 join">
+                                    <button class="btn btn-xs join-item" :class="widgetStyle === 'simple' ? 'btn-neutral' : 'btn-ghost'" @click="setWidgetStyle('simple')">
+                                        Widget: {{ t('simple') || 'Simple' }}
+                                    </button>
+                                    <button class="btn btn-xs join-item" :class="widgetStyle === 'forecast' ? 'btn-neutral' : 'btn-ghost'" @click="setWidgetStyle('forecast')">
+                                        Widget: {{ t('weekly_weather_forecast') || 'Forecast' }}
+                                    </button>
+                                </div>
                             </div>
                             <span v-if="cached && currentWeather"
                                 class="badge badge-info badge-outline whitespace-nowrap">
@@ -360,6 +368,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
@@ -379,9 +388,11 @@ const {
     cached,
     isLoadingWeather,
     locationMode,
+    widgetStyle,
     loadSavedLocation,
     loadWeather,
     setLocationMode,
+    setWidgetStyle,
     loadWeatherByGps
 } = useWebsiteWeather()
 const version = __APP_VERSION__
