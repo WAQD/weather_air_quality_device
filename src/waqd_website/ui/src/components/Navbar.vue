@@ -13,10 +13,29 @@
       </div>
     </div>
 
-    <div class="navbar-start">
-      <!-- Mobile Menu -->
+    <div class="navbar-start gap-1">
+      <!-- Hamburger Nav Menu -->
+      <div v-if="isLoggedIn" class="dropdown dropdown-bottom z-50">
+        <label tabindex="0" class="btn btn-ghost btn-circle btn-sm md:btn-md">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </label>
+        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 mt-4">
+          <li>
+            <router-link to="/rest/home">{{ t('home') }}</router-link>
+          </li>
+          <li>
+            <router-link to="/rest/devices">{{ t('my_devices') }}</router-link>
+          </li>
+          <li>
+            <router-link to="/rest/weather">{{ t('home_weather') }}</router-link>
+          </li>
+        </ul>
+      </div>
+      <!-- Logo -->
       <router-link to="/public/home"
-        class="btn btn-neutral text-xl md:text-3xl font-bold mx-2 md:mx-4">
+        class="btn btn-primary text-xl md:text-3xl font-bold mx-1 md:mx-2">
         WAQD
       </router-link>
     </div>
@@ -139,14 +158,6 @@
           </li>
           <li v-if="!isLoggedIn">
             <router-link to="/public/login" class="btn btn-ghost btn-sm">{{ t('login')
-              }}</router-link>
-          </li>
-          <li v-if="isLoggedIn">
-            <router-link to="/rest/devices" class="btn btn-ghost btn-sm ">{{ t('my_devices')
-              }}</router-link>
-          </li>
-          <li v-if="isLoggedIn">
-            <router-link to="/rest/weather" class="btn btn-ghost btn-sm ">{{ t('home_weather')
               }}</router-link>
           </li>
           <li v-if="isLoggedIn">
