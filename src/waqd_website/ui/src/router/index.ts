@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
+import UserHome from '../views/UserHome.vue'
 import Login from '../views/Login.vue'
 import About from '../views/About.vue'
 import Admin from '../views/Admin.vue'
@@ -16,12 +17,18 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/public/home'
+      redirect: '/home'
     },
     {
       path: '/public/home',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/home',
+      name: 'user-home',
+      component: UserHome,
+      meta: { requiresAuth: true }
     },
     {
       path: '/public/login',
