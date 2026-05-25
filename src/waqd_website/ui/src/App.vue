@@ -21,11 +21,13 @@
 
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import { useUser } from './composables/useUser'
 import { useTokenRefresh } from './composables/useTokenRefresh'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 
+const router = useRouter()
 const { fetchUserInfo } = useUser()
 const { stopRefreshTimer } = useTokenRefresh()
 const appVersion = __APP_VERSION__
@@ -58,7 +60,20 @@ function updateApp() {
 
 onMounted(() => {
   fetchUserInfo()
+  // Handle navigation requested by Android widget tap (cold start fallback via sessionStorage)
+  const pendingNav = sessionStorage.getItem('waqd_pending_nav')
+  if (pendingNav) {
+    sessionStorage.removeItem('waqd_pending_nav')
+    router.push(pendingNav)
+  }
 })
+
+function handleNativeNavigate(event: Event) {
+  const path = (event as CustomEvent<{ path: string }>).detail?.path
+  if (path) {
+    router.push(path)
+  }
+}
 </script>
 
 
