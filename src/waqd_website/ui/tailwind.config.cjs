@@ -1,4 +1,4 @@
-const { purple, teal, peach, orange, forest, red } = require('./daisyui-theme.js')
+const { light, dark } = require('./daisyui-theme.js')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -11,14 +11,8 @@ module.exports = {
   ],
   daisyui: {
     themes: [
-      "light",
-      "dark",
-      { purple },
-      { teal },
-      { peach },
-      { orange },
-      { forest },
-      { red },
+      { light },
+      { dark },
     ],
   },
 }

@@ -8,7 +8,7 @@
         <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast')
           }}</h3>
         <div class="overflow-x-auto w-full max-w-full -mx-2 px-2">
-          <div class="flex gap-2 sm:gap-3 lg:gap-4 pb-2 min-w-max">
+          <div class="flex gap-2 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
               class="card bg-base-200 shadow-md text-left transition-all duration-150 flex-shrink-0 min-w-[150px] sm:min-w-[170px]"
               :class="selectedDayIndex === index ? 'ring-2 ring-primary bg-base-300' : 'hover:bg-base-300/70'"
@@ -81,7 +81,7 @@
 
         <!-- Hourly data display in a single row -->
         <div ref="hourlyScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
-          <div class="flex gap-2 pb-2 min-w-max">
+          <div class="flex gap-2 pt-1 pb-2 min-w-max">
             <div v-for="(hour, index) in mergedHourlyData" :key="index"
               class="hourly-card flex-shrink-0 card bg-base-200 p-2 sm:p-3 min-w-[90px] sm:min-w-[110px] text-center"
               :data-hour="getHourFromDateString(hour.date_time)">

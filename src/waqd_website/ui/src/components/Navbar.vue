@@ -161,8 +161,8 @@
             <a @click="handleLogout" class="btn btn-ghost btn-sm ">{{ t('logout') }}</a>
           </li>
           <li>
-            <a @click="toggleTheme" class="btn btn-ghost btn-sm ">
-              Theme: {{ theme }}
+            <a @click="toggleTheme" class="btn btn-ghost btn-sm capitalize">
+              {{ t('theme') || 'Theme' }}: {{ t(theme) }}
             </a>
           </li>
         </ul>
@@ -194,7 +194,7 @@ const {
   isLoadingWeather
 } = useWebsiteWeather()
 
-const theme = ref("purple")
+const theme = ref(localStorage.getItem('theme-preference') || 'system')
 const showLogoutToast = ref(false)
 const weatherSearchQuery = ref('')
 const dropdownOpen = ref(false)
@@ -297,19 +297,30 @@ async function selectLocation(location: WeatherLocationPayload): Promise<void> {
 }
 
 function applyTheme() {
-  document.documentElement.setAttribute('data-theme', theme.value)
+  if (theme.value === 'system') {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light')
+  } else {
+    document.documentElement.setAttribute('data-theme', theme.value)
+  }
 }
 
 function toggleTheme() {
-  const themes = ['purple', 'teal', 'peach', 'orange', 'forest', 'red', 'light', 'dark']
+  const themes = ['system', 'light', 'dark']
   const currentIndex = themes.indexOf(theme.value)
   const nextIndex = (currentIndex + 1) % themes.length
-  theme.value = themes[nextIndex] || 'purple'
+  theme.value = themes[nextIndex] || 'system'
+  localStorage.setItem('theme-preference', theme.value)
   applyTheme()
 }
 
 onMounted(() => {
   applyTheme()
+  // Listen for system theme changes if using system theme
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (theme.value === 'system') applyTheme()
+  })
+
   if (isLoggedIn.value) {
     loadSavedLocation()
   }

@@ -63,7 +63,11 @@ onMounted(() => {
 
 
 <style>
-.weather-icon {
+[data-theme="dark"] .weather-icon {
   filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] .weather-icon {
+  filter: brightness(0);
 }
 </style>
