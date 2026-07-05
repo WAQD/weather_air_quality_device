@@ -37,7 +37,7 @@
         </ul>
       </div>
       <!-- Logo -->
-      <router-link to="/public/home"
+      <router-link :to="isLoggedIn ? '/home' : '/public/home'"
         class="btn btn-primary text-xl md:text-3xl font-bold mx-1 md:mx-2">
         WAQD
       </router-link>

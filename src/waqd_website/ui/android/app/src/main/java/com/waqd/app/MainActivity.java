@@ -73,9 +73,9 @@ public class MainActivity extends BridgeActivity {
     private void dispatchNavigation(String path) {
         if (getBridge() == null || getBridge().getWebView() == null) return;
         String escapedPath = path.replace("'", "\\'");
-        // Try the global router function first (app already fully loaded).
-        // Fall back to sessionStorage so App.vue picks it up on mount (cold start).
-        String js = "if(window.__waqdNavigate){window.__waqdNavigate('" + escapedPath + "')}else{sessionStorage.setItem('waqd_pending_nav','" + escapedPath + "')}";
+        // __waqdNavigate is set immediately in main.ts (even before initI18n finishes)
+        // as a queuing stub, so it is always available. No sessionStorage fallback needed.
+        String js = "window.__waqdNavigate && window.__waqdNavigate('" + escapedPath + "')";
         getBridge().getWebView().post(() ->
             getBridge().getWebView().evaluateJavascript(js, null)
         );

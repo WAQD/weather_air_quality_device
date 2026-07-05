@@ -259,7 +259,8 @@ async function loadWeather(force = false, silent = false): Promise<void> {
     cached.value = Boolean(payload.cached)
 
     // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
-    await updateWidgetData(currentWeather.value, forecastData.value, currentLocation.value)
+    // Always use payload.location (home) — currentLocation may point to a browsed city.
+    await updateWidgetData(currentWeather.value, forecastData.value, payload.location)
   } catch (error) {
     if (!silent) {
       resetWeatherData()
@@ -428,9 +429,10 @@ async function setLocationMode(mode: LocationMode): Promise<void> {
 async function setWidgetStyle(style: WidgetStyle): Promise<void> {
   widgetStyle.value = style
   await Preferences.set({ key: WIDGET_STYLE_KEY, value: style })
-  // Force update widget with current data
+  // Force update widget with current data, using home or GPS location — not the browsed location.
   if (currentWeather.value) {
-    await updateWidgetData(currentWeather.value, forecastData.value, currentLocation.value)
+    const widgetLocation = locationMode.value === 'home' ? homeLocation.value : currentLocation.value
+    await updateWidgetData(currentWeather.value, forecastData.value, widgetLocation)
   }
 }
 
@@ -641,8 +643,8 @@ async function updateWidgetData(weather: any, forecast: any[], location: Weather
       // Get short day name (e.g. "Mon")
       const dateStr = day.date_time
       const dateObj = new Date(dateStr)
-      // use standard formatter to get short day
-      const shortDay = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(dateObj)
+      // use standard formatter to get short day in the active locale
+      const shortDay = new Intl.DateTimeFormat(i18n.global.locale.value, { weekday: 'short' }).format(dateObj)
       
       return {
         day: shortDay,

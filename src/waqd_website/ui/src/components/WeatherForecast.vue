@@ -7,9 +7,9 @@
       <div v-if="forecastData && forecastData.length > 0" class="mb-4 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast')
           }}</h3>
-        <div class="overflow-x-auto w-full max-w-full -mx-2 px-2">
+        <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-2 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
-            <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
+            <button v-for="(day, index) in displayedForecastData" :key="index" type="button" :data-day-index="index"
               class="card bg-base-200 shadow-md text-left transition-all duration-150 flex-shrink-0 min-w-[150px] sm:min-w-[170px]"
               :class="selectedDayIndex === index ? 'ring-2 ring-primary bg-base-300' : 'hover:bg-base-300/70'"
               @click="selectDay(index)">
@@ -145,31 +145,44 @@ interface Props {
   forecastData?: ForecastData[]
   daytimeHourlyData?: HourlyWeatherData[][]
   nighttimeHourlyData?: HourlyWeatherData[][]
+  initialDayIndex?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Weather Forecast',
   forecastData: () => [],
   daytimeHourlyData: () => [],
-  nighttimeHourlyData: () => []
+  nighttimeHourlyData: () => [],
+  initialDayIndex: 0
 })
 
-const selectedDayIndex = ref(0)
+const selectedDayIndex = ref(props.initialDayIndex)
+
+watch(
+  () => props.initialDayIndex,
+  (idx) => {
+    if (idx !== undefined && idx >= 0 && displayedForecastData.value.length > 0) {
+      selectDay(Math.min(idx, displayedForecastData.value.length - 1))
+    }
+  }
+)
 const hourlyScroller = ref<HTMLElement | null>(null)
+const forecastScroller = ref<HTMLElement | null>(null)
 
 const displayedForecastData = computed(() => props.forecastData.slice(0, 7))
 
+// When forecast data loads/changes, restore the intended day (initialDayIndex) instead of always falling back to 0
 watch(
   () => displayedForecastData.value.length,
-  (length) => {
+  async (length) => {
     if (length === 0) {
       selectedDayIndex.value = 0
       return
     }
-
-    if (selectedDayIndex.value > length - 1) {
-      selectedDayIndex.value = 0
-    }
+    const target = props.initialDayIndex ?? 0
+    selectedDayIndex.value = target < length ? target : 0
+    await nextTick()
+    scrollForecastDayIntoView(selectedDayIndex.value)
   },
   { immediate: true }
 )
@@ -305,9 +318,19 @@ function formatWind(speed: number | undefined, deg: number | undefined): string 
   return `${(Number(speed) * 3.6).toFixed(1)} km/h`
 }
 
+function scrollForecastDayIntoView(index: number): void {
+  const scroller = forecastScroller.value
+  if (!scroller) return
+  const card = scroller.querySelector<HTMLElement>(`[data-day-index="${index}"]`)
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+  }
+}
+
 async function selectDay(index: number): Promise<void> {
   selectedDayIndex.value = index
   await nextTick()
+  scrollForecastDayIntoView(index)
   scrollHourlyToTargetHour(index)
 }
 
