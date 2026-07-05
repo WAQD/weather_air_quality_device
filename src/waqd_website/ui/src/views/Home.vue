@@ -225,7 +225,7 @@
                         🗲 {{ t('home_open_source') }}
                     </p>
                     <p class="mt-2 text-base opacity-80">
-                        v{{ version }} Copyright (c) 2025 Péter Gosztolya and contributors.
+                        v{{ version }} Copyright (c) 2026 Péter Gosztolya and contributors.
                     </p>
                 </div>
             </div>
