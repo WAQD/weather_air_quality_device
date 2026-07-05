@@ -321,7 +321,8 @@ async function handleWidgetLocationMode(mode: LocationMode): Promise<void> {
     await setLocationMode(mode)
     if (mode === 'gps') {
         // Widget data is now updated with GPS location; restore home weather for the app display
-        await loadWeather()
+        // but skip the widget update so GPS data is preserved in the widget
+        await loadWeather(false, false, true)
     }
 }
 
