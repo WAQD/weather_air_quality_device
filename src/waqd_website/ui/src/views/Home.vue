@@ -9,7 +9,10 @@
                     <p class="py-4 sm:py-6 text-base sm:text-lg">
                         {{ t('home_create_professional') }}
                     </p>
-                    <router-link to="/public/login" class="btn btn-secondary btn-lg relative mt-2">
+                    <router-link v-if="isLoggedIn" to="/home" class="btn btn-secondary btn-lg relative mt-2">
+                        {{ t('home') }}
+                    </router-link>
+                    <router-link v-else to="/public/login" class="btn btn-secondary btn-lg relative mt-2">
                         {{ t('login') }}
                         <span
                             class="absolute -top-2 -right-2 badge badge-warning badge-sm font-bold z-10 animate-pulse">Beta</span>
@@ -243,11 +246,9 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
 
-const router = useRouter()
 const { t } = useTranslation()
 const { isLoggedIn, fetchUserInfo, isLoading: isUserLoading } = useUser()
 const version = __APP_VERSION__
@@ -255,10 +256,6 @@ const version = __APP_VERSION__
 onMounted(async () => {
     if (!isLoggedIn.value && !isUserLoading.value) {
         await fetchUserInfo()
-    }
-    
-    if (isLoggedIn.value) {
-        router.push('/home')
     }
 })
 
