@@ -116,6 +116,16 @@ https://github.com/dfeneyrou/palanteer/releases
 
     python -m palanteer -c -m waqd
 
+
+## Android debug
+
+npm run build:only && npx cap sync android
+src/waqd_website/ui/capacitor.config.ts -> change url to machine!
+
+## Android release
+
+cd src/waqd_website/ui/android/app && npm run release:android
+
 ## Included 3rd-Party Assets
 
 * Weather Icons licensed under [SIL OFL 1.1](http://scripts.sil.org/OFL) from https://github.com/erikflowers/weather-icons)

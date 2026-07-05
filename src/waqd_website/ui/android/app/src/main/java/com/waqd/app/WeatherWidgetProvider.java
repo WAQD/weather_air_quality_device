@@ -196,9 +196,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_condition, conditionStr);
         views.setTextViewText(R.id.widget_daily_temp, dailyTempStr);
 
-        // Click to open weather page in app
+        // Click to open weather page in app (scrolled to forecast)
         Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra("navigate_to", "/rest/weather");
+        intent.putExtra("navigate_to", "/rest/weather?day=0");
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
@@ -223,9 +223,21 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
                         int dayId = context.getResources().getIdentifier("forecast_day_" + (i+1), "id", context.getPackageName());
                         int tempId = context.getResources().getIdentifier("forecast_temp_" + (i+1), "id", context.getPackageName());
-                        
+                        int cellId = context.getResources().getIdentifier("forecast_cell_" + (i+1), "id", context.getPackageName());
+
                         views.setTextViewText(dayId, fDay);
                         views.setTextViewText(tempId, fTempStr);
+
+                        // forecast days in widget = tomorrow onwards (index 1, 2, 3 in app forecast)
+                        int appDayIndex = i + 1;
+                        Intent dayIntent = new Intent(context, MainActivity.class);
+                        dayIntent.putExtra("navigate_to", "/rest/weather?day=" + appDayIndex);
+                        dayIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        PendingIntent dayPendingIntent = PendingIntent.getActivity(context, 10 + i, dayIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        if (cellId != 0) {
+                            views.setOnClickPendingIntent(cellId, dayPendingIntent);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

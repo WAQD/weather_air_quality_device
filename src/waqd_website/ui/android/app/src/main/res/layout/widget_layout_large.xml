@@ -191,6 +191,7 @@
 
             <!-- Day 1 -->
             <LinearLayout
+                android:id="@+id/forecast_cell_1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -227,6 +228,7 @@
 
             <!-- Day 2 -->
             <LinearLayout
+                android:id="@+id/forecast_cell_2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -263,6 +265,7 @@
 
             <!-- Day 3 -->
             <LinearLayout
+                android:id="@+id/forecast_cell_3"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

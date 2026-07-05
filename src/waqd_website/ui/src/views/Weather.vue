@@ -248,7 +248,7 @@
                 </div>
             </div>
 
-            <div id="forecast_container" class="contents xl:block xl:min-w-0 xl:space-y-6">
+            <div id="forecast_container" class="order-3 xl:order-none flex flex-col xl:block xl:min-w-0 xl:space-y-6">
                 <div v-if="currentLocation" id="current_location_banner"
                     class="order-1 xl:order-none rounded-box border border-base-300 bg-base-200/70 p-4">
                     <div class="flex items-start gap-3">
@@ -293,7 +293,8 @@
                 <WeatherForecast v-else class="order-3 xl:order-none w-full"
                     :title="t('home_weather_forecast_title')" :forecast-data="forecastData"
                     :daytime-hourly-data="hourlyDaytimeData"
-                    :nighttime-hourly-data="hourlyNighttimeData" />
+                    :nighttime-hourly-data="hourlyNighttimeData"
+                    :initial-day-index="widgetForecastDay" />
 
                 <!-- Map Container -->
                 <div v-if="currentLocation" class="order-5 xl:order-none card bg-base-100 shadow-xl overflow-hidden w-full">
@@ -321,7 +322,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import WeatherForecast from '../components/WeatherForecast.vue'
 import { useTranslation } from '../composables/useTranslation'
@@ -375,6 +376,32 @@ const routeQuery = computed(() => {
     return typeof query === 'string' ? query : ''
 })
 
+const widgetForecastDay = computed(() => {
+    const day = route.query.day
+    if (typeof day === 'string') {
+        const parsed = parseInt(day, 10)
+        if (!isNaN(parsed) && parsed >= 0) return parsed
+    }
+    return 0
+})
+
+async function scrollToForecast() {
+    // Wait for Vue to finish rendering after data load
+    await nextTick();
+    // Then poll in case child components are still rendering
+    let attempts = 0;
+    const scrollInterval = setInterval(() => {
+        const el = document.getElementById('forecast_container');
+        if (el && el.getBoundingClientRect().height > 0) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            clearInterval(scrollInterval);
+        } else if (attempts >= 30) {
+            clearInterval(scrollInterval); // stop trying after 3 seconds
+        }
+        attempts++;
+    }, 100);
+}
+
 const weatherHeroStyle = computed(() => {
     if (!currentWeather.value) {
         return {}
@@ -424,10 +451,13 @@ onMounted(async () => {
 
     if (currentLocation.value && (!homeLocation.value || getLocationKey(homeLocation.value) !== getLocationKey(currentLocation.value))) {
         await loadWeatherForLocation(currentLocation.value, false, false, alreadyHasData)
-        return
+    } else {
+        await loadWeather(false, alreadyHasData)
     }
 
-    await loadWeather(false, alreadyHasData)
+    if (route.query.day !== undefined) {
+        await scrollToForecast()
+    }
 })
 
 function formatLocationLabel(location: WeatherLocationPayload): string {

@@ -419,7 +419,7 @@
   "weekday_thu": "Do",
   "weekday_tue": "Di",
   "weekday_wed": "Mi",
-  "weekly_weather_forecast": "Wöchentliche Wettervorhersage",
+  "weekly_weather_forecast": "3-Tage-Vorhersage",
   "welcome_email_body": "Hallo {username},\n\nIhr WAQD-Konto wurde erfolgreich erstellt. Sie können sich jetzt in Ihr Konto einloggen und Ihre Wetter- und Luftqualitätsgeräte verwalten.\n\nBei Fragen besuchen Sie bitte unsere Website oder kontaktieren Sie den Support.\n\nMit freundlichen Grüßen,\nDas WAQD-Team",
   "welcome_email_subject": "Willkommen bei WAQD - Ihr Konto wurde erstellt",
   "wind": "Wind",

@@ -28,3 +28,10 @@ build-reports
 android/app/src/main/res/drawable-*/
 android/app/src/main/res/mipmap-*/
 icons/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
