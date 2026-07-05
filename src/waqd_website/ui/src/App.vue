@@ -28,11 +28,13 @@ import { useTokenRefresh } from './composables/useTokenRefresh'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
+import { useWebsiteWeather } from './composables/useWebsiteWeather'
 
 const router = useRouter()
 const { fetchUserInfo } = useUser()
 const { stopRefreshTimer } = useTokenRefresh()
 const appVersion = __APP_VERSION__
+const { locationMode, loadWeatherByGps } = useWebsiteWeather()
 
 // PWA update handling
 const { needRefresh, updateServiceWorker } = useRegisterSW({
@@ -60,6 +62,12 @@ function updateApp() {
   updateServiceWorker(true)
 }
 
+async function handleWidgetGpsRefresh(): Promise<void> {
+  if (locationMode.value === 'gps') {
+    await loadWeatherByGps()
+  }
+}
+
 onMounted(() => {
   fetchUserInfo()
   // Handle navigation requested by Android widget tap (cold start fallback via sessionStorage)
@@ -80,9 +88,13 @@ onMounted(() => {
       }
     })
   }
+
+  // Global GPS refresh on phone unlock (broadcast from WeatherWidgetProvider via MainActivity)
+  window.addEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
 })
 
 onUnmounted(() => {
+  window.removeEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
   if (Capacitor.isNativePlatform()) {
     App.removeAllListeners()
   }
