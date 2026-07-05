@@ -20,6 +20,7 @@ node_modules
 .env
 
 src/waqd_assets/weather_icons/*_white.svg
+src/sensor_logs
 *.mp3
 crash.log
 experiments
@@ -32,3 +33,4 @@ waqd_userdata.db
 mail.py
 .pdm-python
 config
+src/waqd.log

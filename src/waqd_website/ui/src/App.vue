@@ -20,12 +20,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import { useUser } from './composables/useUser'
 import { useTokenRefresh } from './composables/useTokenRefresh'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
+import { Capacitor } from '@capacitor/core'
+import { App } from '@capacitor/app'
 
 const router = useRouter()
 const { fetchUserInfo } = useUser()
@@ -65,6 +67,23 @@ onMounted(() => {
   if (pendingNav) {
     sessionStorage.removeItem('waqd_pending_nav')
     router.push(pendingNav)
+  }
+
+  // Handle Android hardware/gesture back button
+  if (Capacitor.isNativePlatform()) {
+    App.addListener('backButton', ({ canGoBack }) => {
+      if (canGoBack) {
+        router.back()
+      } else {
+        App.exitApp()
+      }
+    })
+  }
+})
+
+onUnmounted(() => {
+  if (Capacitor.isNativePlatform()) {
+    App.removeAllListeners()
   }
 })
 

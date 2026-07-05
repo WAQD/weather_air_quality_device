@@ -48,8 +48,10 @@
                                 <p class="font-semibold text-base">{{ currentLocation ?
                                     formatLocationLabel(currentLocation) : t('no_location') }}
                                 </p>
-                                <p class="text-sm opacity-70">{{ t('last_updated') }}: {{
-                                    currentWeatherUpdatedAt }}</p>
+                                <p class="text-sm opacity-70 flex items-center gap-1.5">
+                                    {{ t('last_updated') }}: {{ currentWeatherUpdatedAt }}
+                                    <span v-if="isRefreshingWeather" class="loading loading-spinner" style="width: 0.9em; height: 0.9em;"></span>
+                                </p>
                             </div>
                                 <div class="rounded-box bg-base-200/80 p-3">
                                     <div class="flex items-center gap-3">
@@ -352,6 +354,7 @@ const {
     cached,
     errorMessage,
     isLoadingWeather,
+    isRefreshingWeather,
     isSearching,
     isSavingLocation,
     clearError,
@@ -416,14 +419,15 @@ watch(locale, async () => {
 })
 
 onMounted(async () => {
+    const alreadyHasData = !!currentWeather.value
     await loadSavedLocation()
 
     if (currentLocation.value && (!homeLocation.value || getLocationKey(homeLocation.value) !== getLocationKey(currentLocation.value))) {
-        await loadWeatherForLocation(currentLocation.value)
+        await loadWeatherForLocation(currentLocation.value, false, false, alreadyHasData)
         return
     }
 
-    await loadWeather()
+    await loadWeather(false, alreadyHasData)
 })
 
 function formatLocationLabel(location: WeatherLocationPayload): string {

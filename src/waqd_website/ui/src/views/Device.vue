@@ -405,8 +405,9 @@ function connectWebSocket() {
   }
 
   // Construct WebSocket URL - connect directly to device stream
+  const wsHost = window.location.host
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const wsUrl = `${protocol}//${window.location.host}/ws/user/device/${deviceId.value}`
+  const wsUrl = `${protocol}//${wsHost}/ws/user/device/${deviceId.value}`
 
   debugLog(`WS CONNECTING: ${wsUrl}`)
   console.log('Connecting to WebSocket:', wsUrl)
