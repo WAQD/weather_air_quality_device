@@ -50,23 +50,24 @@
                                 </p>
                                 <p class="text-sm opacity-70 flex items-center gap-1.5">
                                     {{ t('last_updated') }}: {{ currentWeatherUpdatedAt }}
-                                    <span v-if="isRefreshingWeather" class="loading loading-spinner" style="width: 0.9em; height: 0.9em;"></span>
+                                    <span v-if="isRefreshingWeather" class="loading loading-spinner"
+                                        style="width: 0.9em; height: 0.9em;"></span>
                                 </p>
                             </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
-                                    <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
-                                            <use :href="cloudsIconUrl" fill="currentColor" />
-                                        </svg>
-                                        <div class="min-w-0">
-                                            <p
-                                                class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
-                                                {{ t('weather_clouds') }}</p>
-                                            <p class="mt-1 text-lg font-semibold">{{
-                                                currentWeather.clouds.toFixed(0) }}%</p>
-                                        </div>
+                            <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="flex items-center gap-3">
+                                    <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                        <use :href="cloudsIconUrl" fill="currentColor" />
+                                    </svg>
+                                    <div class="min-w-0">
+                                        <p
+                                            class="text-xs uppercase tracking-[0.16em] opacity-60 break-words whitespace-normal">
+                                            {{ t('weather_clouds') }}</p>
+                                        <p class="mt-1 text-lg font-semibold">{{
+                                            currentWeather.clouds.toFixed(0) }}%</p>
                                     </div>
                                 </div>
+                            </div>
                             <div class="grid grid-cols-1 gap-3 text-sm">
                                 <div class="rounded-box bg-base-200/80 p-3">
                                     <div class="flex items-center gap-3">
@@ -190,7 +191,7 @@
                                 <h2 class="card-title text-base sm:text-lg">{{
                                     t('home_weather_saved_location') }}</h2>
                                 <p class="mt-1 text-sm opacity-70">{{ t('home_weather_search_help')
-                                    }}</p>
+                                }}</p>
                             </div>
                         </div>
 
@@ -221,7 +222,7 @@
                                 class="rounded-box border border-base-300 bg-base-200/70 p-3">
                                 <div class="min-w-0">
                                     <p class="font-semibold truncate break-words">{{ location.name
-                                        }}</p>
+                                    }}</p>
                                 </div>
 
                                 <div class="mt-2 flex flex-col gap-2">
@@ -248,7 +249,8 @@
                 </div>
             </div>
 
-            <div id="forecast_container" class="order-3 xl:order-none flex flex-col xl:block xl:min-w-0 xl:space-y-6">
+            <div id="forecast_container"
+                class="order-3 xl:order-none flex flex-col xl:block xl:min-w-0 xl:space-y-6">
                 <div v-if="currentLocation" id="current_location_banner"
                     class="order-1 xl:order-none rounded-box border border-base-300 bg-base-200/70 p-4">
                     <div class="flex items-start gap-3">
@@ -297,20 +299,15 @@
                     :initial-day-index="widgetForecastDay" />
 
                 <!-- Map Container -->
-                <div v-if="currentLocation" class="order-5 xl:order-none card bg-base-100 shadow-xl overflow-hidden w-full">
+                <div v-if="currentLocation"
+                    class="order-5 xl:order-none card bg-base-100 shadow-xl overflow-hidden w-full">
                     <div class="card-body p-0">
-                        <iframe 
-                            width="100%" 
-                            height="400" 
-                            frameborder="0" 
-                            scrolling="no" 
-                            marginheight="0" 
-                            marginwidth="0" 
-                            :src="osmEmbedUrl"
-                            style="border: 0;">
+                        <iframe width="100%" height="400" frameborder="0" scrolling="no"
+                            marginheight="0" marginwidth="0" :src="osmEmbedUrl" style="border: 0;">
                         </iframe>
                         <div class="text-xs p-2 text-center opacity-70">
-                            <a :href="`https://www.openstreetmap.org/?mlat=${currentLocation.latitude}&mlon=${currentLocation.longitude}#map=12/${currentLocation.latitude}/${currentLocation.longitude}`" target="_blank" class="hover:underline">
+                            <a :href="`https://www.openstreetmap.org/?mlat=${currentLocation.latitude}&mlon=${currentLocation.longitude}#map=12/${currentLocation.latitude}/${currentLocation.longitude}`"
+                                target="_blank" class="hover:underline">
                                 View Larger Map on OpenStreetMap
                             </a>
                         </div>

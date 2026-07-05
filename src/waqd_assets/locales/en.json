@@ -322,6 +322,7 @@
   "share_device": "Share Device",
   "share_device_description": "Enter the username of the person you want to share this device with",
   "shutdown": "Shutdown",
+  "simple": "simple",
   "sound_enabled": "Sound Enabled",
   "sound_enabled_desc": "Global switch for all sounds",
   "sound_legend": "Sound",
