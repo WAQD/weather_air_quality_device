@@ -258,7 +258,8 @@ function stopWeatherPolling() {
 
 async function initializeHomeWeather(): Promise<void> {
     await loadSavedLocation()
-    await loadWeather()
+    // Skip widget update if GPS mode is active — GPS operations own the widget in that case
+    await loadWeather(false, false, locationMode.value === 'gps')
 }
 
 async function loadDevices(): Promise<void> {
@@ -320,14 +321,15 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
 async function handleWidgetLocationMode(mode: LocationMode): Promise<void> {
     await setLocationMode(mode)
     if (mode === 'gps') {
-        // Widget data is now updated with GPS location; restore home weather for the app display
-        // but skip the widget update so GPS data is preserved in the widget
+        // Widget data updated with GPS; restore home weather for UserHome display only.
+        // Keep currentLocation as GPS so Weather.vue navigates to GPS weather correctly.
         await loadWeather(false, false, true)
     }
 }
 
 async function refreshWeather(force = false): Promise<void> {
-    await loadWeather(force)
+    // Skip widget update when GPS mode is active — the widget belongs to GPS operations then
+    await loadWeather(force, false, locationMode.value === 'gps')
 }
 </script>
 
