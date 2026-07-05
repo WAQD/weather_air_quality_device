@@ -3,7 +3,7 @@
         class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-full">
         <div id="weather_grid"
             class="flex flex-col xl:grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <div class="contents xl:block xl:space-y-6">
+            <div class="contents xl:block xl:row-span-2 xl:space-y-6">
                 <div id="current_weather_card"
                     class="order-2 xl:order-none card bg-base-100 shadow-xl overflow-hidden"
                     :style="weatherHeroStyle">
@@ -249,42 +249,43 @@
                 </div>
             </div>
 
-            <div id="forecast_container"
-                class="order-3 xl:order-none flex flex-col xl:block xl:min-w-0 xl:space-y-6">
-                <div v-if="currentLocation" id="current_location_banner"
-                    class="order-1 xl:order-none rounded-box border border-base-300 bg-base-200/70 p-4">
-                    <div class="flex items-start gap-3">
-                        <div
-                            class="text-2xl font-thin  tabular-nums hidden sm:block min-w-10 text-center">
-                            {{ currentLocation.country_code }}
+            <!-- Location banner: first on mobile (order-1), top of right column on desktop -->
+            <div v-if="currentLocation" id="current_location_banner"
+                class="order-1 xl:col-start-2 rounded-box border border-base-300 bg-base-200/70 p-4">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="text-2xl font-thin  tabular-nums hidden sm:block min-w-10 text-center">
+                        {{ currentLocation.country_code }}
+                    </div>
+                    <div>
+                        <img class="size-8 rounded-box p-1 bg-base-100"
+                            :src="getFlagIconUrl(currentLocation.country_code)"
+                            :alt="currentLocation.country_code" />
+                    </div>
+                    <div class="flex-1 min-w-0 flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="text-2xl font-thin whitespace-nowrap">
+                                {{ currentLocation.name }}</div>
                         </div>
-                        <div>
-                            <img class="size-8 rounded-box p-1 bg-base-100"
-                                :src="getFlagIconUrl(currentLocation.country_code)"
-                                :alt="currentLocation.country_code" />
-                        </div>
-                        <div class="flex-1 min-w-0 flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <div class="text-2xl font-thin whitespace-nowrap">
-                                    {{ currentLocation.name }}</div>
-                            </div>
-                            <div class="shrink-0 text-right max-w-[11rem] sm:max-w-[16rem]">
-                                <div class="text-xs uppercase font-semibold opacity-60 truncate">
-                                    {{ currentLocation.state || currentLocation.county ||
-                                        currentLocation.country }}
-                                </div>
+                        <div class="shrink-0 text-right max-w-[11rem] sm:max-w-[16rem]">
+                            <div class="text-xs uppercase font-semibold opacity-60 truncate">
+                                {{ currentLocation.state || currentLocation.county ||
+                                    currentLocation.country }}
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div v-else id="no_location_banner"
-                    class="order-1 xl:order-none rounded-box border border-dashed border-base-300 bg-base-200/60 p-4 text-sm opacity-80">
-                    {{ t('home_weather_needs_location') }}
-                </div>
+            <div v-else id="no_location_banner"
+                class="order-1 xl:col-start-2 rounded-box border border-dashed border-base-300 bg-base-200/60 p-4 text-sm opacity-80">
+                {{ t('home_weather_needs_location') }}
+            </div>
 
+            <div id="forecast_container"
+                class="order-3 xl:col-start-2 flex flex-col xl:block xl:min-w-0 xl:space-y-6">
                 <div v-if="isLoadingWeather" id="forecast_loading"
-                    class="order-3 xl:order-none card bg-base-100 shadow-xl">
+                    class="card bg-base-100 shadow-xl">
                     <div class="card-body p-4 sm:p-6">
                         <div class="flex items-center gap-3 text-sm sm:text-base">
                             <span class="loading loading-spinner loading-md"></span>
@@ -292,7 +293,7 @@
                         </div>
                     </div>
                 </div>
-                <WeatherForecast v-else class="order-3 xl:order-none w-full"
+                <WeatherForecast v-else class="w-full"
                     :title="t('home_weather_forecast_title')" :forecast-data="forecastData"
                     :daytime-hourly-data="hourlyDaytimeData"
                     :nighttime-hourly-data="hourlyNighttimeData"
@@ -300,7 +301,7 @@
 
                 <!-- Map Container -->
                 <div v-if="currentLocation"
-                    class="order-5 xl:order-none card bg-base-100 shadow-xl overflow-hidden w-full">
+                    class="card bg-base-100 shadow-xl overflow-hidden w-full">
                     <div class="card-body p-0">
                         <iframe width="100%" height="400" frameborder="0" scrolling="no"
                             marginheight="0" marginwidth="0" :src="osmEmbedUrl" style="border: 0;">
