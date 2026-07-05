@@ -48,7 +48,7 @@
       </li>
     </ul>
 
-    <h2 class="text-2xl p-2 mt-4">Copyright (c) 2025 Péter Gosztolya and contributors.</h2>
+    <h2 class="text-2xl p-2 mt-4">Copyright (c) 2026 Péter Gosztolya and contributors.</h2>
   </div>
 </template>
 
