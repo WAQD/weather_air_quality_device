@@ -33,6 +33,7 @@ from waqd.components.sensor_base import (
     TvocSensor,
 )
 from waqd_station.settings import (
+    BMX280_TEMP_OFFSET_C,
     LAST_TEMP_C_OUTSIDE,
     LOCATION_ALTITUDE_M,
     LOG_SENSOR_DATA,
@@ -242,7 +243,7 @@ class BME280(TempSensor, BarometricSensor, HumiditySensor, CyclicComponent):
         pressure = 0
         humidity = 0
         try:
-            temperature = self._sensor_driver.temperature
+            temperature = self._sensor_driver.temperature + self._settings.get_float(BMX280_TEMP_OFFSET_C)
             pressure = self._sensor_driver.pressure
             humidity = self._sensor_driver.humidity
         except Exception as error:
