@@ -54,6 +54,7 @@ const hourlyNighttimeData = ref<HourlyWeatherData[][]>([])
 const searchResults = ref<WeatherLocationPayload[]>([])
 const isLoadingLocation = ref(false)
 const isLoadingWeather = ref(false)
+const isRefreshingWeather = ref(false)
 const isSearching = ref(false)
 const isSavingLocation = ref(false)
 const cached = ref(false)
@@ -218,8 +219,12 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   }
 }
 
-async function loadWeather(force = false): Promise<void> {
-  isLoadingWeather.value = true
+async function loadWeather(force = false, silent = false): Promise<void> {
+  if (silent) {
+    isRefreshingWeather.value = true
+  } else {
+    isLoadingWeather.value = true
+  }
   clearError()
 
   try {
@@ -256,10 +261,16 @@ async function loadWeather(force = false): Promise<void> {
     // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
     await updateWidgetData(currentWeather.value, forecastData.value, currentLocation.value)
   } catch (error) {
-    resetWeatherData()
+    if (!silent) {
+      resetWeatherData()
+    }
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'
   } finally {
-    isLoadingWeather.value = false
+    if (silent) {
+      isRefreshingWeather.value = false
+    } else {
+      isLoadingWeather.value = false
+    }
   }
 }
 
@@ -531,15 +542,19 @@ async function removeSavedLocation(location: WeatherLocationPayload): Promise<bo
   return true
 }
 
-async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false, updateWidget = false): Promise<void> {
+async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false, updateWidget = false, silent = false): Promise<void> {
   if (!location) {
     resetWeatherData()
     return
   }
 
   setCurrentLocation(location)
-  
-  isLoadingWeather.value = true
+
+  if (silent) {
+    isRefreshingWeather.value = true
+  } else {
+    isLoadingWeather.value = true
+  }
   clearError()
 
   try {
@@ -579,10 +594,16 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
       await updateWidgetData(currentWeather.value, forecastData.value, location)
     }
   } catch (error) {
-    resetWeatherData()
+    if (!silent) {
+      resetWeatherData()
+    }
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'
   } finally {
-    isLoadingWeather.value = false
+    if (silent) {
+      isRefreshingWeather.value = false
+    } else {
+      isLoadingWeather.value = false
+    }
   }
 }
 
@@ -671,6 +692,7 @@ export function useWebsiteWeather() {
     errorMessage,
     isLoadingLocation,
     isLoadingWeather,
+    isRefreshingWeather,
     isSearching,
     isSavingLocation,
     hasSavedLocation,
