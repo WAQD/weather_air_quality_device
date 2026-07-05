@@ -21,6 +21,7 @@ WAVESHARE_DISP_BRIGHTNESS_PIN = "waveshare_disp_brightness_pin"
 CCS811_ENABLED = "ccs811_enabled"
 MH_Z19_ENABLED = "mh_z19_enabled"
 MH_Z19_VALUE_OFFSET = "mh_z19_value_offset"
+BMX280_TEMP_OFFSET_C = "bmx280_temp_offset_c"
 LOG_SENSOR_DATA = "log_sensor_data"
 
 # WAQD Website
