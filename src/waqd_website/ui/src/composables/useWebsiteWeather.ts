@@ -219,7 +219,7 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   }
 }
 
-async function loadWeather(force = false, silent = false): Promise<void> {
+async function loadWeather(force = false, silent = false, skipWidgetUpdate = false): Promise<void> {
   if (silent) {
     isRefreshingWeather.value = true
   } else {
@@ -260,7 +260,9 @@ async function loadWeather(force = false, silent = false): Promise<void> {
 
     // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
     // Always use payload.location (home) — currentLocation may point to a browsed city.
-    await updateWidgetData(currentWeather.value, forecastData.value, payload.location)
+    if (!skipWidgetUpdate) {
+      await updateWidgetData(currentWeather.value, forecastData.value, payload.location)
+    }
   } catch (error) {
     if (!silent) {
       resetWeatherData()
