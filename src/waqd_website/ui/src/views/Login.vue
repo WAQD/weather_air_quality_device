@@ -142,7 +142,7 @@ function login() {
     .then(async (data) => {
       console.log('Success:', data)
       await fetchUserInfo()
-      router.push('/public/home')
+      router.push('/home')
     })
     .catch((error) => {
       console.error('Error:', error)

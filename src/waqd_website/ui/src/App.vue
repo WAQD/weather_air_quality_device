@@ -71,11 +71,12 @@ onMounted(() => {
 
   // Handle Android hardware/gesture back button
   if (Capacitor.isNativePlatform()) {
+    const exitRoutes = ['/home', '/public/home']
     App.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack) {
-        router.back()
-      } else {
+      if (exitRoutes.includes(router.currentRoute.value.path) || !canGoBack) {
         App.exitApp()
+      } else {
+        router.back()
       }
     })
   }

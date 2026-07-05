@@ -23,7 +23,10 @@
         </label>
         <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 mt-4">
           <li>
-            <router-link to="/rest/home">{{ t('home') }}</router-link>
+            <router-link to="/home">{{ t('home') }}</router-link>
+          </li>
+          <li>
+            <router-link to="/public/home">{{ t('home_build_station') }}</router-link>
           </li>
           <li>
             <router-link to="/rest/devices">{{ t('my_devices') }}</router-link>
