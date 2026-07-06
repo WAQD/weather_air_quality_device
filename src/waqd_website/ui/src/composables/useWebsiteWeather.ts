@@ -5,6 +5,7 @@ import { NativeSettings, AndroidSettings } from 'capacitor-native-settings'
 import type { AvailableLocale } from '../i18n'
 import i18n from '../i18n'
 import type { ForecastData, HourlyWeatherData, WeatherData } from './useWeather'
+import { formatWidgetPayload } from '../utils/widgetDataFormatter'
 
 export interface WeatherLocationPayload {
   name: string
@@ -613,63 +614,22 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
 
 // Explicitly updating data inside load functions now instead of detached watchers
 
-function translateWeatherCondition(weather: { wid?: number, main?: string }): string {
-  // Try wid first (Open Meteo code)
-  if (weather.wid !== undefined) {
-    const key = `weather_${weather.wid}`
-    const translated = i18n.global.t(key)
-    if (translated !== key) return translated
-  }
-  
-  // Fall back to main string (lowercase for consistency)
-  if (weather.main) {
-    const key = `weather_${weather.main.toLowerCase()}`
-    const translated = i18n.global.t(key)
-    if (translated !== key) return translated
-    
-    // If no translation found, return the main string as is
-    return weather.main
-  }
-  
-  return ''
-}
-
 async function updateWidgetData(weather: any, forecast: any[], location: WeatherLocationPayload | null) {
   if (!weather) return
 
   try {
-    const todayForecast = forecast?.[0]
-    
-    // Generate 3 day forecast array for Android Widget, starting from tomorrow (index 1 to 4)
-    const forecast3Days = forecast?.slice(1, 4).map((day: any) => {
-      // Get short day name (e.g. "Mon")
-      const dateStr = day.date_time
-      const dateObj = new Date(dateStr)
-      // use standard formatter to get short day in the active locale
-      const shortDay = new Intl.DateTimeFormat(i18n.global.locale.value, { weekday: 'short' }).format(dateObj)
-      
-      return {
-        day: shortDay,
-        icon: day.icon,
-        temp_min: Math.round(day.temp_min),
-        temp_max: Math.round(day.temp_max)
-      }
-    }) || []
-
-    await Preferences.set({
-      key: 'widget_weather_data',
-      value: JSON.stringify({
-        temp: Math.round(weather.temp),
-        temp_min: todayForecast?.temp_min ? Math.round(todayForecast.temp_min) : Math.round(weather.temp),
-        temp_max: todayForecast?.temp_max ? Math.round(todayForecast.temp_max) : Math.round(weather.temp),
-        main: translateWeatherCondition(weather),
-        icon: weather.icon,
-        locationName: location?.name || 'Unknown Location',
-        updateTime: new Date().getTime(),
-        widget_style: widgetStyle.value,
-        forecast_3_days: forecast3Days
-      })
-    })
+    const payload = formatWidgetPayload(
+      weather,
+      forecast,
+      location,
+      widgetStyle.value,
+      i18n.global.locale.value,
+      (key) => {
+        const translated = i18n.global.t(key)
+        return translated !== key ? translated : undefined
+      },
+    )
+    await Preferences.set({ key: 'widget_weather_data', value: JSON.stringify(payload) })
   } catch {
     // Ignore on web
   }

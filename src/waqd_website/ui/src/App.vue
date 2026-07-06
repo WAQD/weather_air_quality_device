@@ -28,6 +28,8 @@ import { useTokenRefresh } from './composables/useTokenRefresh'
 import { useRegisterSW } from 'virtual:pwa-register/vue'
 import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
+import { Preferences } from '@capacitor/preferences'
+import { BackgroundRunner } from '@capacitor/background-runner'
 import { useWebsiteWeather } from './composables/useWebsiteWeather'
 
 const router = useRouter()
@@ -62,13 +64,46 @@ function updateApp() {
   updateServiceWorker(true)
 }
 
+// ---- Background Runner setup ----
+
+/**
+ * Store the API base URL in Preferences so the background-runner isolate
+ * (which does not share the WebView server config) can construct API calls.
+ */
+async function persistBackgroundRunnerConfig(): Promise<void> {
+  try {
+    // Derive the base URL from the current server origin.
+    // In a native Capacitor app this is the server.url from capacitor.config.ts.
+    const baseUrl = window.location.origin.startsWith('http')
+      ? window.location.origin
+      : 'https://waqd.de'
+    await Preferences.set({ key: 'waqd.background.apiBaseUrl', value: baseUrl })
+  } catch {
+    // Non-critical — background runner falls back to https://waqd.de
+  }
+}
+
+async function initBackgroundRunner(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    const { display } = await BackgroundRunner.checkPermissions()
+    if (display !== 'granted') {
+      await BackgroundRunner.requestPermissions({ apis: ['geolocation', 'notifications'] })
+    }
+  } catch (e) {
+    console.warn('BackgroundRunner permission check failed:', e)
+  }
+}
+
+// Keep: fallback for when the app IS in foreground when unlock fires
+// (background runner will handle the backgrounded/killed case).
 async function handleWidgetGpsRefresh(): Promise<void> {
   if (locationMode.value === 'gps') {
     await loadWeatherByGps()
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   fetchUserInfo()
   // Handle navigation requested by Android widget tap (cold start fallback via sessionStorage)
   const pendingNav = sessionStorage.getItem('waqd_pending_nav')
@@ -89,7 +124,11 @@ onMounted(() => {
     })
   }
 
-  // Global GPS refresh on phone unlock (broadcast from WeatherWidgetProvider via MainActivity)
+  // Store API config and request background runner permissions on first run.
+  await persistBackgroundRunnerConfig()
+  await initBackgroundRunner()
+
+  // Foreground fallback: GPS refresh broadcast from WeatherWidgetProvider → MainActivity
   window.addEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
 })
 

@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/optimize-images.js && capacitor-assets generate",
+    "build": "vite build --config vite.runner.config.ts && vite build && node scripts/optimize-images.js && capacitor-assets generate",
     "build:only": "vite build",
-    "release:android": "vite build && npx cap sync android && (cd android && ./gradlew assembleRelease)",
+    "build:runner": "vite build --config vite.runner.config.ts",
+    "release:android": "vite build --config vite.runner.config.ts && vite build && npx cap sync android && (cd android && ./gradlew assembleRelease)",
     "optimize-images": "node scripts/optimize-images.js",
     "preview": "vite preview",
     "test:e2e": "playwright test"
@@ -15,6 +16,7 @@
   "dependencies": {
     "@capacitor/android": "^8.3.1",
     "@capacitor/app": "^8.1.0",
+    "@capacitor/background-runner": "^3.0.0",
     "@capacitor/core": "^8.3.1",
     "@capacitor/geolocation": "^8.2.0",
     "@capacitor/preferences": "^8.0.1",

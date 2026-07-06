@@ -42,6 +42,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        android.util.Log.d("WeatherWidget", "onUpdate called for " + appWidgetIds.length + " widgets");
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
@@ -51,12 +52,14 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         super.onEnabled(context);
+        android.util.Log.d("WeatherWidget", "onEnabled - Widget added to home screen");
         scheduleWeatherUpdate(context);
     }
 
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
+        android.util.Log.d("WeatherWidget", "onDisabled - Last widget removed from home screen");
         cancelWeatherUpdate(context);
     }
 
@@ -73,47 +76,109 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent.getAction();
-        if (ACTION_WEATHER_UPDATE.equals(action) || Intent.ACTION_USER_PRESENT.equals(action)) {
-            android.util.Log.d("WeatherWidget", "Update triggered by: " + action);
+        android.util.Log.d("WeatherWidget", "onReceive called with action: " + action);
+        
+        if (ACTION_WEATHER_UPDATE.equals(action)) {
+            android.util.Log.d("WeatherWidget", "Periodic update triggered");
             AppWidgetManager mgr = AppWidgetManager.getInstance(context);
             int[] ids = mgr.getAppWidgetIds(new ComponentName(context, WeatherWidgetProvider.class));
+            android.util.Log.d("WeatherWidget", "Found " + ids.length + " widget instances");
+            
+            // If in GPS mode, trigger background GPS refresh before updating widget
+            triggerGpsRefreshIfNeeded(context);
+            
+            // Update all widget instances
             for (int id : ids) {
                 updateAppWidget(context, mgr, id);
             }
-            if (ACTION_WEATHER_UPDATE.equals(action)) {
-                scheduleWeatherUpdate(context);
-            }
-            // On unlock, tell the app to do a GPS refresh if GPS mode is active
-            if (Intent.ACTION_USER_PRESENT.equals(action)) {
-                triggerGpsRefreshIfNeeded(context);
-            }
+            
+            // Reschedule next alarm (interval depends on GPS/Home mode)
+            scheduleWeatherUpdate(context);
         }
     }
 
+    /**
+     * Triggers a GPS weather refresh when GPS mode is active.
+     * Called every 30 minutes by the periodic alarm (ACTION_WEATHER_UPDATE).
+     *
+     * Strategy (layered):
+     *  1. If the app is in the foreground, the existing broadcast reaches MainActivity
+     *     which dispatches the JS event to the running Vue app — fast path.
+     *  2. If the app is backgrounded or killed, dispatch the @capacitor/background-runner
+     *     task which runs the GPS fetch in a V8 isolate via WorkManager.
+     *
+     * Both paths write to CapacitorStorage "widget_weather_data", so the
+     * widget update (called immediately after this) will show the fresh data.
+     */
     private static void triggerGpsRefreshIfNeeded(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
         String locationMode = prefs.getString(PREF_LOCATION_MODE_KEY, "home");
-        android.util.Log.d("WeatherWidget", "Location mode on unlock: " + locationMode);
-        if ("gps".equals(locationMode)) {
-            android.util.Log.d("WeatherWidget", "GPS mode active, sending refresh broadcast to app");
-            Intent gpsIntent = new Intent(ACTION_GPS_WIDGET_REFRESH);
-            gpsIntent.setPackage(context.getPackageName());
-            context.sendBroadcast(gpsIntent);
+        android.util.Log.d("WeatherWidget", "Checking location mode: " + locationMode);
+        if (!"gps".equals(locationMode)) {
+            android.util.Log.d("WeatherWidget", "Not in GPS mode, using cached Home data");
+            return;
+        }
+
+        android.util.Log.d("WeatherWidget", "GPS mode active — triggering background GPS refresh");
+
+        // Path 1: broadcast to foreground app (fast; no-op if app is not running)
+        Intent gpsIntent = new Intent(ACTION_GPS_WIDGET_REFRESH);
+        gpsIntent.setPackage(context.getPackageName());
+        context.sendBroadcast(gpsIntent);
+        android.util.Log.d("WeatherWidget", "Foreground broadcast sent");
+
+        // Path 2: background runner via WorkManager (works when app is killed)
+        dispatchBackgroundRunnerTask(context);
+    }
+
+    /**
+     * Enqueues a one-shot WorkManager job that executes the 'gpsWeatherRefresh'
+     * event in the @capacitor/background-runner V8 isolate.
+     * The runner reads GPS coords, fetches weather, and writes to CapacitorStorage.
+     */
+    private static void dispatchBackgroundRunnerTask(Context context) {
+        try {
+            androidx.work.Data inputData = new androidx.work.Data.Builder()
+                .putString("event", "gpsWeatherRefresh")
+                .putString("label", "com.waqd.app.background")
+                .putString("src", "background-runner.js")
+                .build();
+
+            androidx.work.OneTimeWorkRequest workRequest =
+                new androidx.work.OneTimeWorkRequest.Builder(
+                    io.ionic.backgroundrunner.plugin.RunnerWorker.class)
+                .setInputData(inputData)
+                .build();
+
+            androidx.work.WorkManager.getInstance(context).enqueue(workRequest);
+            android.util.Log.d("WeatherWidget", "BackgroundRunner WorkManager task enqueued");
+        } catch (Exception e) {
+            android.util.Log.e("WeatherWidget", "Failed to dispatch BackgroundRunner task: " + e.getMessage());
         }
     }
 
     private static void scheduleWeatherUpdate(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) return;
+        
+        // Check if GPS mode is active to determine update frequency
+        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        String locationMode = prefs.getString(PREF_LOCATION_MODE_KEY, "home");
+        
+        // GPS mode: 5 minute interval for fresh location data
+        // Home mode: 30 minute interval (weather doesn't change that fast)
+        long intervalMillis = "gps".equals(locationMode) ? 5 * 60 * 1000L : 30 * 60 * 1000L;
+        
         Intent intent = new Intent(context, WeatherWidgetProvider.class);
         intent.setAction(ACTION_WEATHER_UPDATE);
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         
-        // Use setAndAllowWhileIdle for background updates every 30 mins
-        // This is battery-friendly but ensures we get data eventually even in Doze
-        long triggerAtMillis = System.currentTimeMillis() + 30 * 60 * 1000L;
+        // Use setAndAllowWhileIdle for background updates even in Doze mode
+        long triggerAtMillis = System.currentTimeMillis() + intervalMillis;
         alarmManager.setAndAllowWhileIdle(AlarmManager.RTC, triggerAtMillis, pi);
+        
+        android.util.Log.d("WeatherWidget", "Scheduled next update in " + (intervalMillis / 60000) + " minutes (mode: " + locationMode + ")");
     }
 
     private static void cancelWeatherUpdate(Context context) {
