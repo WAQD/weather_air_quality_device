@@ -43,7 +43,7 @@ android {
 
 repositories {
     flatDir{
-        dirs 'libs'
+        dirs '../../node_modules/@capacitor/background-runner/android/src/main/libs', 'libs'
     }
 }
 
@@ -57,6 +57,8 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation 'com.caverock:androidsvg:1.4'
+    // WorkManager is required to dispatch @capacitor/background-runner tasks from native code
+    implementation "androidx.work:work-runtime:2.9.0"
 }
 
 apply from: 'capacitor.build.gradle'

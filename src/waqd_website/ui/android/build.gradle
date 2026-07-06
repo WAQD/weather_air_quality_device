@@ -27,3 +27,16 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+// Workaround: @capacitor/background-runner uses the deprecated 'proguard-android.txt'
+// which AGP 8+ rejects. Override it for that subproject without touching node_modules.
+subprojects {
+    afterEvaluate { project ->
+        if (project.name == 'capacitor-background-runner') {
+            project.android.buildTypes.release.proguardFiles = [
+                project.android.getDefaultProguardFile('proguard-android-optimize.txt'),
+                project.file('proguard-rules.pro')
+            ]
+        }
+    }
+}
