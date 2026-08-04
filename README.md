@@ -106,7 +106,7 @@ Use virtualenv:
   pip install -e .[dev,test]
 
 or
-
+  pdm config use_uv true
   pdm install -G waqd,dev,test,website
   pdm lock -G waqd,dev,test,website
 
