@@ -1,10 +1,20 @@
 import json
+from functools import lru_cache
 from pathlib import Path
 
 import waqd
 from waqd.base.file_logger import Logger
 
 TOC_FILE_NAME = "filetoc.json"
+
+
+@lru_cache(maxsize=None)
+def _load_asset_toc(ftoc_path: Path) -> dict:
+    """Read and parse filetoc.json once per path; assets don't change at runtime."""
+    if not ftoc_path.exists():
+        return {}
+    with open(ftoc_path, encoding="utf-8") as filetoc:
+        return json.load(filetoc)
 
 
 def get_asset_file_relative(rsc_file_path: Path) -> str:
@@ -32,14 +42,11 @@ def get_asset_file(rsc_dir: str, rsc_id: str) -> Path:
     ftoc_path = rsc_path / TOC_FILE_NAME
     logger = Logger()
 
-    if not ftoc_path.exists():
+    content = _load_asset_toc(ftoc_path)
+    if not content:
         logger.debug("Cannot find catalog file %s, fallback to real filename.", ftoc_path)
         file_name = rsc_id
     else:
-        content = {}
-        with open(ftoc_path, encoding="utf-8") as filetoc:
-            content = json.load(filetoc)
-
         # get filetype and filelist
         filetype = content.get("filetype", "")
         filelist = content.get("filelist", {})
