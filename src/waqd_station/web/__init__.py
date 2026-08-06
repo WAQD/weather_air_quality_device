@@ -20,7 +20,7 @@ def start_web_server(reload=False):
     uvicorn.run(
         "waqd_station.web.main:web_app",
         host=hostname,
-        port=80,
+        port=8080,
         reload=reload,
         reload_excludes=["*.html", "*.css", ".log"],
     )

@@ -183,6 +183,7 @@ watch(
     selectedDayIndex.value = target < length ? target : 0
     await nextTick()
     scrollForecastDayIntoView(selectedDayIndex.value)
+    scrollHourlyToTargetHour(selectedDayIndex.value)
   },
   { immediate: true }
 )

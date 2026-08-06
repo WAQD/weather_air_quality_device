@@ -1,7 +1,6 @@
 /**
  * Pure utility for formatting weather data into the Android widget payload.
- * No Vue, no DOM, no i18n instance — safe to use in both the main app and
- * the @capacitor/background-runner isolate (bundled separately by Vite).
+ * No Vue, no DOM, no i18n instance — safe to use everywhere.
  */
 
 export interface WidgetForecastDay {

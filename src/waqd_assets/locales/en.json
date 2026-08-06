@@ -420,7 +420,7 @@
   "weekday_thu": "Thu",
   "weekday_tue": "Tue",
   "weekday_wed": "Wed",
-  "weekly_weather_forecast": "3-day Forecast",
+  "weekly_weather_forecast": "Weekly Forecast",
   "welcome_email_body": "Hello {username},\n\nYour WAQD account has been successfully created. You can now log in to your account and manage your weather and air quality devices.\n\nIf you have any questions, please visit our website or contact support.\n\nBest regards,\nThe WAQD Team",
   "welcome_email_subject": "Welcome to WAQD - Your Account Has Been Created",
   "wind": "Wind",

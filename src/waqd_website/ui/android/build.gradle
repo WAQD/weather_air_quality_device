@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:9.2.1'
+        classpath 'com.android.tools.build:gradle:9.3.1'
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -26,17 +26,4 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-// Workaround: @capacitor/background-runner uses the deprecated 'proguard-android.txt'
-// which AGP 8+ rejects. Override it for that subproject without touching node_modules.
-subprojects {
-    afterEvaluate { project ->
-        if (project.name == 'capacitor-background-runner') {
-            project.android.buildTypes.release.proguardFiles = [
-                project.android.getDefaultProguardFile('proguard-android-optimize.txt'),
-                project.file('proguard-rules.pro')
-            ]
-        }
-    }
 }
