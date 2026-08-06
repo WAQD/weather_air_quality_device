@@ -420,7 +420,7 @@
   "weekday_thu": "Cs",
   "weekday_tue": "K",
   "weekday_wed": "Sze",
-  "weekly_weather_forecast": "3-napi előrejelzés",
+  "weekly_weather_forecast": "Heti előrejelzés",
   "welcome_email_body": "Helló {username},\n\nA WAQD-fiókja sikeresen létrejött. Most már bejelentkezhet a fiókjába és kezelheti az időjárás- és levegőminőség-érzékelőit.\n\nKérdései esetén látogasson meg weboldalunkat vagy lépjen kapcsolatba a támogatással.\n\nÜdvözlettel,\nA WAQD csapat",
   "welcome_email_subject": "Üdvözöljük a WAQD-ben - A fiókja létrejött",
   "wind": "Szél",

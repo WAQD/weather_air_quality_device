@@ -16,6 +16,46 @@ from waqd_website.database.config import get_or_create_jwt_secret
 from waqd_website.database.user import get_user_by_username
 
 
+class WidgetTokenAuth(OAuth2):
+    def __init__(self, tokenUrl: str = "/token", scheme_name: str | None = None):
+        super().__init__(flows=OAuthFlows(), scheme_name=scheme_name or "WidgetToken")
+
+    async def __call__(self, request: Request) -> Optional[str]:
+        header_authorization: str = request.headers.get("Authorization", "")
+        cookie_authorization: str = request.cookies.get("Authorization", "")
+        header_scheme, header_param = get_authorization_scheme_param(header_authorization)
+        cookie_scheme, cookie_param = get_authorization_scheme_param(cookie_authorization)
+
+        if header_scheme.lower() == "widgettoken":
+            return header_param
+        elif cookie_scheme.lower() == "widgettoken":
+            return cookie_param
+        return None
+
+
+widget_token_scheme = WidgetTokenAuth()
+
+
+def get_current_user_by_widget_key(token: str) -> Optional[User]:
+    from waqd_website.database.user import get_user_by_widget_key
+    return get_user_by_widget_key(token)
+
+
+async def get_current_user_from_widget_key(token: Annotated[str, Depends(widget_token_scheme)]):
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Widget token required. Expected Authorization: WidgetToken <key>",
+        )
+    user = get_current_user_by_widget_key(token)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid widget token",
+        )
+    return user
+
+
 class RequiresLoginException(StarletteHTTPException):
     pass
 

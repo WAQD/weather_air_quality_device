@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve } from 'node:path'
 import fs from 'node:fs'
@@ -19,9 +19,13 @@ if (!gitHash) {
 }
 const appVersion = `${pkg.version}+${gitHash}`
 
+const env = loadEnv('', __dirname, '')
+const waqdBaseUrl = env.VITE_WAQD_BASE_URL || 'https://waqd.de'
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
+    __WAQD_BASE_URL__: JSON.stringify(waqdBaseUrl),
   },
   plugins: [
     vue({
@@ -291,11 +295,11 @@ export default defineConfig({
       ],
     },
     proxy: {
-      // proxy API calls to your Python backend
-      '/api': 'http://localhost:8000',
+      // proxy API calls to the WAQD backend
+      '/api': waqdBaseUrl,
       // proxy WebSocket connections
       '/ws': {
-        target: 'ws://localhost:8000',
+        target: waqdBaseUrl.replace('http', 'ws'),
         ws: true,
       },
     },

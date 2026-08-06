@@ -36,6 +36,7 @@ class User(SQLModel, table=True):
     hashed_password: str = Field(default=None, max_length=255)
     disabled: Optional[bool] = False
     permissions: List[str] = Field(default_factory=list, sa_column=Column(JSON, default=[]))
+    widget_key: Optional[str] = Field(default=None, max_length=256, index=True)
 
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owners", link_model=UserDeviceLink)

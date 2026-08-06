@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import { useUser } from './composables/useUser'
@@ -29,19 +29,16 @@ import { useRegisterSW } from 'virtual:pwa-register/vue'
 import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
 import { Preferences } from '@capacitor/preferences'
-import { BackgroundRunner } from '@capacitor/background-runner'
-import { useWebsiteWeather } from './composables/useWebsiteWeather'
+import { Geolocation } from '@capacitor/geolocation'
 
 const router = useRouter()
 const { fetchUserInfo } = useUser()
 const { stopRefreshTimer } = useTokenRefresh()
 const appVersion = __APP_VERSION__
-const { locationMode, loadWeatherByGps } = useWebsiteWeather()
 
 // PWA update handling
 const { needRefresh, updateServiceWorker } = useRegisterSW({
   onRegistered(r: ServiceWorkerRegistration | undefined) {
-    // Check for updates every hour
     if (r) {
       setInterval(() => {
         r.update()
@@ -53,66 +50,45 @@ const { needRefresh, updateServiceWorker } = useRegisterSW({
   },
 })
 
-// Auto-trigger update when detected
-watch(needRefresh, (newVal) => {
-  if (newVal) {
-    updateServiceWorker(true)
-  }
-})
-
 function updateApp() {
   updateServiceWorker(true)
 }
 
-// ---- Background Runner setup ----
-
-/**
- * Store the API base URL in Preferences so the background-runner isolate
- * (which does not share the WebView server config) can construct API calls.
- */
-async function persistBackgroundRunnerConfig(): Promise<void> {
+async function persistWidgetConfig(): Promise<void> {
   try {
-    // Derive the base URL from the current server origin.
-    // In a native Capacitor app this is the server.url from capacitor.config.ts.
     const baseUrl = window.location.origin.startsWith('http')
       ? window.location.origin
-      : 'https://waqd.de'
+      : __WAQD_BASE_URL__
     await Preferences.set({ key: 'waqd.background.apiBaseUrl', value: baseUrl })
   } catch {
-    // Non-critical — background runner falls back to https://waqd.de
+    // non-critical
   }
 }
 
-async function initBackgroundRunner(): Promise<void> {
+async function ensureLocationPermission(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return
   try {
-    const { display } = await BackgroundRunner.checkPermissions()
-    if (display !== 'granted') {
-      await BackgroundRunner.requestPermissions({ apis: ['geolocation', 'notifications'] })
+    const perm = await Geolocation.checkPermissions()
+    if (perm.location !== 'granted' && perm.location !== 'limited') {
+      await Geolocation.requestPermissions()
     }
-  } catch (e) {
-    console.warn('BackgroundRunner permission check failed:', e)
-  }
-}
-
-// Keep: fallback for when the app IS in foreground when unlock fires
-// (background runner will handle the backgrounded/killed case).
-async function handleWidgetGpsRefresh(): Promise<void> {
-  if (locationMode.value === 'gps') {
-    await loadWeatherByGps()
+  } catch {
+    // user declined or error; widget will retry next refresh
   }
 }
 
 onMounted(async () => {
-  fetchUserInfo()
-  // Handle navigation requested by Android widget tap (cold start fallback via sessionStorage)
+  await fetchUserInfo()
+
+  // Ensure base URL is persisted even when not logged in yet
+  await persistWidgetConfig()
+
   const pendingNav = sessionStorage.getItem('waqd_pending_nav')
   if (pendingNav) {
     sessionStorage.removeItem('waqd_pending_nav')
     router.push(pendingNav)
   }
 
-  // Handle Android hardware/gesture back button
   if (Capacitor.isNativePlatform()) {
     const exitRoutes = ['/home', '/public/home']
     App.addListener('backButton', ({ canGoBack }) => {
@@ -124,27 +100,8 @@ onMounted(async () => {
     })
   }
 
-  // Store API config and request background runner permissions on first run.
-  await persistBackgroundRunnerConfig()
-  await initBackgroundRunner()
-
-  // Foreground fallback: GPS refresh broadcast from WeatherWidgetProvider → MainActivity
-  window.addEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
+  await ensureLocationPermission()
 })
-
-onUnmounted(() => {
-  window.removeEventListener('waqd-widget-gps-refresh', handleWidgetGpsRefresh)
-  if (Capacitor.isNativePlatform()) {
-    App.removeAllListeners()
-  }
-})
-
-function handleNativeNavigate(event: Event) {
-  const path = (event as CustomEvent<{ path: string }>).detail?.path
-  if (path) {
-    router.push(path)
-  }
-}
 </script>
 
 

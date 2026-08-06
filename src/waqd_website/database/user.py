@@ -210,6 +210,26 @@ def create_password_reset_token(user_id: int) -> str:
     return raw_token
 
 
+def get_or_create_widget_key(user_id: int) -> str:
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.id == user_id)).first()
+        if user is None:
+            raise ValueError(f"User {user_id} not found")
+        if user.widget_key:
+            return user.widget_key
+        user.widget_key = secrets.token_hex(64)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return user.widget_key
+
+
+def get_user_by_widget_key(widget_key: str) -> Optional[User]:
+    with Session(engine) as session:
+        statement = select(User).where(User.widget_key == widget_key)
+        return session.exec(statement).first()
+
+
 def consume_password_reset_token(raw_token: str, new_password: str) -> bool:
     """Validate the token, reset the password, and mark the token used.
     Returns True on success, False if the token is invalid/expired/already used."""

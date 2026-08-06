@@ -1,11 +1,8 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { Preferences } from '@capacitor/preferences'
-import { Geolocation } from '@capacitor/geolocation'
-import { NativeSettings, AndroidSettings } from 'capacitor-native-settings'
 import type { AvailableLocale } from '../i18n'
 import i18n from '../i18n'
 import type { ForecastData, HourlyWeatherData, WeatherData } from './useWeather'
-import { formatWidgetPayload } from '../utils/widgetDataFormatter'
 
 export interface WeatherLocationPayload {
   name: string
@@ -36,13 +33,10 @@ interface WebsiteWeatherResponse {
 }
 
 const SAVED_LOCATIONS_KEY = 'waqd.website.savedLocations'
-const LOCATION_MODE_KEY = 'waqd.website.locationMode'
 const WIDGET_STYLE_KEY = 'waqd.website.widgetStyle'
 
-export type LocationMode = 'home' | 'gps'
 export type WidgetStyle = 'simple' | 'forecast'
 
-const locationMode = ref<LocationMode>('home')
 const widgetStyle = ref<WidgetStyle>('simple')
 const savedLocation = ref<WeatherLocationPayload | null>(null)
 const savedLocations = ref<WeatherLocationPayload[]>([])
@@ -109,7 +103,6 @@ async function extractErrorMessage(response: Response, fallbackMessage: string):
       return payload.detail
     }
   } catch {
-    // Ignore JSON parsing failures and fall back to a generic message.
   }
 
   return `${fallbackMessage} (${response.status})`
@@ -155,15 +148,10 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   clearError()
 
   try {
-    const [modeRes, styleRes] = await Promise.all([
-      Preferences.get({ key: LOCATION_MODE_KEY }),
+    const [styleRes] = await Promise.all([
       Preferences.get({ key: WIDGET_STYLE_KEY })
     ])
-    
-    if (modeRes.value === 'gps' || modeRes.value === 'home') {
-      locationMode.value = modeRes.value as LocationMode
-    }
-    
+
     if (styleRes.value === 'simple' || styleRes.value === 'forecast') {
       widgetStyle.value = styleRes.value as WidgetStyle
     }
@@ -182,17 +170,16 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
 
     const payload = await response.json() as SavedLocationResponse
     const savedPayload = await savedResponse.json() as LocationSearchResponse
-    
+
     savedLocation.value = payload.location
     homeLocation.value = payload.location
 
     let localSaved = readLocalSavedLocations()
     if (savedPayload.locations && savedPayload.locations.length > 0) {
-      // Merge backend list with local storage
       savedPayload.locations.forEach(loc => upsertSavedLocation(loc))
       localSaved = readLocalSavedLocations()
     }
-    
+
     savedLocations.value = localSaved
 
     if (payload.location) {
@@ -220,7 +207,7 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   }
 }
 
-async function loadWeather(force = false, silent = false, skipWidgetUpdate = false): Promise<void> {
+async function loadWeather(force = false, silent = false): Promise<void> {
   if (silent) {
     isRefreshingWeather.value = true
   } else {
@@ -259,11 +246,7 @@ async function loadWeather(force = false, silent = false, skipWidgetUpdate = fal
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
 
-    // Extracted out of watcher to fix race conditions: send complete data to the Android widget immediately.
-    // Always use payload.location (home) — currentLocation may point to a browsed city.
-    if (!skipWidgetUpdate) {
-      await updateWidgetData(currentWeather.value, forecastData.value, payload.location)
-    }
+    // Widget is GPS-only now; don't write home data to widget
   } catch (error) {
     if (!silent) {
       resetWeatherData()
@@ -342,14 +325,13 @@ async function saveLocation(location: WeatherLocationPayload, setAsHome = true):
 
   try {
     upsertSavedLocation(location)
-    
-    // Always persist to the saved-locations list backend
+
     fetch('/api/user/weather/saved-locations', {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(location)
-    }).catch(() => { /* silent fallback on backend failure */ })
+    }).catch(() => { /* silent fallback */ })
 
     if (!setAsHome) {
       return location
@@ -419,99 +401,10 @@ function setCurrentLocation(location: WeatherLocationPayload | null): void {
   currentLocation.value = location
 }
 
-async function setLocationMode(mode: LocationMode): Promise<void> {
-  locationMode.value = mode
-  await Preferences.set({ key: LOCATION_MODE_KEY, value: mode })
-  if (mode === 'home' && homeLocation.value) {
-    await loadWeatherForLocation(homeLocation.value, false, true)
-  } else if (mode === 'gps') {
-    await loadWeatherByGps()
-  }
-}
-
 async function setWidgetStyle(style: WidgetStyle): Promise<void> {
   widgetStyle.value = style
   await Preferences.set({ key: WIDGET_STYLE_KEY, value: style })
-  // Force update widget with current data, using home or GPS location — not the browsed location.
-  if (currentWeather.value) {
-    const widgetLocation = locationMode.value === 'home' ? homeLocation.value : currentLocation.value
-    await updateWidgetData(currentWeather.value, forecastData.value, widgetLocation)
-  }
-}
-
-async function loadWeatherByGps(): Promise<void> {
-  isLoadingWeather.value = true
-  clearError()
-  console.log('GPS: Starting acquisition...')
-  try {
-    // Check/Request permissions first for better UX
-    try {
-      const perm = await Geolocation.checkPermissions()
-      console.log('GPS: Permission status:', perm.location)
-      if (perm.location !== 'granted') {
-        console.log('GPS: Requesting permissions...')
-        const req = await Geolocation.requestPermissions()
-        console.log('GPS: Request result:', req.location)
-        if (req.location !== 'granted') {
-          console.log('GPS: Permission denied. Opening system settings...')
-          await NativeSettings.open({
-            option: AndroidSettings.ApplicationDetails
-          })
-          throw new Error('Location permission denied. Please enable in settings.')
-        }
-      }
-    } catch (e) {
-      console.warn('GPS: Permission check failed:', e)
-    }
-
-    console.log('GPS: Calling getCurrentPosition...')
-    const coordinates = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: false,
-      timeout: 10000,
-      maximumAge: 60000
-    })
-    console.log('GPS: Received coordinates:', coordinates.coords.latitude, coordinates.coords.longitude)
-
-    const params = new URLSearchParams({
-      latitude: coordinates.coords.latitude.toString(),
-      longitude: coordinates.coords.longitude.toString(),
-      name: 'Selected location' // Trigger backend reverse geocoding
-    })
-    const url = `/api/user/weather/preview?${params.toString()}`
-    console.log('GPS: Fetching weather from:', url)
-    const response = await fetch(url, {
-      credentials: 'include'
-    })
-
-    if (!response.ok) {
-      console.error('GPS: Weather fetch failed status:', response.status)
-      throw new Error('Failed to load GPS weather data')
-    }
-
-    const payload = await response.json() as WebsiteWeatherResponse
-    console.log('GPS: Weather payload received for:', payload.location?.name)
-    currentLocation.value = payload.location
-    currentWeather.value = payload.current_weather
-    forecastData.value = payload.forecast ?? []
-    hourlyDaytimeData.value = payload.hourly_daytime ?? []
-    hourlyNighttimeData.value = payload.hourly_nighttime ?? []
-    cached.value = Boolean(payload.cached)
-
-    await updateWidgetData(currentWeather.value, forecastData.value, payload.location)
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'GPS error'
-    errorMessage.value = `GPS failed: ${msg}. Switching to Home.`
-    console.error('GPS error:', error)
-    
-    // Fallback to Home mode on failure
-    if (homeLocation.value) {
-      locationMode.value = 'home'
-      await Preferences.set({ key: LOCATION_MODE_KEY, value: 'home' })
-      await loadWeatherForLocation(homeLocation.value)
-    }
-  } finally {
-    isLoadingWeather.value = false
-  }
+  // Widget is GPS-only; style is applied by the native worker, not by writing home data here
 }
 
 async function setHomeLocation(location: WeatherLocationPayload): Promise<WeatherLocationPayload | null> {
@@ -525,7 +418,6 @@ async function setHomeLocation(location: WeatherLocationPayload): Promise<Weathe
 async function removeSavedLocation(location: WeatherLocationPayload): Promise<boolean> {
   removeSavedLocationEntry(location)
 
-  // Remove from backend list
   fetch(`/api/user/weather/saved-locations?latitude=${location.latitude}&longitude=${location.longitude}`, {
     method: 'DELETE',
     credentials: 'include'
@@ -547,7 +439,7 @@ async function removeSavedLocation(location: WeatherLocationPayload): Promise<bo
   return true
 }
 
-async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false, updateWidget = false, silent = false): Promise<void> {
+async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false, silent = false): Promise<void> {
   if (!location) {
     resetWeatherData()
     return
@@ -588,16 +480,14 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     }
 
     const payload = await response.json() as WebsiteWeatherResponse
+    if (payload.location) {
+      currentLocation.value = payload.location
+    }
     currentWeather.value = payload.current_weather
     forecastData.value = payload.forecast ?? []
     hourlyDaytimeData.value = payload.hourly_daytime ?? []
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
-
-    // Only update widget for home/GPS loads, not for search previews
-    if (updateWidget) {
-      await updateWidgetData(currentWeather.value, forecastData.value, location)
-    }
   } catch (error) {
     if (!silent) {
       resetWeatherData()
@@ -609,29 +499,6 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     } else {
       isLoadingWeather.value = false
     }
-  }
-}
-
-// Explicitly updating data inside load functions now instead of detached watchers
-
-async function updateWidgetData(weather: any, forecast: any[], location: WeatherLocationPayload | null) {
-  if (!weather) return
-
-  try {
-    const payload = formatWidgetPayload(
-      weather,
-      forecast,
-      location,
-      widgetStyle.value,
-      i18n.global.locale.value,
-      (key) => {
-        const translated = i18n.global.t(key)
-        return translated !== key ? translated : undefined
-      },
-    )
-    await Preferences.set({ key: 'widget_weather_data', value: JSON.stringify(payload) })
-  } catch {
-    // Ignore on web
   }
 }
 
@@ -662,7 +529,6 @@ export function useWebsiteWeather() {
     hasSavedLocation,
     hasWeather,
     isBusy,
-    locationMode,
     widgetStyle,
     clearError,
     clearSearchResults,
@@ -675,9 +541,7 @@ export function useWebsiteWeather() {
     deleteLocation,
     removeSavedLocation,
     setHomeLocation,
-    setLocationMode,
     setWidgetStyle,
-    loadWeatherByGps,
     setCurrentLocation,
     loadWeatherForLocation
   }

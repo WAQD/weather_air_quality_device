@@ -125,20 +125,10 @@
                         class="order-3 lg:col-start-2 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm text-base-content shadow-2xl">
                         <p class="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Widget</p>
                         <div class="mt-3 flex flex-col gap-4">
-                            <div>
-                                <p class="text-sm opacity-70 mb-2">Location source</p>
-                                <div class="join">
-                                    <button class="btn btn-sm join-item"
-                                        :class="locationMode === 'home' ? 'btn-primary' : 'btn-ghost'"
-                                        @click="handleWidgetLocationMode('home')">
-                                        🏠 {{ t('home') }}
-                                    </button>
-                                    <button class="btn btn-sm join-item"
-                                        :class="locationMode === 'gps' ? 'btn-primary' : 'btn-ghost'"
-                                        @click="handleWidgetLocationMode('gps')">
-                                        🛰️ GPS
-                                    </button>
-                                </div>
+                            <p class="text-sm opacity-70">The widget uses your GPS location to show current weather on your home screen.</p>
+                            <div v-if="widgetDebug" class="rounded-box border border-dashed border-base-300 bg-base-200/60 p-3 text-xs opacity-80">
+                                <p class="font-semibold uppercase tracking-[0.16em] opacity-60 mb-1">Widget debug</p>
+                                <p>{{ widgetDebug }}</p>
                             </div>
                             <div>
                                 <p class="text-sm opacity-70 mb-2">Style</p>
@@ -168,9 +158,10 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
+import { Preferences } from '@capacitor/preferences'
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
-import { useWebsiteWeather, type WeatherLocationPayload, type LocationMode } from '../composables/useWebsiteWeather'
+import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
 import { useWeather } from '../composables/useWeather'
 import DeviceCard from '../components/DeviceCard.vue'
 import type { Device } from '../types/device'
@@ -185,16 +176,16 @@ const {
     currentWeather,
     cached,
     isLoadingWeather,
-    locationMode,
     widgetStyle,
     loadSavedLocation,
     loadWeather,
-    setLocationMode,
     setWidgetStyle
 } = useWebsiteWeather()
 
 const devices = ref<Device[]>([])
 const homeDevice = computed(() => devices.value[0] || null)
+
+const widgetDebug = ref('')
 
 let weatherInterval: any = null
 
@@ -228,6 +219,7 @@ onMounted(async () => {
             if (isActive) {
                 startWeatherPolling()
                 refreshWeather(false)
+                loadWidgetDebug()
             } else {
                 stopWeatherPolling()
             }
@@ -236,6 +228,7 @@ onMounted(async () => {
         // Not on mobile
     }
 
+    await loadWidgetDebug()
 })
 
 onUnmounted(() => {
@@ -258,8 +251,7 @@ function stopWeatherPolling() {
 
 async function initializeHomeWeather(): Promise<void> {
     await loadSavedLocation()
-    // Skip widget update if GPS mode is active — GPS operations own the widget in that case
-    await loadWeather(false, false, locationMode.value === 'gps')
+    await loadWeather(false, false)
 }
 
 async function loadDevices(): Promise<void> {
@@ -318,18 +310,25 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
     return ''
 }
 
-async function handleWidgetLocationMode(mode: LocationMode): Promise<void> {
-    await setLocationMode(mode)
-    if (mode === 'gps') {
-        // Widget data updated with GPS; restore home weather for UserHome display only.
-        // Keep currentLocation as GPS so Weather.vue navigates to GPS weather correctly.
-        await loadWeather(false, false, true)
-    }
+async function refreshWeather(force = false): Promise<void> {
+    await loadWeather(force, false)
 }
 
-async function refreshWeather(force = false): Promise<void> {
-    // Skip widget update when GPS mode is active — the widget belongs to GPS operations then
-    await loadWeather(force, false, locationMode.value === 'gps')
+async function loadWidgetDebug(): Promise<void> {
+    try {
+        const { value } = await Preferences.get({ key: 'waqd.widget.lastDebug' })
+        if (value) {
+            try {
+                const entry = JSON.parse(value)
+                const date = new Date(entry.ts).toLocaleTimeString()
+                widgetDebug.value = `[${date}] ${entry.msg}`
+            } catch {
+                widgetDebug.value = value
+            }
+        }
+    } catch {
+        widgetDebug.value = ''
+    }
 }
 </script>
 

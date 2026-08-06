@@ -155,7 +155,7 @@ async def get_weather(
 async def get_weather_preview(
     latitude: float,
     longitude: float,
-    name: str = Query(default="Selected location"),
+    name: str = Query(default=""),
     country: str = Query(default=""),
     state: str = Query(default=""),
     county: str = Query(default=""),
@@ -165,8 +165,21 @@ async def get_weather_preview(
     current_user: User = user_exception_check,
 ):
     del current_user
+
+    # Resolve incomplete location data from lat/lon using geo services
+    if not country and not state:
+        resolved = weather_service.resolve_full_location(latitude, longitude)
+        if resolved:
+            if not name or name in ("Selected location", "GPS Location"):
+                name = resolved.name
+            country = resolved.country
+            state = resolved.state
+            county = resolved.county
+            country_code = resolved.country_code
+            altitude = resolved.altitude
+
     location = Location(
-        name=name,
+        name=name or "Selected location",
         country=country,
         state=state,
         county=county,
@@ -177,12 +190,6 @@ async def get_weather_preview(
     )
 
     payload, cached = weather_service.get_weather_for_location(location, force=force)
-    
-    # If the location name is generic (latitude/longitude string), try to resolve a better name
-    if name == "Selected location" or not name.strip():
-        resolved = weather_service.resolve_location_name(latitude, longitude)
-        if resolved:
-            location = resolved
 
     return WebsiteWeatherResponse(
         location=WeatherLocationPayload(**location.model_dump()),

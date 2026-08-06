@@ -356,12 +356,10 @@ const {
     isRefreshingWeather,
     isSearching,
     isSavingLocation,
-    locationMode,
     clearError,
     clearSearchResults,
     loadSavedLocation,
     loadWeather,
-    loadWeatherByGps,
     searchLocations,
     saveLocation,
     deleteLocation,
@@ -448,20 +446,24 @@ watch(locale, async () => {
 // Watch for route changes (e.g., widget clicks when app is backgrounded)
 // and reload weather data if needed
 watch(() => route.fullPath, async (newPath, oldPath) => {
-    // Only reload if the route actually changed (not on initial mount)
     if (oldPath && newPath !== oldPath && route.path === '/rest/weather') {
         const alreadyHasData = !!currentWeather.value
-        
-        // Re-check location mode and load appropriate data
-        if (locationMode.value === 'gps') {
-            await loadWeatherByGps()
+
+        if (route.query.gps_lat && route.query.gps_lon) {
+            const gpsLoc: WeatherLocationPayload = {
+                name: String(route.query.gps_name || 'GPS Location'),
+                country: '', state: '', county: '', country_code: '',
+                altitude: 0,
+                latitude: parseFloat(String(route.query.gps_lat)),
+                longitude: parseFloat(String(route.query.gps_lon)),
+            }
+            await loadWeatherForLocation(gpsLoc)
         } else if (currentLocation.value && (!homeLocation.value || getLocationKey(homeLocation.value) !== getLocationKey(currentLocation.value))) {
-            await loadWeatherForLocation(currentLocation.value, false, false, alreadyHasData)
+            await loadWeatherForLocation(currentLocation.value, false, alreadyHasData)
         } else {
             await loadWeather(false, alreadyHasData)
         }
-        
-        // Scroll to forecast if day param is present
+
         if (route.query.day !== undefined) {
             await scrollToForecast()
         }
@@ -472,11 +474,17 @@ onMounted(async () => {
     const alreadyHasData = !!currentWeather.value
     await loadSavedLocation()
 
-    // Check if we're in GPS mode and should load GPS weather instead of Home
-    if (locationMode.value === 'gps') {
-        await loadWeatherByGps()
+    if (route.query.gps_lat && route.query.gps_lon) {
+        const gpsLoc: WeatherLocationPayload = {
+            name: String(route.query.gps_name || 'GPS Location'),
+            country: '', state: '', county: '', country_code: '',
+            altitude: 0,
+            latitude: parseFloat(String(route.query.gps_lat)),
+            longitude: parseFloat(String(route.query.gps_lon)),
+        }
+        await loadWeatherForLocation(gpsLoc)
     } else if (currentLocation.value && (!homeLocation.value || getLocationKey(homeLocation.value) !== getLocationKey(currentLocation.value))) {
-        await loadWeatherForLocation(currentLocation.value, false, false, alreadyHasData)
+        await loadWeatherForLocation(currentLocation.value, false, alreadyHasData)
     } else {
         await loadWeather(false, alreadyHasData)
     }
@@ -555,12 +563,6 @@ async function removeHomeLocation(): Promise<void> {
 async function refreshWeather(force = false): Promise<void> {
     successMessage.value = ''
     clearError()
-
-    // If in GPS mode, always refresh GPS location
-    if (locationMode.value === 'gps') {
-        await loadWeatherByGps()
-        return
-    }
 
     if (!currentLocation.value) {
         return

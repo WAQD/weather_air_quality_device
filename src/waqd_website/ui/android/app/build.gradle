@@ -6,6 +6,22 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def waqdBaseUrl = System.getenv('VITE_WAQD_BASE_URL')
+if (!waqdBaseUrl) {
+    def envFile = rootProject.file("../.env")
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def trimmed = line.trim()
+            if (trimmed.startsWith("VITE_WAQD_BASE_URL=")) {
+                waqdBaseUrl = trimmed.substring("VITE_WAQD_BASE_URL=".length())
+            }
+        }
+    }
+}
+if (!waqdBaseUrl) {
+    waqdBaseUrl = "https://waqd.de"
+}
+
 android {
     namespace = "com.waqd.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -21,6 +37,10 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:*.gz'
         }
+        buildConfigField "String", "WAQD_BASE_URL", "\"${waqdBaseUrl}\""
+    }
+    buildFeatures {
+        buildConfig = true
     }
     signingConfigs {
         release {
@@ -43,7 +63,7 @@ android {
 
 repositories {
     flatDir{
-        dirs '../../node_modules/@capacitor/background-runner/android/src/main/libs', 'libs'
+        dirs 'libs'
     }
 }
 
@@ -57,7 +77,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation 'com.caverock:androidsvg:1.4'
-    // WorkManager is required to dispatch @capacitor/background-runner tasks from native code
+    // WorkManager for native widget refresh tasks (WidgetRefreshWorker)
     implementation "androidx.work:work-runtime:2.9.0"
 }
 

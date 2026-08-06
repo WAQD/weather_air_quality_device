@@ -8,6 +8,7 @@ from waqd_website.database.user import (
     get_all_users,
     delete_user,
     add_user,
+    get_or_create_widget_key,
     update_user_password,
     update_user_email,
     update_user_username,
@@ -22,6 +23,7 @@ class UserInfo(BaseModel):
     username: str
     email: str | None = None
     permissions: list[str]
+    widget_key: str | None = None
 
 
 class UserListItem(BaseModel):
@@ -33,10 +35,14 @@ class UserListItem(BaseModel):
 @rt.get("/me", response_model=UserInfo)
 async def get_current_user(current_user: Annotated[User, user_exception_check]):
     """Get current logged-in user information"""
+    widget_key = None
+    if current_user.id is not None:
+        widget_key = get_or_create_widget_key(current_user.id)
     return UserInfo(
         username=current_user.username,
         email=current_user.email,
-        permissions=current_user.permissions
+        permissions=current_user.permissions,
+        widget_key=widget_key,
     )
 
 
