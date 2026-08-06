@@ -3,7 +3,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, inspect, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Field, Relationship, SQLModel, create_engine
 
 password = os.getenv("DATABASE_PW", "waqd_root_pw")
@@ -148,3 +149,30 @@ def create_db_tables():
         import logging
         logging.getLogger(__name__).error("Failed to create database tables: %s", e)
         raise
+    _run_migrations()
+
+
+def _run_migrations():
+    """Apply schema migrations to existing databases."""
+    import logging
+    log = logging.getLogger(__name__)
+
+    inspector = inspect(engine)
+
+    try:
+        columns = [col["name"] for col in inspector.get_columns("user")]
+    except SQLAlchemyError:
+        return
+
+    if "widget_key" not in columns:
+        log.info("Migration: adding widget_key column to user table")
+        with engine.connect() as conn:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN widget_key VARCHAR(256)'))
+            try:
+                conn.execute(text(
+                    'CREATE INDEX "ix_user_widget_key" ON "user" (widget_key)'
+                ))
+            except Exception:
+                pass  # index may already exist
+            conn.commit()
+        log.info("Migration: widget_key column added successfully")
