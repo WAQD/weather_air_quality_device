@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 from threading import Lock
@@ -90,7 +90,7 @@ class OpenMeteo(WeatherProvider):
             )
 
         self._geocoding_cache[cache_key] = locations
-        self._last_geocoding_fetch[cache_key] = datetime.now()
+        self._last_geocoding_fetch[cache_key] = datetime.now(timezone.utc)
         return locations
 
     def get_current_weather(self, force=False) -> Optional[Weather]:
@@ -140,6 +140,8 @@ class OpenMeteo(WeatherProvider):
         self._seven_day_forecast = []
         current_weather = response.get("current", {})
         daily = response.get("daily", {})
+        # timezone=auto: returned naive times are the location's own local wall clock,
+        # which is what sunrise/sunset/day-night display needs (not UTC)
         for i in range(len(daily.get("time", []))):
             sunrise = datetime.fromisoformat(daily.get("sunrise", [])[i]).time()
             sunset = datetime.fromisoformat(daily.get("sunset", [])[i]).time()
@@ -180,10 +182,12 @@ class OpenMeteo(WeatherProvider):
         sunrise = self._seven_day_forecast[0].sunrise
         sunset = self._seven_day_forecast[0].sunset
         is_day = current_weather.get("is_day", 1) == 1
+        # date_time must stay in the location's local wall clock to compare against
+        # sunrise/sunset; fetch_time (set in Weather.__post_init__) is the UTC instant
         self._current_weather = Weather(
             self._get_main_category(current_weather.get("weathercode", 0)),
             current_weather.get("weathercode", 0),
-            datetime.now(),
+            self._location_local_now(response),
             self._get_icon_name(current_weather.get("weathercode", 0), is_day),
             current_weather.get("wind_speed_10m", 0.0),
             current_weather.get("winddirection_10m", 0.0),  # TODO
@@ -201,7 +205,7 @@ class OpenMeteo(WeatherProvider):
             current_weather.get("precipitation", 0.0),
             0.0,
         )
-        self._last_daily_fetch = datetime.now()
+        self._last_daily_fetch = datetime.now(timezone.utc)
 
     def _fetch_hourly_weather(self):
         if not self._seven_day_forecast:
@@ -222,10 +226,11 @@ class OpenMeteo(WeatherProvider):
         day_temps: List[List[float]] = [[] for _ in range(7)]
         night_temps: List[List[float]] = [[] for _ in range(7)]
 
-        current_datetime = datetime.now()
+        current_datetime = self._location_local_now(response)
         hourly = response.get("hourly", {})
 
         for i in range(len(hourly.get("time", []))):
+            # timezone=auto: naive time is the location's own local wall clock
             entry_date_time = datetime.fromisoformat(hourly.get("time", [])[i])
             if entry_date_time < current_datetime:
                 continue
@@ -267,7 +272,7 @@ class OpenMeteo(WeatherProvider):
 
         self._hourly_forecast = hourly_forecast
         self._set_min_max_temps(day_temps, night_temps)
-        self._last_hourly_fetch = datetime.now()
+        self._last_hourly_fetch = datetime.now(timezone.utc)
 
     def _set_min_max_temps(
         self,
@@ -288,10 +293,16 @@ class OpenMeteo(WeatherProvider):
                 self._seven_day_forecast[day_idx].temp_night_min = min(night_values)
 
     @staticmethod
+    def _location_local_now(response: Dict[str, Any]) -> datetime:
+        """Naive 'now' in the location's own local wall clock (matches timezone=auto times)."""
+        utc_offset = timedelta(seconds=response.get("utc_offset_seconds", 0))
+        return datetime.now(timezone.utc).replace(tzinfo=None) + utc_offset
+
+    @staticmethod
     def _should_fetch(last_fetch: Optional[datetime], fetch_rate_seconds: int) -> bool:
         if last_fetch is None:
             return True
-        return (datetime.now() - last_fetch).total_seconds() >= fetch_rate_seconds
+        return (datetime.now(timezone.utc) - last_fetch).total_seconds() >= fetch_rate_seconds
 
     def _call_api(self, command: str, **kwargs) -> Dict[str, Any]:
         """Call the REST like API of OpenWeatherMap. Return response."""

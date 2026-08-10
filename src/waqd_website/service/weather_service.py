@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from threading import Lock
 from typing import Any, Optional
 
@@ -33,7 +33,7 @@ class WebsiteWeatherService:
             return []
 
         cache_key = f"{lang}:{cleaned_query.lower()}"
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         with self._lock:
             cached = self._search_cache.get(cache_key)
@@ -98,7 +98,7 @@ class WebsiteWeatherService:
         self, location: Location, force: bool = False
     ) -> tuple[dict[str, Any], bool]:
         cache_key = self._normalize_location_key(location)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if not force:
             with self._lock:
@@ -111,7 +111,7 @@ class WebsiteWeatherService:
             if not force:
                 with self._lock:
                     cached_entry = self._weather_cache.get(cache_key)
-                    if cached_entry and cached_entry[0] > datetime.utcnow():
+                    if cached_entry and cached_entry[0] > datetime.now(timezone.utc):
                         return cached_entry[1], True
 
             provider = self._get_provider(location)
@@ -143,7 +143,7 @@ class WebsiteWeatherService:
 
             with self._lock:
                 self._weather_cache[cache_key] = (
-                    datetime.utcnow() + self._weather_ttl,
+                    datetime.now(timezone.utc) + self._weather_ttl,
                     payload,
                 )
 
