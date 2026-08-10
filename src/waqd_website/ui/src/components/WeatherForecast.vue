@@ -1,68 +1,73 @@
 <template>
   <div class="card bg-base-100 shadow-xl min-w-0">
-    <div class="card-body p-4 sm:p-6 min-w-0">
+    <div class="card-body p-2.5 sm:p-6 min-w-0">
       <h2 class="card-title text-base sm:text-lg">{{ title }}</h2>
 
       <!-- 7-Day Forecast Section -->
-      <div v-if="forecastData && forecastData.length > 0" class="mb-4 sm:mb-6">
-        <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast')
-        }}</h3>
+      <div v-if="forecastData && forecastData.length > 0" class="mb-2 sm:mb-6">
+        <h3 class="font-semibold text-sm sm:text-base mb-1.5 sm:mb-4">{{
+          t('weekly_weather_forecast')
+          }}</h3>
         <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
-          <div class="flex gap-2 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
+          <div class="flex gap-1.5 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
               :data-day-index="index"
-              class="card bg-base-200 shadow-md text-left transition-all duration-150 flex-shrink-0 min-w-[150px] sm:min-w-[170px]"
+              class="card bg-base-200 shadow-md text-left transition-all duration-150 flex-shrink-0 min-w-[118px] sm:min-w-[170px]"
               :class="selectedDayIndex === index ? 'ring-2 ring-primary bg-base-300' : 'hover:bg-base-300/70'"
               @click="selectDay(index)">
-              <div class="card-body p-2 sm:p-3 lg:p-4 text-center">
+              <div class="card-body p-1.5 sm:p-3 lg:p-4 text-center">
                 <!-- Day label -->
-                <h3 class="font-bold text-sm sm:text-base mb-1 sm:mb-2">
+                <h3 class="font-bold text-sm sm:text-base mb-0.5 sm:mb-2">
                   {{ formatForecastDate(day.date_time) }}
                 </h3>
 
                 <!-- Weather icon -->
                 <img v-if="day.icon" :src="`/static/weather_icons/${day.icon}.svg`" :alt="day.main"
-                  class="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-1 sm:mb-2 weather-icon" />
+                  class="h-8 w-8 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-0.5 sm:mb-2 weather-icon" />
 
                 <!-- Weather condition -->
-                <p class="text-sm opacity-70 mb-1 sm:mb-2 truncate">{{
+                <p class="text-sm opacity-70 mb-0.5 sm:mb-2 truncate">{{
                   translateWeatherCondition(day) }}</p>
 
                 <!-- Day temperature -->
-                <div class="mb-1 sm:mb-2">
-                  <p class="text-sm opacity-70">{{ t('day') }}</p>
-                  <p class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{
-                    day.temp_max.toFixed(0) }}°</p>
+                <div class="mb-0.5 flex items-center justify-center gap-1">
+                  <img :src="daySunnyIconUrl" :alt="t('day')"
+                    class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
+                  <span class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{
+                    day.temp_max.toFixed(0) }}°</span>
                 </div>
 
                 <!-- Night temperature -->
-                <div class="mb-1 sm:mb-2">
-                  <p class="text-sm opacity-70">{{ t('night') }}</p>
-                  <p class="text-sm sm:text-base">{{ day.temp_night_min.toFixed(0) }}° / {{
-                    day.temp_night_max.toFixed(0) }}°</p>
+                <div class="mb-0.5 sm:mb-2 flex items-center justify-center gap-1">
+                  <img :src="nightClearIconUrl" :alt="t('night')"
+                    class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
+                  <span class="text-sm sm:text-base">{{ day.temp_night_min.toFixed(0) }}° / {{
+                    day.temp_night_max.toFixed(0) }}°</span>
                 </div>
 
                 <!-- Precipitation probability -->
                 <div
                   v-if="day.precipitation_probability_max !== undefined || day.precipitation !== undefined"
-                  class="space-y-1">
+                  class="space-y-0.5">
                   <p v-if="day.precipitation_probability_max !== undefined"
                     class="text-sm sm:text-base flex items-center justify-center gap-1">
-                    <img :src="raindropIconUrl" alt="Raindrop" class="h-10 w-10 weather-icon" />
+                    <img :src="raindropIconUrl" alt="Raindrop"
+                      class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                     {{ day.precipitation_probability_max.toFixed(0) }}%
                   </p>
                   <p v-if="day.precipitation !== undefined"
                     class="text-sm sm:text-base flex items-center justify-center gap-1">
-                    <img :src="showersIconUrl" alt="Showers" class="h-10 w-10 weather-icon" />
+                    <img :src="showersIconUrl" alt="Showers"
+                      class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                     {{ day.precipitation.toFixed(1) }}mm
                   </p>
                 </div>
                 <!-- Daily wind display (moved from details) -->
                 <div v-if="day.wind_speed !== undefined || day.wind_deg !== undefined"
-                  class="mt-2 sm:mt-3 space-y-1">
+                  class="mt-1 sm:mt-3 space-y-1">
                   <p class="text-sm sm:text-base flex items-center justify-center gap-1">
-                    <svg v-if="day.wind_deg !== undefined" class="h-8 w-8 weather-icon"
-                      aria-hidden="true"
+                    <svg v-if="day.wind_deg !== undefined"
+                      class="h-5 w-5 sm:h-8 sm:w-8 weather-icon" aria-hidden="true"
                       :style="{ transform: `rotate(${((day.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
@@ -83,33 +88,35 @@
 
         <!-- Hourly data display in a single row -->
         <div ref="hourlyScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
-          <div class="flex gap-2 pt-1 pb-2 min-w-max">
+          <div class="flex gap-1.5 sm:gap-2 pt-1 pb-2 min-w-max">
             <div v-for="(hour, index) in mergedHourlyData" :key="index"
-              class="hourly-card flex-shrink-0 card bg-base-200 p-2 sm:p-3 min-w-[90px] sm:min-w-[110px] text-center"
+              class="hourly-card flex-shrink-0 card bg-base-200 p-1.5 sm:p-3 min-w-[74px] sm:min-w-[110px] text-center"
               :data-hour="getHourFromDateString(hour.date_time)">
-              <p class="text mb-1">{{ formatHourlyTime(hour.date_time) }}</p>
+              <p class="text mb-0.5">{{ formatHourlyTime(hour.date_time) }}</p>
               <img v-if="hour.icon" :src="`/static/weather_icons/${hour.icon}.svg`" :alt="hour.main"
-                class="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-1 weather-icon" />
-              <p class="font-bold text-base sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
+                class="h-6 w-6 sm:h-10 sm:w-10 mx-auto mb-0.5 weather-icon" />
+              <p class="font-bold text-sm sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
               <p class="text-sm opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
 
               <div
                 v-if="hour.precipitation_probability !== undefined || hour.precipitation !== undefined"
-                class="mt-2 sm:mt-3 space-y-2">
+                class="mt-1 sm:mt-3 space-y-1 sm:space-y-2">
                 <p v-if="hour.precipitation_probability !== undefined"
                   class="text-sm sm:text-base flex items-center justify-center gap-1">
-                  <img :src="raindropIconUrl" alt="Raindrop" class="h-10 w-10 weather-icon" />
+                  <img :src="raindropIconUrl" alt="Raindrop"
+                    class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                   {{ hour.precipitation_probability.toFixed(0) }}%
                 </p>
                 <p v-if="hour.precipitation !== undefined"
                   class="text-sm sm:text-base flex items-center justify-center gap-1">
-                  <img :src="showersIconUrl" alt="Showers" class="h-10 w-10 weather-icon" />
+                  <img :src="showersIconUrl" alt="Showers"
+                    class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                   {{ hour.precipitation.toFixed(1) }}mm
                 </p>
                 <div v-if="hour.wind_speed !== undefined || hour.wind_deg !== undefined">
                   <p class="text-sm sm:text-base flex items-center justify-center gap-1">
-                    <svg v-if="hour.wind_deg !== undefined" class="h-6 w-6 weather-icon"
-                      aria-hidden="true"
+                    <svg v-if="hour.wind_deg !== undefined"
+                      class="h-5 w-5 sm:h-6 sm:w-6 weather-icon" aria-hidden="true"
                       :style="{ transform: `rotate(${((hour.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
@@ -141,6 +148,8 @@ const { t } = useTranslation()
 const raindropIconUrl = '/static/weather_icons/wi-raindrops.svg'
 const showersIconUrl = '/static/weather_icons/wi-showers.svg'
 const windDegIconUrl = '/static/weather_icons/wi-wind-deg.svg#Layer_1'
+const daySunnyIconUrl = '/static/weather_icons/wi-day-sunny.svg'
+const nightClearIconUrl = '/static/weather_icons/wi-night-clear.svg'
 
 interface Props {
   title?: string
