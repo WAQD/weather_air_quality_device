@@ -1,13 +1,13 @@
 <template>
     <div id="weather_container"
-        class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-full">
+        class="container mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-6 lg:py-8 max-w-full">
         <div id="weather_grid"
-            class="flex flex-col xl:grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <div class="contents xl:block xl:space-y-6">
+            class="flex flex-col xl:grid gap-3 sm:gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+            <div class="contents xl:block xl:space-y-3 xl:sm:space-y-6">
                 <div id="current_weather_card"
                     class="order-2 xl:order-none card bg-base-100 shadow-xl overflow-hidden"
                     :style="weatherHeroStyle">
-                    <div class="card-body p-5 sm:p-6 bg-base-100/82 backdrop-blur-md">
+                    <div class="card-body p-3 sm:p-6 bg-base-100/82 backdrop-blur-md">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p
@@ -185,13 +185,13 @@
                 </div>
 
                 <div id="saved_locations" class="order-4 xl:order-none card bg-base-100 shadow-xl">
-                    <div class="card-body p-5 sm:p-6">
+                    <div class="card-body p-3 sm:p-6">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <h2 class="card-title text-base sm:text-lg">{{
                                     t('home_weather_saved_location') }}</h2>
                                 <p class="mt-1 text-sm opacity-70">{{ t('home_weather_search_help')
-                                }}</p>
+                                    }}</p>
                             </div>
                         </div>
 
@@ -222,7 +222,7 @@
                                 class="rounded-box border border-base-300 bg-base-200/70 p-3">
                                 <div class="min-w-0">
                                     <p class="font-semibold truncate break-words">{{ location.name
-                                    }}</p>
+                                        }}</p>
                                 </div>
 
                                 <div class="mt-2 flex flex-col gap-2">
@@ -250,9 +250,9 @@
             </div>
 
             <!-- Right column: location banner first, then forecast -->
-            <div class="contents xl:block xl:space-y-6">
+            <div class="contents xl:block xl:space-y-3 xl:sm:space-y-6">
                 <div v-if="currentLocation" id="current_location_banner"
-                    class="order-1 rounded-box border border-base-300 bg-base-200/70 p-4">
+                    class="order-1 rounded-box border border-base-300 bg-base-200/70 p-2.5 sm:p-4">
                     <div class="flex items-start gap-3">
                         <div
                             class="text-2xl font-thin  tabular-nums hidden sm:block min-w-10 text-center">
@@ -284,7 +284,7 @@
                 </div>
 
                 <div id="forecast_container"
-                    class="order-3 flex flex-col xl:block xl:min-w-0 xl:space-y-6">
+                    class="order-3 flex flex-col xl:block xl:min-w-0 xl:space-y-3 xl:sm:space-y-6">
                     <div v-if="isLoadingWeather" id="forecast_loading"
                         class="card bg-base-100 shadow-xl">
                         <div class="card-body p-4 sm:p-6">
