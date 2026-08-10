@@ -6,10 +6,11 @@
       <!-- 7-Day Forecast Section -->
       <div v-if="forecastData && forecastData.length > 0" class="mb-4 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{{ t('weekly_weather_forecast')
-          }}</h3>
+        }}</h3>
         <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-2 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
-            <button v-for="(day, index) in displayedForecastData" :key="index" type="button" :data-day-index="index"
+            <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
+              :data-day-index="index"
               class="card bg-base-200 shadow-md text-left transition-all duration-150 flex-shrink-0 min-w-[150px] sm:min-w-[170px]"
               :class="selectedDayIndex === index ? 'ring-2 ring-primary bg-base-300' : 'hover:bg-base-300/70'"
               @click="selectDay(index)">
@@ -60,7 +61,8 @@
                 <div v-if="day.wind_speed !== undefined || day.wind_deg !== undefined"
                   class="mt-2 sm:mt-3 space-y-1">
                   <p class="text-sm sm:text-base flex items-center justify-center gap-1">
-                    <svg v-if="day.wind_deg !== undefined" class="h-8 w-8 weather-icon" aria-hidden="true"
+                    <svg v-if="day.wind_deg !== undefined" class="h-8 w-8 weather-icon"
+                      aria-hidden="true"
                       :style="{ transform: `rotate(${((day.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
@@ -319,12 +321,18 @@ function formatWind(speed: number | undefined, deg: number | undefined): string 
   return `${(Number(speed) * 3.6).toFixed(1)} km/h`
 }
 
+// Scroll only the horizontal scroller itself (never scrollIntoView, which can also nudge page/vertical scroll).
+function scrollToCardStart(scroller: HTMLElement, card: HTMLElement): void {
+  const targetLeft = card.offsetLeft - scroller.offsetLeft
+  scroller.scrollTo({ left: targetLeft, behavior: 'smooth' })
+}
+
 function scrollForecastDayIntoView(index: number): void {
   const scroller = forecastScroller.value
   if (!scroller) return
   const card = scroller.querySelector<HTMLElement>(`[data-day-index="${index}"]`)
   if (card) {
-    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+    scrollToCardStart(scroller, card)
   }
 }
 
@@ -358,6 +366,6 @@ function scrollHourlyToTargetHour(index: number): void {
     return
   }
 
-  target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+  scrollToCardStart(scroller, target)
 }
 </script>
