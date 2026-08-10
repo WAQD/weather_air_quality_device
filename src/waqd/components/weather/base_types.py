@@ -1,11 +1,10 @@
-
 """
 This file contains generic classes concerning online weather data.
 """
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, time
+from datetime import datetime, time, timezone
 from enum import Enum
 from pathlib import Path
 
@@ -20,7 +19,7 @@ def is_daytime(sunrise, sunset, date_time=None):
     Helper function to determine if specified time is day or night
     """
     if date_time is None:
-        date_time = datetime.now()
+        date_time = datetime.now(timezone.utc)
     return sunrise < date_time.time() < sunset
 
 
@@ -36,13 +35,14 @@ class Location(BaseModel):
 
 
 @dataclass
-class Weather():
+class Weather:
     """
     This class is used to abstract from weather hosting types.
     Relies heavily on OpenWeather data structure
     """
+
     main: str  # condition name
-    wid: int # provider specific weather id 
+    wid: int  # provider specific weather id
     # description: str  # condition detail TODO deprecate
     date_time: datetime  # time of the point or day
     fetch_time: datetime = field(init=False)
@@ -57,12 +57,12 @@ class Weather():
     clouds: float  # percent cloudiness TODO deprecate
     temp: float  # degC
     altitude: float  # elevation of location in meters, deprecated, use from location instead
-    precipitation: float # mm, optional
+    precipitation: float  # mm, optional
     precipitation_probability: float = 0.0  # percent, optional for hourly
 
     def __post_init__(self):
         if self.main:  # only set fetch_time if it is non-empty initiallized
-            self.fetch_time = datetime.now()
+            self.fetch_time = datetime.now(timezone.utc)
         if self.clouds > 65 and self.main.lower() == "clouds":
             self.main = "heavy_clouds"
 
@@ -104,7 +104,8 @@ class DailyWeather(Weather):
 
 
 class BeaufortScale(Enum):
-    """ Wind severity mapping to max m/s """
+    """Wind severity mapping to max m/s"""
+
     CALM = 0.5
     LIGHT_AIR = 1.5
     LIGHT_BREEZE = 3.3
@@ -125,6 +126,7 @@ class WeatherQuality(Enum):
     Describes goodness of weather conditions.
     Higher is better (the numbers don't mean anything specific)
     """
+
     TORNADO = 0
     SQUALL = 1
     ASH = 2
