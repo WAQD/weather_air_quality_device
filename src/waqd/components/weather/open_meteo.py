@@ -26,8 +26,8 @@ class OpenMeteo(WeatherProvider):
         longitude=0.0,
         latitude=0.0,
         geocoding_fetch_rate_seconds: int = 30,
-        daily_fetch_rate_seconds: int = 15 * 60,
-        hourly_fetch_rate_seconds: int = 5 * 60,
+        daily_fetch_rate_seconds: int = 1 * 60,
+        hourly_fetch_rate_seconds: int = 1 * 60,
     ):
         super().__init__()
         self._longitude = longitude
@@ -111,7 +111,9 @@ class OpenMeteo(WeatherProvider):
     def _fetch_weather(self, force=False, include_hourly=False):
         # lock to prevent multiple fetches at the same time
         with self._fetch_lock:
-            if force or self._should_fetch(self._last_daily_fetch, self._daily_fetch_rate_seconds):
+            if force or self._should_fetch(
+                self._last_daily_fetch, self._daily_fetch_rate_seconds
+            ):
                 self._fetch_daily_weather()
 
             if include_hourly and (
@@ -284,25 +286,6 @@ class OpenMeteo(WeatherProvider):
             if night_values:
                 self._seven_day_forecast[day_idx].temp_night_max = max(night_values)
                 self._seven_day_forecast[day_idx].temp_night_min = min(night_values)
-
-    # def _update_current_weather_from_hourly(self):
-# '        if (
-#             not self._current_weather
-#             or not self._hourly_forecast
-#             or not self._hourly_forecast[0]
-#         ):
-#             return
-
-#         now = datetime.now()
-#         point = next((p for p in self._hourly_forecast[0] if p.date_time >= now), None)
-#         if point is None:
-#             point = self._hourly_forecast[0][-1]
-
-#         self._current_weather.humidity = point.humidity
-#         self._current_weather.clouds = point.clouds
-#         self._current_weather.pressure = point.pressure
-#         self._current_weather.pressure_sea_level = point.pressure_sea_level
-#         self._current_weather.precipitation = point.precipitation'
 
     @staticmethod
     def _should_fetch(last_fetch: Optional[datetime], fetch_rate_seconds: int) -> bool:
