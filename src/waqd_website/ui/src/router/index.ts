@@ -80,35 +80,41 @@ const router = createRouter({
       component: Admin,
       meta: { requiresAuth: true, requiresAdmin: true }
     }
-  ]
+  ],
+  // Explicit scroll handling so the browser's native history scroll restoration
+  // doesn't reapply a stale scroll position (e.g. left over from a widget deep link).
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0 }
+  }
 })
 
 // Navigation guard to protect routes
 router.beforeEach(async (to, from, next) => {
   const { isLoggedIn, isAdmin, fetchUserInfo, isLoading, userInfo } = useUser()
-  
+
   // Fetch user info if not already loaded and not currently loading
   if (!userInfo.value && !isLoading.value) {
     await fetchUserInfo()
   }
-  
+
   // Wait for loading to complete
   while (isLoading.value) {
     await new Promise(resolve => setTimeout(resolve, 10))
   }
-  
+
   // Check if route requires authentication
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     next('/public/login')
     return
   }
-  
+
   // Check if route requires admin
   if (to.meta.requiresAdmin && !isAdmin.value) {
     next('/public/home')
     return
   }
-  
+
   next()
 })
 
