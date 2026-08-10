@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import androidx.work.BackoffPolicy;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
@@ -70,6 +71,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static void schedulePeriodicWork(Context context) {
         PeriodicWorkRequest periodic = new PeriodicWorkRequest.Builder(
                 WidgetRefreshWorker.class, 15, TimeUnit.MINUTES)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, periodic);
@@ -77,6 +79,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static void enqueueImmediateRefresh(Context context) {
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(WidgetRefreshWorker.class)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
                 .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.REPLACE, request);
@@ -97,6 +100,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         String iconName = "";
         String widgetStyle = "simple";
         JSONArray forecastDataArr = null;
+        long updateTime = 0;
 
         try {
             JSONObject data = new JSONObject(weatherDataRaw);
@@ -121,8 +125,23 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             if (data.has("forecast_3_days")) {
                 forecastDataArr = data.getJSONArray("forecast_3_days");
             }
+            if (data.has("updateTime")) {
+                updateTime = data.getLong("updateTime");
+            }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        // If weather data is stale (> 1 hour old), trigger a refresh on background thread
+        final long finalUpdateTime = updateTime;
+        if (finalUpdateTime > 0 && (System.currentTimeMillis() - finalUpdateTime) > 3600_000L) {
+            executor.execute(() -> {
+                try {
+                    // Double-check staleness after delay to avoid race with in-progress refresh
+                    Thread.sleep(100);
+                    enqueueImmediateRefresh(context);
+                } catch (Exception ignored) {}
+            });
         }
 
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);

@@ -34,7 +34,7 @@ public class WidgetRefreshWorker extends Worker {
     private static final String PREF_WIDGET_KEY = "waqd.widget.key";
     private static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
     private static final String PREF_DEBUG = "waqd.widget.lastDebug";
-    private static final int GPS_TIMEOUT_SECONDS = 15;
+    private static final int GPS_TIMEOUT_SECONDS = 30;
 
     public WidgetRefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -84,13 +84,13 @@ public class WidgetRefreshWorker extends Worker {
             throw new RefreshException("No base URL stored (waqd.background.apiBaseUrl). Open the app once to persist it.", false);
         }
 
-        Location location = getCurrentLocation(context);
-        if (location == null) {
-            throw new RefreshException("No GPS location available. Grant location permission (Allow all the time) and turn on GPS.", true);
+        double[] coords = tryGetCoordinates(context);
+        if (coords == null) {
+            throw new RefreshException("No GPS location available (fresh or cached). Turn on GPS.", true);
         }
 
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
+        double lat = coords[0];
+        double lon = coords[1];
         Log.d(TAG, "Fetching weather for " + lat + ", " + lon);
 
         String apiUrl = baseUrl + "/api/public/widget/weather?latitude=" + lat + "&longitude=" + lon;
@@ -155,7 +155,7 @@ public class WidgetRefreshWorker extends Worker {
         Log.d(TAG, "Widget update broadcast sent for " + ids.length + " instances");
     }
 
-    private Location getCurrentLocation(Context context) throws RefreshException {
+    private double[] tryGetCoordinates(Context context) throws RefreshException {
         LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         if (lm == null) {
             throw new RefreshException("LocationManager unavailable", false);
@@ -169,48 +169,94 @@ public class WidgetRefreshWorker extends Worker {
             throw new RefreshException("No location permission granted. Grant 'Allow all the time' in app settings.", false);
         }
 
+        // 1. Try fresh GPS fix via fused provider (30s timeout)
+        Location fresh = tryGetFreshLocation(lm, LocationManager.FUSED_PROVIDER, GPS_TIMEOUT_SECONDS);
+        if (fresh != null) {
+            return new double[]{fresh.getLatitude(), fresh.getLongitude()};
+        }
+
+        // 2. Fused-provider cached location (same cache Maps uses) — instant
+        Location cached = tryGetCachedLocation(lm, LocationManager.FUSED_PROVIDER);
+        if (cached != null) {
+            long ageMs = System.currentTimeMillis() - cached.getTime();
+            Log.d(TAG, "Using fused cached location: " + cached.getLatitude() + ", " + cached.getLongitude() + " (age " + (ageMs / 1000) + "s)");
+            return new double[]{cached.getLatitude(), cached.getLongitude()};
+        }
+
+        // 3. Quick network-based approximate fix (10s timeout) — cell/WiFi, works indoors
+        Location networkFix = tryGetFreshLocation(lm, LocationManager.NETWORK_PROVIDER, 10);
+        if (networkFix != null) {
+            Log.d(TAG, "Using network provider location: " + networkFix.getLatitude() + ", " + networkFix.getLongitude());
+            return new double[]{networkFix.getLatitude(), networkFix.getLongitude()};
+        }
+
+        Log.w(TAG, "No location available (GPS timeout, no cached, no network). Will retry.");
+        return null;
+    }
+
+    private Location tryGetFreshLocation(LocationManager lm, String provider, int timeoutSeconds) throws RefreshException {
         final CountDownLatch latch = new CountDownLatch(1);
         final AtomicReference<Location> resultRef = new AtomicReference<>();
         final CancellationSignal cancelSignal = new CancellationSignal();
 
-        // Timeout thread: cancel after GPS_TIMEOUT_SECONDS
         new Thread(() -> {
-            try { Thread.sleep(GPS_TIMEOUT_SECONDS * 1000L); } catch (InterruptedException ignored) {}
+            try { Thread.sleep(timeoutSeconds * 1000L); } catch (InterruptedException ignored) {}
             cancelSignal.cancel();
             latch.countDown();
         }).start();
 
         try {
-            lm.getCurrentLocation(LocationManager.FUSED_PROVIDER, cancelSignal, Runnable::run,
+            lm.getCurrentLocation(provider, cancelSignal, Runnable::run,
                 location -> {
                     if (location != null) resultRef.set(location);
                     latch.countDown();
                 });
         } catch (Exception e) {
             cancelSignal.cancel();
-            throw new RefreshException("LocationManager.getCurrentLocation failed: " + e.getMessage(), true);
+            Log.w(TAG, "LocationManager.getCurrentLocation(" + provider + ") failed: " + e.getMessage());
+            return null;
         }
 
         try {
-            boolean gotResult = latch.await(GPS_TIMEOUT_SECONDS + 2, TimeUnit.SECONDS);
+            boolean gotResult = latch.await(timeoutSeconds + 2, TimeUnit.SECONDS);
             cancelSignal.cancel();
 
             if (!gotResult || resultRef.get() == null) {
-                throw new RefreshException("No fresh GPS fix within " + GPS_TIMEOUT_SECONDS + "s. Turn on location/GPS and try again.", true);
+                Log.w(TAG, "No " + provider + " fix within " + timeoutSeconds + "s");
+                return null;
             }
 
             Location loc = resultRef.get();
             long ageMs = System.currentTimeMillis() - loc.getTime();
-            if (ageMs > GPS_TIMEOUT_SECONDS * 1000L) {
-                throw new RefreshException("GPS fix too old (" + (ageMs / 1000) + "s > " + GPS_TIMEOUT_SECONDS + "s). Turn on location/GPS and try again.", true);
+            if (ageMs > timeoutSeconds * 1000L) {
+                Log.w(TAG, provider + " fix too old (" + (ageMs / 1000) + "s > " + timeoutSeconds + "s)");
+                return null;
             }
-            Log.d(TAG, "GPS fix obtained: " + loc.getLatitude() + ", " + loc.getLongitude() + " (age " + (ageMs / 1000) + "s)");
+            Log.d(TAG, provider + " fix obtained: " + loc.getLatitude() + ", " + loc.getLongitude() + " (age " + (ageMs / 1000) + "s)");
             return loc;
         } catch (InterruptedException e) {
             cancelSignal.cancel();
             Thread.currentThread().interrupt();
-            throw new RefreshException("GPS acquisition interrupted", true);
+            Log.w(TAG, provider + " acquisition interrupted");
+            return null;
         }
+    }
+
+    private Location tryGetCachedLocation(LocationManager lm, String provider) {
+        try {
+            Location cached = lm.getLastKnownLocation(provider);
+            if (cached != null) {
+                long ageMs = System.currentTimeMillis() - cached.getTime();
+                // Accept cached location up to 6 hours old
+                if (ageMs < 6 * 3600 * 1000L) {
+                    return cached;
+                }
+                Log.d(TAG, "Cached " + provider + " location too old (" + (ageMs / 1000) + "s > 6h)");
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to get cached " + provider + " location: " + e.getMessage());
+        }
+        return null;
     }
 
     private static final class RefreshException extends RuntimeException {
