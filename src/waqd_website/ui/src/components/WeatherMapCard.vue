@@ -1,5 +1,6 @@
 <template>
-    <div v-if="currentLocation" class="card bg-base-100 shadow-xl overflow-hidden w-full">
+    <div v-if="currentLocation" class="relative card bg-base-100 shadow-xl overflow-hidden w-full"
+        :aria-busy="isLoadingWeather">
         <div class="card-body p-0">
             <div class="flex flex-wrap items-center justify-between gap-2 px-3 pt-3">
                 <div class="join">
@@ -28,9 +29,18 @@
                     <button type="button" class="btn btn-xs btn-outline btn-circle"
                         :disabled="timeOffset <= minTimeOffset" @click="stepTime(-1)"
                         aria-label="One hour earlier">−</button>
-                    <input type="range" :min="minTimeOffset" :max="maxTimeOffset" step="1"
-                        v-model.number="timeOffset" class="range range-xs flex-1"
-                        aria-label="Forecast hour" />
+                    <div class="flex-1">
+                        <input type="range" :min="minTimeOffset" :max="maxTimeOffset" step="1"
+                            v-model.number="timeOffset" class="range range-xs w-full"
+                            aria-label="Forecast hour" />
+                        <div class="relative h-3 text-[9px] leading-none opacity-60">
+                            <span v-for="(tick, i) in sliderTicks" :key="tick.text"
+                                class="absolute top-0 whitespace-nowrap"
+                                :style="tickLabelStyle(tick, i, sliderTicks.length)">
+                                {{ tick.text }}
+                            </span>
+                        </div>
+                    </div>
                     <button type="button" class="btn btn-xs btn-outline btn-circle"
                         :disabled="timeOffset >= maxTimeOffset" @click="stepTime(1)"
                         aria-label="One hour later">+</button>
@@ -56,6 +66,9 @@
                 <div v-if="isLoading"
                     class="absolute inset-0 flex items-center justify-center bg-base-200/60">
                     <span class="loading loading-spinner loading-lg"></span>
+                </div>
+                <div v-if="isLoadingWeather" class="absolute inset-0 z-10">
+                    <div class="skeleton h-full w-full"></div>
                 </div>
             </div>
 
@@ -197,6 +210,8 @@ function legendLabelStyle(label: LegendLabel, index: number, total: number): Rec
     return { left: `${label.pct}%`, transform: 'translateX(-50%)' }
 }
 
+const tickLabelStyle = legendLabelStyle
+
 const DATA_BASE_URL = 'https://openmeteo-data-spatial.b-cdn.net/dwd_icon/latest.json'
 
 // Inline OSM raster base map. Open-Meteo's hosted style uses tiles from
@@ -218,7 +233,7 @@ const BASE_STYLE: StyleSpecification = {
     ],
 }
 
-const { currentLocation } = useWebsiteWeather()
+const { currentLocation, isLoadingWeather } = useWebsiteWeather()
 
 const mapContainer = ref<HTMLElement | null>(null)
 const activeLayer = ref<LayerId>('temperature')
@@ -226,7 +241,13 @@ const isLoading = ref(false)
 const timeOffset = ref(0)
 const minTimeOffset = -6
 const maxTimeOffset = 72
-const playbackLength = ref(24)
+
+// Slider tick labels: -6h, Now, then 12h increments up to +72h.
+const sliderTicks: LegendLabel[] = [-6, 0, 12, 24, 36, 48, 60, 72].map((offset) => ({
+    text: offset === 0 ? 'Now' : `${offset > 0 ? '+' : ''}${offset}h`,
+    pct: ((offset - minTimeOffset) / (maxTimeOffset - minTimeOffset)) * 100,
+}))
+const playbackLength = ref(12)
 const playbackOptions: { value: number; label: string }[] = [
     { value: 12, label: '+12h' },
     { value: 24, label: '+24h' },
