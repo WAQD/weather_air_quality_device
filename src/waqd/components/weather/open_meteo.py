@@ -185,10 +185,10 @@ class OpenMeteo(WeatherProvider):
         # date_time must stay in the location's local wall clock to compare against
         # sunrise/sunset; fetch_time (set in Weather.__post_init__) is the UTC instant
         self._current_weather = Weather(
-            self._get_main_category(current_weather.get("weathercode", 0)),
-            current_weather.get("weathercode", 0),
+            self._get_main_category(current_weather.get("weather_code", 0)),
+            current_weather.get("weather_code", 0),
             self._location_local_now(response),
-            self._get_icon_name(current_weather.get("weathercode", 0), is_day),
+            self._get_icon_name(current_weather.get("weather_code", 0), is_day),
             current_weather.get("wind_speed_10m", 0.0),
             current_weather.get("winddirection_10m", 0.0),  # TODO
             sunrise,
