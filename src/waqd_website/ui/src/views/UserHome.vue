@@ -9,7 +9,8 @@
                         t('home_welcome_back', { username }) }}</h1>
                 </div>
 
-                <div class="grid w-full gap-4 mt-4 sm:mt-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:gap-6">
+                <div
+                    class="grid w-full gap-4 mt-4 sm:mt-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:gap-6">
                     <!-- Devices: second on mobile, left on desktop -->
                     <div
                         class="order-2 lg:order-1 glass rounded-box p-4 sm:p-6 lg:p-8 bg-primary/80 backdrop-blur-sm max-w-full text-center lg:text-left">
@@ -48,7 +49,7 @@
                                     t('home_weather_today') }}</h2>
                                 <p class="mt-2 text-sm sm:text-base opacity-80">{{
                                     homeLocation ? formatLocationLabel(homeLocation) :
-                                    t('home_weather_needs_location') }}</p>
+                                        t('home_weather_needs_location') }}</p>
                             </div>
                             <span v-if="cached && currentWeather"
                                 class="badge badge-info badge-outline whitespace-nowrap">
@@ -77,8 +78,10 @@
                                             <use :href="raindropIconUrl" fill="currentColor" />
                                         </svg>
                                         <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                                t('humidity') }}</p>
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60">
+                                                {{
+                                                    t('humidity') }}</p>
                                             <p class="mt-1 text-lg font-semibold">{{
                                                 currentWeather.humidity.toFixed(0) }}%</p>
                                         </div>
@@ -86,26 +89,33 @@
                                 </div>
                                 <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none text-accent" aria-hidden="true"
+                                        <svg class="h-6 w-6 flex-none text-accent"
+                                            aria-hidden="true"
                                             :style="{ transform: `rotate(${((currentWeather.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                                             <use :href="windDegIconUrl" fill="currentColor" />
                                         </svg>
                                         <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                                t('wind') }}</p>
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60">
+                                                {{
+                                                    t('wind') }}</p>
                                             <p class="mt-1 text-lg font-semibold">{{
-                                                (currentWeather.wind_speed * 3.6).toFixed(1) }} km/h</p>
+                                                (currentWeather.wind_speed * 3.6).toFixed(1) }} km/h
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none text-secondary" aria-hidden="true">
+                                        <svg class="h-6 w-6 flex-none text-secondary"
+                                            aria-hidden="true">
                                             <use :href="pressureIconUrl" fill="currentColor" />
                                         </svg>
                                         <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                                t('pressure') }}</p>
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60">
+                                                {{
+                                                    t('pressure') }}</p>
                                             <p class="mt-1 text-lg font-semibold">{{
                                                 currentWeather.pressure.toFixed(0) }} hPa</p>
                                         </div>
@@ -113,12 +123,15 @@
                                 </div>
                                 <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none text-base-content/50" aria-hidden="true">
+                                        <svg class="h-6 w-6 flex-none text-base-content/50"
+                                            aria-hidden="true">
                                             <use :href="cloudsIconUrl" fill="currentColor" />
                                         </svg>
                                         <div class="min-w-0">
-                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                                t('weather_clouds') }}</p>
+                                            <p
+                                                class="text-xs uppercase tracking-[0.16em] opacity-60">
+                                                {{
+                                                    t('weather_clouds') }}</p>
                                             <p class="mt-1 text-lg font-semibold">{{
                                                 currentWeather.clouds.toFixed(0) }}%</p>
                                         </div>
@@ -152,11 +165,16 @@
                     <!-- Widget settings: right column row 2 on desktop, below devices on mobile -->
                     <div v-if="Capacitor.isNativePlatform()"
                         class="order-3 lg:col-start-2 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm text-base-content shadow-2xl">
-                        <p class="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">Widget</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.24em] opacity-70">
+                            Widget</p>
                         <div class="mt-3 flex flex-col gap-4">
-                            <p class="text-sm opacity-70">The widget uses your GPS location to show current weather on your home screen.</p>
-                            <div v-if="widgetDebug" class="rounded-box border border-dashed border-base-300 bg-base-200/60 p-3 text-xs opacity-80">
-                                <p class="font-semibold uppercase tracking-[0.16em] opacity-60 mb-1">Widget debug</p>
+                            <p class="text-sm opacity-70">The widget uses your GPS location to show
+                                current weather on your home screen.</p>
+                            <div v-if="widgetDebug"
+                                class="rounded-box border border-dashed border-base-300 bg-base-200/60 p-3 text-xs opacity-80">
+                                <p
+                                    class="font-semibold uppercase tracking-[0.16em] opacity-60 mb-1">
+                                    Widget debug</p>
                                 <p>{{ widgetDebug }}</p>
                             </div>
                             <div>
