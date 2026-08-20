@@ -7,7 +7,7 @@
       <div v-if="forecastData && forecastData.length > 0" class="mb-2 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-1.5 sm:mb-4">{{
           t('weekly_weather_forecast')
-          }}</h3>
+        }}</h3>
         <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-1.5 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
@@ -30,7 +30,8 @@
                   translateWeatherCondition(day) }}</p>
 
                 <!-- Day temperature -->
-                <div class="mb-0.5 flex items-center justify-center gap-1">
+                <div
+                  class="mb-0.5 mx-auto flex w-fit items-center justify-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5">
                   <img :src="daySunnyIconUrl" :alt="t('day')"
                     class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
                   <span class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{
@@ -38,7 +39,8 @@
                 </div>
 
                 <!-- Night temperature -->
-                <div class="mb-0.5 sm:mb-2 flex items-center justify-center gap-1">
+                <div
+                  class="mb-0.5 sm:mb-2 mx-auto flex w-fit items-center justify-center gap-1 rounded-full bg-info/15 px-2.5 py-0.5">
                   <img :src="nightClearIconUrl" :alt="t('night')"
                     class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
                   <span class="text-sm sm:text-base">{{ day.temp_night_min.toFixed(0) }}° / {{
@@ -55,6 +57,12 @@
                       class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                     {{ day.precipitation_probability_max.toFixed(0) }}%
                   </p>
+                  <div v-if="day.precipitation_probability_max !== undefined"
+                    class="h-1 w-full overflow-hidden rounded-full bg-base-300">
+                    <div class="h-full rounded-full bg-info transition-all duration-300"
+                      :style="{ width: `${Math.min(100, Math.max(0, day.precipitation_probability_max))}%` }">
+                    </div>
+                  </div>
                   <p v-if="day.precipitation !== undefined"
                     class="text-sm sm:text-base flex items-center justify-center gap-1">
                     <img :src="showersIconUrl" alt="Showers"
