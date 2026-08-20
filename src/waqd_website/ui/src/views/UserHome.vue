@@ -71,29 +71,58 @@
                             </div>
 
                             <div class="grid grid-cols-1 gap-3 text-sm">
-                                <div class="rounded-box bg-base-200/80 p-3">
-                                    <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                        t('humidity') }}</p>
-                                    <p class="mt-1 text-lg font-semibold">{{
-                                        currentWeather.humidity.toFixed(0) }}%</p>
+                                <div class="rounded-box bg-base-300 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none text-info" aria-hidden="true">
+                                            <use :href="raindropIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
+                                                t('humidity') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.humidity.toFixed(0) }}%</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
-                                    <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                        t('wind') }}</p>
-                                    <p class="mt-1 text-lg font-semibold">{{
-                                        (currentWeather.wind_speed * 3.6).toFixed(1) }} km/h</p>
+                                <div class="rounded-box bg-base-300 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none text-accent" aria-hidden="true"
+                                            :style="{ transform: `rotate(${((currentWeather.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
+                                            <use :href="windDegIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
+                                                t('wind') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                (currentWeather.wind_speed * 3.6).toFixed(1) }} km/h</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
-                                    <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                        t('pressure') }}</p>
-                                    <p class="mt-1 text-lg font-semibold">{{
-                                        currentWeather.pressure.toFixed(0) }} hPa</p>
+                                <div class="rounded-box bg-base-300 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none text-secondary" aria-hidden="true">
+                                            <use :href="pressureIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
+                                                t('pressure') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.pressure.toFixed(0) }} hPa</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
-                                    <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
-                                        t('weather_clouds') }}</p>
-                                    <p class="mt-1 text-lg font-semibold">{{
-                                        currentWeather.clouds.toFixed(0) }}%</p>
+                                <div class="rounded-box bg-base-300 p-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="h-6 w-6 flex-none text-base-content/50" aria-hidden="true">
+                                            <use :href="cloudsIconUrl" fill="currentColor" />
+                                        </svg>
+                                        <div class="min-w-0">
+                                            <p class="text-xs uppercase tracking-[0.16em] opacity-60">{{
+                                                t('weather_clouds') }}</p>
+                                            <p class="mt-1 text-lg font-semibold">{{
+                                                currentWeather.clouds.toFixed(0) }}%</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -168,6 +197,12 @@ import type { Device } from '../types/device'
 
 const router = useRouter()
 const { t } = useTranslation()
+
+const raindropIconUrl = '/static/weather_icons/wi-raindrops.svg#Layer_1'
+const windDegIconUrl = '/static/weather_icons/wi-wind-deg.svg#Layer_1'
+const pressureIconUrl = '/static/weather_icons/wi-barometer.svg#Layer_1'
+const cloudsIconUrl = '/static/weather_icons/wi-cloudy.svg#Layer_1'
+
 const { isLoggedIn, username, fetchUserInfo, isLoading: isUserLoading } = useUser()
 const { setWeatherData } = useWeather()
 const {

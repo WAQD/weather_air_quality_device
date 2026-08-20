@@ -54,10 +54,11 @@ const isSearching = ref(false)
 const isSavingLocation = ref(false)
 const cached = ref(false)
 const errorMessage = ref('')
+const successMessage = ref('')
 let activeSearchController: AbortController | null = null
 let searchRequestSequence = 0
 
-function getLocationKey(location: WeatherLocationPayload): string {
+export function getLocationKey(location: WeatherLocationPayload): string {
   return `${location.latitude.toFixed(4)}:${location.longitude.toFixed(4)}`
 }
 
@@ -118,6 +119,10 @@ function resetWeatherData(): void {
 
 function clearError(): void {
   errorMessage.value = ''
+}
+
+function clearSuccess(): void {
+  successMessage.value = ''
 }
 
 function clearSearchResults(): void {
@@ -521,6 +526,7 @@ export function useWebsiteWeather() {
     searchResults,
     cached,
     errorMessage,
+    successMessage,
     isLoadingLocation,
     isLoadingWeather,
     isRefreshingWeather,
@@ -531,6 +537,7 @@ export function useWebsiteWeather() {
     isBusy,
     widgetStyle,
     clearError,
+    clearSuccess,
     clearSearchResults,
     cancelSearch,
     resetState,
@@ -543,6 +550,7 @@ export function useWebsiteWeather() {
     setHomeLocation,
     setWidgetStyle,
     setCurrentLocation,
-    loadWeatherForLocation
+    loadWeatherForLocation,
+    getLocationKey
   }
 }

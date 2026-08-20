@@ -7,7 +7,7 @@
       <div v-if="forecastData && forecastData.length > 0" class="mb-2 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-1.5 sm:mb-4">{{
           t('weekly_weather_forecast')
-        }}</h3>
+          }}</h3>
         <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-1.5 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
@@ -86,13 +86,53 @@
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Hourly Forecast Graph Section -->
+        <!-- Selected day detail band -->
+        <div v-if="selectedDay"
+          class="mt-2 sm:mt-3 flex flex-wrap items-center gap-3 sm:gap-6 rounded-box bg-base-200 p-3 sm:p-4">
+          <img v-if="selectedDay.icon" :src="`/static/weather_icons/${selectedDay.icon}.svg`"
+            :alt="selectedDay.main" class="h-10 w-10 sm:h-14 sm:w-14 weather-icon" />
+          <div class="min-w-0">
+            <p class="font-bold text-sm sm:text-base">{{ formatForecastDate(selectedDay.date_time)
+              }}</p>
+            <p class="text-xs sm:text-sm opacity-70">{{ translateWeatherCondition(selectedDay) }}
+            </p>
+          </div>
+          <div class="ms-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm">
+            <span class="flex items-center gap-1">
+              <svg class="h-4 w-4 sm:h-5 sm:w-5 text-warning" aria-hidden="true">
+                <use :href="sunriseIconUrl" fill="currentColor" />
+              </svg>
+              {{ formatDayTime(selectedDay.sunrise) }}
+            </span>
+            <span class="flex items-center gap-1">
+              <svg class="h-4 w-4 sm:h-5 sm:w-5 text-orange-400" aria-hidden="true">
+                <use :href="sunsetIconUrl" fill="currentColor" />
+              </svg>
+              {{ formatDayTime(selectedDay.sunset) }}
+            </span>
+            <span v-if="selectedDay.wind_speed !== undefined" class="flex items-center gap-1">
+              <svg class="h-4 w-4 sm:h-5 sm:w-5 text-accent" aria-hidden="true"
+                :style="{ transform: `rotate(${((selectedDay.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
+                <use :href="windDegIconUrl" fill="currentColor" />
+              </svg>
+              {{ formatWind(selectedDay.wind_speed, selectedDay.wind_deg) }}
+            </span>
+            <span v-if="selectedDay.precipitation !== undefined" class="flex items-center gap-1">
+              <img :src="showersIconUrl" :alt="t('weather_rain')"
+                class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
+              {{ selectedDay.precipitation.toFixed(1) }}mm
+            </span>
+          </div>
+        </div>
+      </div>
       <div v-if="hasHourlyData" class="mt-4 sm:mt-6">
         <h3 class="font-semibold text-sm sm:text-base mb-3 sm:mb-4">
           {{ t('hourly_forecast') }} ({{ mergedHourlyData.length }} {{ t('hours') }})
         </h3>
+
+        <!-- Temperature curve + precipitation bars for the selected day -->
+        <div ref="hourlyChartContainer" class="w-full h-36 sm:h-44 mb-2"></div>
 
         <!-- Hourly data display in a single row -->
         <div ref="hourlyScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
@@ -115,6 +155,12 @@
                     class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                   {{ hour.precipitation_probability.toFixed(0) }}%
                 </p>
+                <div v-if="hour.precipitation_probability !== undefined"
+                  class="h-1 w-full overflow-hidden rounded-full bg-base-300">
+                  <div class="h-full rounded-full bg-info transition-all duration-300"
+                    :style="{ width: `${Math.min(100, Math.max(0, hour.precipitation_probability))}%` }">
+                  </div>
+                </div>
                 <p v-if="hour.precipitation !== undefined"
                   class="text-sm sm:text-base flex items-center justify-center gap-1">
                   <img :src="showersIconUrl" alt="Showers"
@@ -148,16 +194,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useTranslation } from '../composables/useTranslation'
 import type { ForecastData, HourlyWeatherData } from '../composables/useWeather'
+import Highcharts from 'highcharts'
 
-const { t } = useTranslation()
+const { t, locale } = useTranslation()
 const raindropIconUrl = '/static/weather_icons/wi-raindrops.svg'
 const showersIconUrl = '/static/weather_icons/wi-showers.svg'
 const windDegIconUrl = '/static/weather_icons/wi-wind-deg.svg#Layer_1'
 const daySunnyIconUrl = '/static/weather_icons/wi-day-sunny.svg'
 const nightClearIconUrl = '/static/weather_icons/wi-night-clear.svg'
+const sunriseIconUrl = '/static/weather_icons/wi-sunrise.svg#Layer_1'
+const sunsetIconUrl = '/static/weather_icons/wi-sunset.svg#Layer_1'
 
 interface Props {
   title?: string
@@ -337,6 +386,140 @@ function formatWind(speed: number | undefined, deg: number | undefined): string 
   // Convert m/s to km/h for display (show speed only)
   return `${(Number(speed) * 3.6).toFixed(1)} km/h`
 }
+
+// The day currently selected in the 7-day scroller (drives detail band + hourly data)
+const selectedDay = computed(() => displayedForecastData.value[selectedDayIndex.value])
+
+function formatDayTime(timeStr: string): string {
+  const parsed = new Date(timeStr)
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit', hour12: false })
+  }
+
+  const parts = (timeStr || '').split(':').map(Number)
+  const date = new Date()
+  date.setHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0)
+  return date.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+
+// --- Hourly temperature/precipitation chart ---
+const hourlyChartContainer = ref<HTMLElement | null>(null)
+let hourlyChart: Highcharts.Chart | null = null
+
+function renderHourlyChart(): void {
+  const container = hourlyChartContainer.value
+  if (!container) return
+
+  if (hourlyChart) {
+    hourlyChart.destroy()
+    hourlyChart = null
+  }
+
+  const hours = mergedHourlyData.value
+  if (hours.length === 0) return
+
+  // Theme-aware colors, same approach as the sensor history chart
+  const contentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-base-content').trim()
+  const axisLabelColor = contentColor ? `color-mix(in srgb, ${contentColor} 75%, transparent)` : 'currentColor'
+  const gridColor = contentColor ? `color-mix(in srgb, ${contentColor} 15%, transparent)` : 'rgba(128, 128, 128, 0.15)'
+
+  const tempData = hours.map(h => [new Date(h.date_time).getTime(), h.temp] as [number, number])
+  const precipData = hours.map(h => [new Date(h.date_time).getTime(), h.precipitation ?? 0] as [number, number])
+
+  // Soft temperature window: data range ± 2 °C so small changes stay visible
+  const temps = hours.map(h => h.temp)
+  const tempSoftMin = Math.min(...temps) - 2
+  const tempSoftMax = Math.max(...temps) + 2
+
+  hourlyChart = (Highcharts as any).chart(container, {
+    time: { useUTC: false },
+    chart: {
+      backgroundColor: 'transparent',
+      style: { fontFamily: 'inherit' },
+      spacing: [4, 0, 4, 0]
+    },
+    title: { text: undefined },
+    xAxis: {
+      type: 'datetime',
+      dateTimeLabelFormats: {
+        hour: '%H:%M',
+        minute: '%H:%M'
+      },
+      labels: { style: { fontSize: '11px', color: axisLabelColor } },
+      lineColor: gridColor,
+      tickColor: gridColor
+    },
+    yAxis: [
+      {
+        // Temperature (left)
+        softMin: tempSoftMin,
+        softMax: tempSoftMax,
+        startOnTick: false,
+        endOnTick: false,
+        title: { text: undefined },
+        labels: { format: '{value}°', style: { fontSize: '11px', color: axisLabelColor } },
+        gridLineColor: gridColor
+      },
+      {
+        // Precipitation (right)
+        min: 0,
+        title: { text: undefined },
+        labels: { format: '{value}mm', style: { fontSize: '11px', color: axisLabelColor } },
+        opposite: true,
+        gridLineWidth: 0
+      }
+    ],
+    legend: { enabled: false },
+    tooltip: {
+      shared: true,
+      xDateFormat: '%H:%M',
+      style: { fontSize: '12px' }
+    },
+    plotOptions: {
+      series: {
+        marker: { enabled: false },
+        animation: false
+      }
+    },
+    series: [
+      {
+        type: 'spline',
+        name: t('temperature'),
+        data: tempData,
+        color: 'rgb(245, 158, 11)',
+        lineWidth: 2,
+        yAxis: 0,
+        tooltip: { valueSuffix: '°C', valueDecimals: 1 }
+      },
+      {
+        type: 'column',
+        name: t('weather_rain'),
+        data: precipData,
+        color: 'rgba(54, 162, 235, 0.45)',
+        borderWidth: 0,
+        yAxis: 1,
+        tooltip: { valueSuffix: ' mm', valueDecimals: 1 }
+      }
+    ],
+    credits: { enabled: false }
+  })
+}
+
+watch(mergedHourlyData, async () => {
+  await nextTick()
+  renderHourlyChart()
+})
+
+onMounted(() => {
+  renderHourlyChart()
+})
+
+onUnmounted(() => {
+  if (hourlyChart) {
+    hourlyChart.destroy()
+    hourlyChart = null
+  }
+})
 
 // Scroll only the horizontal scroller itself (never scrollIntoView, which can also nudge page/vertical scroll).
 function scrollToCardStart(scroller: HTMLElement, card: HTMLElement): void {
