@@ -237,7 +237,6 @@ const playbackOptions: { value: number; label: string }[] = [
 ]
 const isPlaying = ref(false)
 const isPreloading = ref(false)
-let playTimer: number | null = null
 let preloadCancelled = false
 const colorScales = ref<{ temperature: LegendScale | null; precipitation: LegendScale | null }>({
     temperature: null,
@@ -302,36 +301,151 @@ function stepTime(delta: number): void {
     timeOffset.value = Math.max(minTimeOffset, Math.min(maxTimeOffset, timeOffset.value + delta))
 }
 
+const PLAY_INTERVAL_MS = 350
+const FADE_MS = 300
+const FRAME_LOAD_TIMEOUT_MS = 1500
+const WEATHER_OPACITY = 0.75
+
+type WeatherVariable = 'temperature' | 'precipitation'
+
+const OM_VARIABLE: Record<WeatherVariable, string> = {
+    temperature: 'temperature_2m',
+    precipitation: 'precipitation',
+}
+
+interface FrameBuffer {
+    offset: number | null
+    ready: Promise<void> | null
+}
+
+// Double buffering: each weather variable owns two raster sources/layers.
+// The next frame loads into the hidden buffer and is then cross-faded in,
+// so the visible frame is never cleared while new tiles load (no flicker).
+const buffers: Record<WeatherVariable, { active: 0 | 1; frames: [FrameBuffer, FrameBuffer] }> = {
+    temperature: { active: 0, frames: [{ offset: null, ready: null }, { offset: null, ready: null }] },
+    precipitation: { active: 0, frames: [{ offset: null, ready: null }, { offset: null, ready: null }] },
+}
+
 function applyTimeOffset(offset: number = timeOffset.value): void {
     if (!map) {
         return
     }
 
-    const temperatureSource = map.getSource('weather-temperature') as RasterTileSource | undefined
-    const precipitationSource = map.getSource('weather-precipitation') as RasterTileSource | undefined
-
-    temperatureSource?.setUrl(layerSourceUrl('temperature_2m', offset))
-    precipitationSource?.setUrl(layerSourceUrl('precipitation', offset))
+    for (const variable of ['temperature', 'precipitation'] as const) {
+        const state = buffers[variable]
+        // Only touch the active variable; the other one loads on demand when
+        // its layer is selected.
+        if (activeLayer.value === variable && state.frames[state.active].offset !== offset) {
+            void requestFrame(variable, offset)
+        }
+    }
 }
 
-function setWeatherLayersOpacity(opacity: number): void {
-    if (!map || !map.getLayer('weather-temperature')) {
+function bufferSourceId(variable: WeatherVariable, index: number): string {
+    return `weather-${variable}-${index}`
+}
+
+function setBufferOpacity(variable: WeatherVariable, index: number, opacity: number): void {
+    const layerId = bufferSourceId(variable, index)
+    if (!map || !map.getLayer(layerId)) {
+        return
+    }
+    map.setPaintProperty(layerId, 'raster-opacity', opacity)
+}
+
+function targetOpacity(variable: WeatherVariable): number {
+    return activeLayer.value === variable ? WEATHER_OPACITY : 0
+}
+
+function loadBuffer(variable: WeatherVariable, index: number, offset: number): Promise<void> {
+    const layerId = bufferSourceId(variable, index)
+    const source = map?.getSource(layerId) as RasterTileSource | undefined
+    if (!map || !source) {
+        return Promise.resolve()
+    }
+
+    // Sources start with visibility 'none' so unused buffers never fetch tiles.
+    map.setLayoutProperty(layerId, 'visibility', 'visible')
+    try {
+        source.setUrl(layerSourceUrl(OM_VARIABLE[variable], offset))
+    } catch {
+        return Promise.resolve()
+    }
+    return waitForMapIdle(FRAME_LOAD_TIMEOUT_MS)
+}
+
+/**
+ * Cross-fade the given frame into view. If the hidden buffer already holds the
+ * frame (prefetched), only the fade runs. No-op when the frame is visible.
+ */
+async function showFrame(variable: WeatherVariable, offset: number): Promise<void> {
+    const state = buffers[variable]
+    if (state.frames[state.active].offset === offset) {
+        setBufferOpacity(variable, state.active, targetOpacity(variable))
         return
     }
 
-    map.setPaintProperty('weather-temperature', 'raster-opacity', opacity)
-    map.setPaintProperty('weather-precipitation', 'raster-opacity', opacity)
+    const backIndex = (1 - state.active) as 0 | 1
+    const back = state.frames[backIndex]
+    if (back.offset !== offset) {
+        back.offset = offset
+        back.ready = loadBuffer(variable, backIndex, offset)
+    }
+    await back.ready
+    if (!map) {
+        return
+    }
+
+    setBufferOpacity(variable, backIndex, targetOpacity(variable))
+    setBufferOpacity(variable, state.active, 0)
+    state.active = backIndex
 }
 
-const PLAY_INTERVAL_MS = 350
-const PRELOAD_LOOKAHEAD = 12
-const PRELOAD_FRAME_TIMEOUT_MS = 500
+/** Load a frame into the hidden buffer in the background (fire and forget). */
+function prefetchFrame(variable: WeatherVariable, offset: number): void {
+    if (offset < minTimeOffset || offset > maxTimeOffset) {
+        return
+    }
+    const state = buffers[variable]
+    const hiddenIndex = (1 - state.active) as 0 | 1
+    const hidden = state.frames[hiddenIndex]
+    if (hidden.offset === offset) {
+        return
+    }
+    hidden.offset = offset
+    hidden.ready = loadBuffer(variable, hiddenIndex, offset)
+}
+
+// Latest-wins frame requests keep slider scrubbing responsive: intermediate
+// offsets are skipped instead of queued behind slow tile loads.
+let scrubRequest: { variable: WeatherVariable; offset: number; resolve: () => void } | null = null
+let scrubWorkerRunning = false
+
+function requestFrame(variable: WeatherVariable, offset: number): Promise<void> {
+    if (!map) {
+        return Promise.resolve()
+    }
+    return new Promise((resolve) => {
+        scrubRequest?.resolve()
+        scrubRequest = { variable, offset, resolve }
+        if (!scrubWorkerRunning) {
+            void scrubWorker()
+        }
+    })
+}
+
+async function scrubWorker(): Promise<void> {
+    scrubWorkerRunning = true
+    while (scrubRequest) {
+        const { variable, offset, resolve } = scrubRequest
+        scrubRequest = null
+        await showFrame(variable, offset)
+        resolve()
+    }
+    scrubWorkerRunning = false
+}
 
 function stopPlayback(): void {
-    if (playTimer !== null) {
-        window.clearInterval(playTimer)
-        playTimer = null
-    }
     isPlaying.value = false
 }
 
@@ -350,57 +464,47 @@ function togglePlayback(): void {
 }
 
 async function startPlayback(): Promise<void> {
-    if (!map || isPlaying.value) {
+    if (!map || isPlaying.value || activeLayer.value === 'none') {
         return
     }
+    const variable = activeLayer.value
 
     if (timeOffset.value >= maxTimeOffset) {
         timeOffset.value = 0
     }
 
-    const start = timeOffset.value
-    const end = Math.min(maxTimeOffset, start + playbackLength.value)
-    const preloadEnd = Math.min(end, start + PRELOAD_LOOKAHEAD - 1)
+    const end = Math.min(maxTimeOffset, timeOffset.value + playbackLength.value)
+
+    // Prime the pipeline: show the current frame and start loading the next
+    // one before the loop begins.
     isPreloading.value = true
     preloadCancelled = false
-    // Keep the weather layers hidden while warming the tile cache so the map
-    // does not jump through frames before playback actually starts.
-    setWeatherLayersOpacity(0)
-    try {
-        for (let offset = start; offset <= preloadEnd; offset++) {
-            if (preloadCancelled) {
-                return
-            }
-            await preloadOffset(offset)
-        }
-    } finally {
-        applyTimeOffset(timeOffset.value)
-        setWeatherLayersOpacity(0.75)
-        isPreloading.value = false
-    }
+    await showFrame(variable, timeOffset.value)
+    prefetchFrame(variable, timeOffset.value + 1)
+    isPreloading.value = false
 
     if (preloadCancelled || !map) {
         return
     }
 
     isPlaying.value = true
-    playTimer = window.setInterval(() => {
-        if (timeOffset.value >= end) {
-            stopPlayback()
-            return
+    while (isPlaying.value && timeOffset.value < end) {
+        const next = timeOffset.value + 1
+        const started = performance.now()
+        await showFrame(variable, next)
+        if (!isPlaying.value) {
+            break
         }
-        timeOffset.value += 1
-    }, PLAY_INTERVAL_MS)
-}
-
-async function preloadOffset(offset: number): Promise<void> {
-    if (!map) {
-        return
+        timeOffset.value = next
+        // The buffer that just faded out is free: start loading the frame
+        // after next into it while the current one is displayed.
+        prefetchFrame(variable, next + 1)
+        const elapsed = performance.now() - started
+        await new Promise((resolve) =>
+            window.setTimeout(resolve, Math.max(0, PLAY_INTERVAL_MS - elapsed)),
+        )
     }
-
-    const idlePromise = waitForMapIdle(PRELOAD_FRAME_TIMEOUT_MS)
-    applyTimeOffset(offset)
-    await idlePromise
+    stopPlayback()
 }
 
 function waitForMapIdle(timeoutMs: number): Promise<void> {
@@ -431,21 +535,25 @@ function applyActiveLayer(): void {
         return
     }
 
-    map.setLayoutProperty(
-        'weather-temperature',
-        'visibility',
-        activeLayer.value === 'temperature' ? 'visible' : 'none',
-    )
-    map.setLayoutProperty(
-        'weather-precipitation',
-        'visibility',
-        activeLayer.value === 'precipitation' ? 'visible' : 'none',
-    )
+    for (const variable of ['temperature', 'precipitation'] as const) {
+        const state = buffers[variable]
+        setBufferOpacity(variable, state.active, targetOpacity(variable))
+        setBufferOpacity(variable, 1 - state.active, 0)
+    }
 }
 
 function setActiveLayer(layer: LayerId): void {
+    if (isPlaying.value || isPreloading.value) {
+        preloadCancelled = true
+        stopPlayback()
+    }
     activeLayer.value = layer
     applyActiveLayer()
+    if (layer !== 'none') {
+        // Only the active variable is loaded; fetch the current frame for a
+        // freshly selected layer on demand.
+        void requestFrame(layer, timeOffset.value)
+    }
 }
 
 function recenter(): void {
@@ -505,34 +613,34 @@ async function initMap(): Promise<void> {
             )
 
             instance.on('load', () => {
-                const offset = timeOffset.value
-                instance.addSource('weather-temperature', {
-                    type: 'raster',
-                    url: layerSourceUrl('temperature_2m', offset),
-                    tileSize: 256,
-                    maxzoom: 12,
-                })
-                instance.addSource('weather-precipitation', {
-                    type: 'raster',
-                    url: layerSourceUrl('precipitation', offset),
-                    tileSize: 256,
-                    maxzoom: 12,
-                })
-
-                instance.addLayer({
-                    id: 'weather-temperature',
-                    type: 'raster',
-                    source: 'weather-temperature',
-                    paint: { 'raster-opacity': 0.75 },
-                })
-                instance.addLayer({
-                    id: 'weather-precipitation',
-                    type: 'raster',
-                    source: 'weather-precipitation',
-                    paint: { 'raster-opacity': 0.75 },
-                })
+                // Two sources/layers per variable enable double buffering:
+                // frames load into a hidden buffer and cross-fade in when ready.
+                // Sources start with visibility 'none' so no tiles are fetched
+                // until a buffer is actually used.
+                for (const variable of ['temperature', 'precipitation'] as const) {
+                    for (const index of [0, 1] as const) {
+                        const id = bufferSourceId(variable, index)
+                        instance.addSource(id, {
+                            type: 'raster',
+                            url: layerSourceUrl(OM_VARIABLE[variable], timeOffset.value),
+                            tileSize: 256,
+                            maxzoom: 12,
+                        })
+                        instance.addLayer({
+                            id,
+                            type: 'raster',
+                            source: id,
+                            layout: { visibility: 'none' },
+                            paint: {
+                                'raster-opacity': 0,
+                                'raster-opacity-transition': { duration: FADE_MS, delay: 0 },
+                            },
+                        })
+                    }
+                }
 
                 applyActiveLayer()
+                applyTimeOffset()
             })
         } catch (error) {
             console.error('Failed to initialize weather map', error)
@@ -550,6 +658,15 @@ function destroyMap(): void {
         map.remove()
         map = null
         marker = null
+    }
+    for (const variable of ['temperature', 'precipitation'] as const) {
+        buffers[variable] = {
+            active: 0,
+            frames: [
+                { offset: null, ready: null },
+                { offset: null, ready: null },
+            ],
+        }
     }
     initPromise = null
 }
