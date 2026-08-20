@@ -22,6 +22,12 @@ const appVersion = `${pkg.version}+${gitHash}`
 const env = loadEnv('', __dirname, '')
 const waqdBaseUrl = env.VITE_WAQD_BASE_URL || 'https://waqd.de'
 
+// Only relax TLS verification for the dev proxy. Node's bundled CA store does not
+// include the newer Let's Encrypt ECDSA roots (ISRG Root X2 / Root YE chain) yet,
+// which breaks the proxy to waqd.de even though the served chain is valid.
+// This block only affects `vite dev`; builds never use server.proxy.
+const isDev = process.env.NODE_ENV !== 'production'
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
@@ -208,7 +214,7 @@ export default defineConfig({
       apply: 'serve',
       configureServer(server) {
         const staticRoot = resolve(__dirname, '../../waqd_assets')
-        
+
         server.middlewares.use((req, res, next) => {
           if (!req.url?.startsWith('/static/')) {
             return next()
@@ -233,7 +239,7 @@ export default defineConfig({
             '.woff': 'font/woff',
             '.woff2': 'font/woff2',
           }
-          
+
           if (contentTypes[ext]) {
             res.setHeader('Content-Type', contentTypes[ext])
           }
@@ -296,11 +302,17 @@ export default defineConfig({
     },
     proxy: {
       // proxy API calls to the WAQD backend
-      '/api': waqdBaseUrl,
+      '/api': {
+        target: waqdBaseUrl,
+        changeOrigin: true,
+        secure: !isDev,
+      },
       // proxy WebSocket connections
       '/ws': {
         target: waqdBaseUrl.replace('http', 'ws'),
         ws: true,
+        changeOrigin: true,
+        secure: !isDev,
       },
     },
   },

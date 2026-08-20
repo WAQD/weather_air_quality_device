@@ -4,15 +4,16 @@
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
       </form>
-      
+
       <div class="mb-2 mr-4">
         <h3 class="font-bold text-xl sm:text-2xl mb-2">{{ modalTitle }}</h3>
-        <select v-model="selectedTimeRange" class="select select-bordered w-full sm:w-auto" @change="fetchData">
+        <select v-model="selectedTimeRange" class="select select-bordered w-full sm:w-auto"
+          @change="fetchData">
           <option value="6">{{ t('history_last_6_hours') }}</option>
           <option value="12">{{ t('history_last_12_hours') }}</option>
           <option value="24">{{ t('history_last_24_hours') }}</option>
           <option value="48">{{ t('history_last_48_hours') }}</option>
-          <option value="168">{{ t('history_last_7_days')}}</option>
+          <option value="168">{{ t('history_last_7_days') }}</option>
           <option value="720">{{ t('history_last_30_days') }}</option>
         </select>
       </div>
@@ -24,8 +25,10 @@
 
       <!-- Error State -->
       <div v-else-if="error" class="alert alert-error">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <span>{{ error }}</span>
       </div>
@@ -64,6 +67,7 @@ interface SensorConfig {
   unit: string
   color: string
   backgroundColor: string
+  yAxisPadding?: number
 }
 
 const modalRef = ref<HTMLDialogElement | null>(null)
@@ -88,70 +92,70 @@ async function show(config: SensorConfig) {
   currentConfig = config
   modalTitle.value = config.title
   error.value = ''
-  
+
   // Open modal
   modalRef.value?.showModal()
-  
+
   // Wait for modal to be visible
   await nextTick()
-  
+
   // Fetch and display data
   await fetchData()
 }
 
 async function fetchData() {
   if (!currentConfig) return
-  
+
   loading.value = true
   error.value = ''
-  
+
   // Clean up any existing watcher
   if (historyWatcher) {
     historyWatcher()
     historyWatcher = null
   }
-  
+
   try {
     const sensorTypeKey = sensorTypeMap[currentConfig.sensorType]
     const deviceId = currentConfig.deviceId
     const configToUse = currentConfig
-    
+
     // Clear previous history so we know when NEW data arrives
     clearSensorHistory(deviceId)
-    
+
     console.log('Requesting sensor history for:', sensorTypeKey, 'time range:', selectedTimeRange.value, 'hours')
-    
+
     // Set up reactive watcher for sensor history data
     // This will trigger immediately when data arrives from WebSocket
     historyWatcher = watch(
       () => getSensorHistory(deviceId),
       (newHistory) => {
         if (!newHistory || !configToUse) return
-        
+
         const dataPoints = newHistory[sensorTypeKey as keyof SensorHistoryData] || []
-        
+
         console.log('Sensor history data received:', dataPoints.length, 'points')
-        
+
         const timestamps: number[] = []
         const values: number[] = []
-        
+
         for (const point of dataPoints) {
           const date = new Date(point.timestamp)
           timestamps.push(date.getTime())
           values.push(point.value)
         }
-        
+
         console.log('Displaying', timestamps.length, 'data points')
-        
+
         // Update chart immediately
         loading.value = false
-        
+
         nextTick(() => {
           if (chartContainer.value) {
             updateChart(timestamps, values, configToUse)
           }
         })
-        
+
         // Clean up watcher after rendering
         if (historyWatcher) {
           historyWatcher()
@@ -160,7 +164,7 @@ async function fetchData() {
       },
       { immediate: true, deep: true }
     )
-    
+
     // Request fresh sensor history data from the device via WebSocket
     const ws = (window as any).deviceWebSocket
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -169,7 +173,7 @@ async function fetchData() {
         hours: selectedTimeRange.value,
         sensor_type: sensorTypeKey
       }))
-      
+
       console.log('Sent request_sensor_history for', sensorTypeKey, selectedTimeRange.value, 'hours')
     } else {
       console.error('WebSocket not connected')
@@ -180,7 +184,7 @@ async function fetchData() {
         historyWatcher = null
       }
     }
-    
+
     // Set a timeout as fallback - if no data received in 60 seconds, show error
     setTimeout(() => {
       if (loading.value) {
@@ -193,7 +197,7 @@ async function fetchData() {
         }
       }
     }, 60000)
-    
+
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load sensor data'
     console.error('Error fetching sensor history:', e)
@@ -207,20 +211,40 @@ async function fetchData() {
 
 function updateChart(timestamps: number[], values: number[], config: SensorConfig) {
   if (!chartContainer.value) return
-  
+
   console.log('Updating chart with', timestamps.length, 'data points')
-  
+
   // Destroy existing chart
   if (chart) {
     chart.destroy()
     chart = null
   }
-  
+
   // Prepare data for Highcharts (array of [timestamp, value])
   const seriesData = timestamps.map((timestamp, index) => [timestamp, values[index]])
-  
+
   console.log('Series data sample:', seriesData.slice(0, 3))
-  
+
+  // Resolve the DaisyUI base-content color so axis text matches the active theme
+  // (the modal sits on a bg-base-100 surface, so white text is unreadable in light themes).
+  const contentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-base-content').trim()
+  const axisLabelColor = contentColor ? `color-mix(in srgb, ${contentColor} 80%, transparent)` : 'currentColor'
+  const axisTitleColor = contentColor ? contentColor : 'currentColor'
+
+  // Soft axis window around the actual data range: data min/max ± padding.
+  // `soft` bounds still zoom out automatically when the data spans more than the
+  // window, while the padding guarantees a minimum visible range (no over-zoom
+  // into noise for nearly flat signals like pressure ~1013 hPa).
+  let yAxisSoftMin: number | undefined
+  let yAxisSoftMax: number | undefined
+  if (values.length > 0) {
+    const padding = config.yAxisPadding ?? 20
+    const dataMin = Math.min(...values)
+    const dataMax = Math.max(...values)
+    yAxisSoftMin = dataMin - padding
+    yAxisSoftMax = dataMax + padding
+  }
+
   // Create new Highcharts chart
   chart = (Highcharts as any).chart(chartContainer.value as HTMLElement, {
     time: {
@@ -242,7 +266,7 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
         text: t('time'),
         style: {
           fontSize: '14px',
-          color: 'rgba(255, 255, 255, 0.9)'
+          color: axisTitleColor
         }
       },
       dateTimeLabelFormats: {
@@ -258,25 +282,33 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
       labels: {
         style: {
           fontSize: '12px',
-          color: 'rgba(255, 255, 255, 0.9)'
+          color: axisLabelColor
         }
       }
     },
     yAxis: {
+      // Soft window around the data range (see above) so small relative
+      // variations are visible without clipping extreme values.
+      softMin: yAxisSoftMin,
+      softMax: yAxisSoftMax,
+      // Don't round the axis range to "nice" ticks - otherwise Highcharts
+      // extends e.g. 990..1035 down to 0 and the soft window has no effect.
+      startOnTick: false,
+      endOnTick: false,
       title: {
         text: `${config.label} (${config.unit})`,
         style: {
           fontSize: '14px',
-          color: 'rgba(255, 255, 255, 0.9)'
+          color: axisTitleColor
         }
       },
       labels: {
-        formatter: function(this: Highcharts.AxisLabelsFormatterContextObject) {
+        formatter: function (this: Highcharts.AxisLabelsFormatterContextObject) {
           return (this.value as number).toFixed(1) + config.unit
         },
         style: {
           fontSize: '12px',
-          color: 'rgba(255, 255, 255, 0.9)'
+          color: axisLabelColor
         }
       }
     },
@@ -315,7 +347,10 @@ function updateChart(timestamps: number[], values: number[], config: SensorConfi
       name: config.label,
       data: seriesData,
       color: config.color,
-      fillColor: config.backgroundColor
+      fillColor: config.backgroundColor,
+      // Fill to the bottom of the axis instead of 0 - otherwise the area
+      // threshold forces the y-axis to always include 0.
+      threshold: null
     }],
     credits: {
       enabled: false

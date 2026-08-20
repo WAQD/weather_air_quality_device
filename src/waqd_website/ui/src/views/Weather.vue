@@ -261,9 +261,11 @@
                         <div>
                             <img class="size-8 rounded-box p-1 bg-base-100"
                                 :src="getFlagIconUrl(currentLocation.country_code)"
-                                :alt="currentLocation.country_code" />
+                                :alt="currentLocation.country_code"
+                                :style="{ visibility: flagLoaded ? 'visible' : 'hidden' }"
+                                @load="flagLoaded = true" @error="flagLoaded = false" />
                         </div>
-                        <div class="flex-1 min-w-0 flex items-start justify-between gap-3">
+                        <div class="flex-1 min-w-0 flex items-center justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="text-2xl font-thin whitespace-nowrap">
                                     {{ currentLocation.name }}</div>
@@ -438,6 +440,13 @@ const osmEmbedUrl = computed(() => {
 })
 
 const successMessage = ref('')
+
+// Hide the flag icon until the external SVG has loaded to avoid the
+// broken-image placeholder while the CDN responds.
+const flagLoaded = ref(false)
+watch(() => currentLocation.value?.country_code, () => {
+    flagLoaded.value = false
+})
 
 watch(routeQuery, async (query) => {
     successMessage.value = ''

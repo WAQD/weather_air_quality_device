@@ -1,67 +1,72 @@
 <template>
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     <!-- DEBUG: On-screen console (only in dev mode with VITE_DEBUG_SENSORS=true) -->
-    <div v-if="showDebugPanel && debugMessages.length > 0" class="alert alert-info mb-4 max-h-60 overflow-y-auto">
+    <div v-if="showDebugPanel && debugMessages.length > 0"
+      class="alert alert-info mb-4 max-h-60 overflow-y-auto">
       <div class="w-full">
         <div class="flex justify-between items-center mb-2">
           <span class="font-bold text-xs">Debug Log</span>
           <button class="btn btn-xs btn-ghost" @click="debugMessages = []">Clear</button>
         </div>
         <div class="font-mono text-xs space-y-1 whitespace-pre-wrap break-all">
-          <div v-for="(msg, idx) in debugMessages.slice(-15)" :key="idx" class="border-b border-base-300 pb-1">
+          <div v-for="(msg, idx) in debugMessages.slice(-15)" :key="idx"
+            class="border-b border-base-300 pb-1">
             {{ msg }}
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- Back button and device header with weather background -->
-    <div class="mb-6 sm:mb-8 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8 p-4 sm:p-6 lg:p-8 rounded-b-lg overflow-hidden transition-all duration-500" :style="weatherBackgroundStyle">
-      <div class="bg-base-100/80 backdrop-blur-sm p-6 rounded-lg">
-      <button @click="goBack" class="btn btn-ghost btn-sm mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
-          fill="currentColor">
-          <path fill-rule="evenodd"
-            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-            clip-rule="evenodd" />
-        </svg>
-        {{ t('back_to_devices') }}
-      </button>
+    <div class="mb-6 sm:mb-8">
+      <div
+        class="bg-base-100/80 backdrop-blur-sm p-6 rounded-lg overflow-hidden transition-all duration-500"
+        :style="weatherBackgroundStyle">
+        <button @click="goBack" class="btn btn-ghost btn-sm mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+            fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+              clip-rule="evenodd" />
+          </svg>
+          {{ t('back_to_devices') }}
+        </button>
 
-      <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div class="w-full sm:w-auto">
-          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">{{ deviceName || t('loading') }}</h1>
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-            <div class="badge" :class="isConnected ? 'badge-success' : 'badge-error'">
-              {{ isConnected ? t('online') : t('offline') }}
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div class="w-full sm:w-auto">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">{{ deviceName ||
+              t('loading') }}</h1>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <div class="badge" :class="isConnected ? 'badge-success' : 'badge-error'">
+                {{ isConnected ? t('online') : t('offline') }}
+              </div>
+              <span class="text-xs sm:text-sm opacity-70 font-mono break-all">{{ deviceId }}</span>
             </div>
-            <span class="text-xs sm:text-sm opacity-70 font-mono break-all">{{ deviceId }}</span>
+          </div>
+          <div v-if="lastUpdated"
+            class="text-xs sm:text-sm opacity-70 w-full sm:w-auto text-left sm:text-right">
+            {{ t('last_updated') }}: {{ formatTime(lastUpdated) }}
           </div>
         </div>
-        <div v-if="lastUpdated" class="text-xs sm:text-sm opacity-70 w-full sm:w-auto text-left sm:text-right">
-          {{ t('last_updated') }}: {{ formatTime(lastUpdated) }}
-        </div>
-      </div>
 
-      <!-- Weather Info Banner (only if device is connected and has weather data) -->
-      <div v-if="weatherData && isConnected" class="mt-4 sm:mt-6">
-        <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full bg-base-100/60 backdrop-blur-sm rounded-lg p-3 sm:p-4">
-          <img 
-            v-if="weatherData.icon" 
-            :src="`/static/weather_icons/${weatherData.icon}.svg`" 
-            alt="Weather icon"
-            class="h-12 w-12 sm:h-16 sm:w-16 brightness-0 invert flex-shrink-0"
-          />
-          <div class="flex-1 text-center sm:text-left">
-            <h3 class="font-bold text-base sm:text-lg text-white">{{ translateWeatherCondition(weatherData) }}</h3>
-            <p class="text-xs sm:text-sm text-white/70 truncate max-w-full">{{ deviceLocation || t('current_weather') }}</p>
-          </div>
-          <div class="text-center sm:text-right flex-shrink-0">
-            <p class="text-2xl sm:text-3xl font-bold text-white">{{ weatherData.temp.toFixed(1) }}°C</p>
-            <p class="text-xs sm:text-sm text-white/70">{{ t('outdoor') }}</p>
+        <!-- Weather Info Banner (only if device is connected and has weather data) -->
+        <div v-if="weatherData && isConnected" class="mt-4 sm:mt-6">
+          <div
+            class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full bg-base-100/60 backdrop-blur-sm rounded-lg p-3 sm:p-4">
+            <img v-if="weatherData.icon" :src="`/static/weather_icons/${weatherData.icon}.svg`"
+              alt="Weather icon" class="h-12 w-12 sm:h-16 sm:w-16 brightness-0 flex-shrink-0" />
+            <div class="flex-1 text-center sm:text-left">
+              <h3 class="font-bold text-base sm:text-lg">{{ translateWeatherCondition(weatherData)
+              }}</h3>
+              <p class="text-xs sm:text-sm opacity-70 truncate max-w-full">{{ deviceLocation ||
+                t('current_weather') }}</p>
+            </div>
+            <div class="text-center sm:text-right flex-shrink-0">
+              <p class="text-2xl sm:text-3xl font-bold">{{ weatherData.temp.toFixed(1) }}°C</p>
+              <p class="text-xs sm:text-sm opacity-70">{{ t('outdoor') }}</p>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
 
@@ -88,10 +93,13 @@
         <div class="card-body p-4 sm:p-6">
           <div class="flex justify-between items-center gap-2">
             <div class="min-w-0">
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('temperature') }}</h2>
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{
+                t('temperature') }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
-                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold tracking-tighter">{{ sensorData.temp ?? '--' }}</span>
-                <span v-if="sensorData.temp" class="opacity-70 text-xl sm:text-2xl lg:text-2xl">°C</span>
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold tracking-tighter">{{
+                  sensorData.temp ?? '--' }}</span>
+                <span v-if="sensorData.temp"
+                  class="opacity-70 text-xl sm:text-2xl lg:text-2xl">°C</span>
               </div>
             </div>
             <div class="stat-figure flex-shrink-0">
@@ -109,10 +117,13 @@
         <div class="card-body p-4 sm:p-6">
           <div class="flex justify-between items-center gap-2">
             <div class="min-w-0">
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('humidity') }}</h2>
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{
+                t('humidity') }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
-                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.hum ?? '--' }}</span>
-                <span v-if="sensorData.hum" class="opacity-70 text-xl sm:text-2xl lg:text-2xl">%</span>
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.hum ?? '--'
+                }}</span>
+                <span v-if="sensorData.hum"
+                  class="opacity-70 text-xl sm:text-2xl lg:text-2xl">%</span>
               </div>
             </div>
             <div class="stat-figure flex-shrink-0">
@@ -130,10 +141,13 @@
         <div class="card-body p-4 sm:p-6">
           <div class="flex justify-between items-center gap-2">
             <div class="min-w-0">
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('co2') }}</h2>
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('co2')
+              }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap" :class="co2ColorClass">
-                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.co2 ?? '--' }}</span>
-                <span v-if="sensorData.co2" class="opacity-70 text-lg sm:text-xl lg:text-xl">ppm</span>
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.co2 ?? '--'
+                }}</span>
+                <span v-if="sensorData.co2"
+                  class="opacity-70 text-lg sm:text-xl lg:text-xl">ppm</span>
               </div>
             </div>
             <div class="stat-figure flex-shrink-0">
@@ -151,10 +165,13 @@
         <div class="card-body p-4 sm:p-6">
           <div class="flex justify-between items-center gap-2">
             <div class="min-w-0">
-              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('pressure') }}</h2>
+              <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{
+                t('pressure') }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
-                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.baro ?? '--' }}</span>
-                <span v-if="sensorData.baro" class="opacity-70 text-lg sm:text-xl lg:text-xl">hPa</span>
+                <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.baro ?? '--'
+                }}</span>
+                <span v-if="sensorData.baro"
+                  class="opacity-70 text-lg sm:text-xl lg:text-xl">hPa</span>
               </div>
             </div>
             <div class="stat-figure flex-shrink-0">
@@ -168,14 +185,9 @@
     </div>
 
     <!-- Weather Forecast Component -->
-    <WeatherForecast 
-      v-if="isConnected"
-      :title="t('card_forecast')"
-      :forecastData="forecastData"
-      :daytimeHourlyData="hourlyDaytimeData"
-      :nighttimeHourlyData="hourlyNighttimeData"
-      class="mt-8"
-    />
+    <WeatherForecast v-if="isConnected" :title="t('card_forecast')" :forecastData="forecastData"
+      :daytimeHourlyData="hourlyDaytimeData" :nighttimeHourlyData="hourlyNighttimeData"
+      class="mt-8" />
 
     <!-- Device Info Section -->
     <div class="card bg-base-100 shadow-xl mt-6 sm:mt-8">
@@ -221,16 +233,16 @@ import SensorHistoryModal from '../components/SensorHistoryModal.vue'
 const router = useRouter()
 const route = useRoute()
 const { t } = useTranslation()
-const { 
-  getWeatherData, 
-  setWeatherData, 
-  getForecastData, 
-  setForecastData, 
+const {
+  getWeatherData,
+  setWeatherData,
+  getForecastData,
+  setForecastData,
   getHourlyDaytimeData,
   getHourlyNighttimeData,
   setHourlyForecastData,
-  getWeatherBackground, 
-  isDay: isDayWeather 
+  getWeatherBackground,
+  isDay: isDayWeather
 } = useWeather()
 const { setSensorHistory, getSensorHistory } = useSensorHistory()
 
@@ -274,7 +286,7 @@ const showDebugPanel = computed(() => {
 
 function debugLog(msg: string) {
   if (!showDebugPanel.value) return // Skip logging if debug panel is disabled
-  
+
   const timestamp = new Date().toLocaleTimeString()
   debugMessages.value.push(`[${timestamp}] ${msg}`)
   console.log(`[DEBUG] ${msg}`)
@@ -300,7 +312,7 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
       return translated
     }
   }
-  
+
   // Fall back to main string (lowercase for consistency)
   if (weather.main) {
     const key = `weather_${weather.main.toLowerCase()}`
@@ -311,7 +323,7 @@ function translateWeatherCondition(weather: { wid?: number, main?: string }): st
     // If no translation found, return the main string as is
     return weather.main
   }
-  
+
   return ''
 }
 
@@ -415,8 +427,8 @@ function connectWebSocket() {
   try {
     ws = new WebSocket(wsUrl)
 
-    // Expose WebSocket globally so modal can access it
-    ;(window as any).deviceWebSocket = ws
+      // Expose WebSocket globally so modal can access it
+      ; (window as any).deviceWebSocket = ws
 
     ws.onopen = () => {
       debugLog(`WS OPEN: Connected to ${deviceId.value}`)
@@ -478,9 +490,9 @@ function disconnectWebSocket() {
     ws.close()
     ws = null
   }
-  
+
   // Clean up global reference
-  ;(window as any).deviceWebSocket = null
+  ; (window as any).deviceWebSocket = null
 }
 
 function startHeartbeat() {
@@ -527,7 +539,7 @@ function handleWebSocketMessage(message: any) {
       baro: baroParsed !== undefined ? Math.round(baroParsed) : undefined,
       timestamp: message.timestamp
     }
-    
+
     debugLog(`FINAL: temp=${sensorData.value.temp}, hum=${sensorData.value.hum}, co2=${sensorData.value.co2}, baro=${sensorData.value.baro}`)
     lastUpdated.value = new Date()
   } else if (messageType === 'weather_data') {
@@ -573,7 +585,7 @@ function handleWebSocketMessage(message: any) {
 
 function showHistory(sensorType: string) {
   if (!sensorHistoryModal.value || !deviceId.value) return
-  
+
   const sensorConfigs: Record<string, any> = {
     'temperature': {
       deviceId: deviceId.value,
@@ -583,7 +595,8 @@ function showHistory(sensorType: string) {
       label: t('temperature'),
       unit: '°C',
       color: 'rgb(255, 99, 132)',
-      backgroundColor: 'rgba(255, 99, 132, 0.1)'
+      backgroundColor: 'rgba(255, 99, 132, 0.1)',
+      yAxisPadding: 2
     },
     'humidity': {
       deviceId: deviceId.value,
@@ -593,7 +606,8 @@ function showHistory(sensorType: string) {
       label: t('humidity'),
       unit: '%',
       color: 'rgb(54, 162, 235)',
-      backgroundColor: 'rgba(54, 162, 235, 0.1)'
+      backgroundColor: 'rgba(54, 162, 235, 0.1)',
+      yAxisPadding: 5
     },
     'co2': {
       deviceId: deviceId.value,
@@ -613,10 +627,11 @@ function showHistory(sensorType: string) {
       label: t('pressure'),
       unit: ' hPa',
       color: 'rgb(153, 102, 255)',
-      backgroundColor: 'rgba(153, 102, 255, 0.1)'
+      backgroundColor: 'rgba(153, 102, 255, 0.1)',
+      yAxisPadding: 10
     }
   }
-  
+
   const config = sensorConfigs[sensorType]
   if (config) {
     sensorHistoryModal.value.show(config)
