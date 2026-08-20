@@ -26,7 +26,7 @@
                   class="h-8 w-8 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-0.5 sm:mb-2 weather-icon" />
 
                 <!-- Weather condition -->
-                <p class="text-sm opacity-70 mb-0.5 sm:mb-2 truncate">{{
+                <p class="text-sm opacity-70 mb-0.5 sm:mb-2 line-clamp-2">{{
                   translateWeatherCondition(day) }}</p>
 
                 <!-- Day temperature -->
@@ -96,7 +96,7 @@
               <img v-if="hour.icon" :src="`/static/weather_icons/${hour.icon}.svg`" :alt="hour.main"
                 class="h-6 w-6 sm:h-10 sm:w-10 mx-auto mb-0.5 weather-icon" />
               <p class="font-bold text-sm sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
-              <p class="text-sm opacity-70 truncate">{{ translateWeatherCondition(hour) }}</p>
+              <p class="text-sm opacity-70 line-clamp-2">{{ translateWeatherCondition(hour) }}</p>
 
               <div
                 v-if="hour.precipitation_probability !== undefined || hour.precipitation !== undefined"
