@@ -1,6 +1,7 @@
 <!-- Generic History Modal for Time-Series Data -->
 <dialog id="history-modal" class="modal overflow-hidden">
-  <div class="modal-box overflow-hidden" style="width: 90vw !important; max-width: 90vw !important; height: 95vh !important; max-height: 95vh !important; padding-right: 3.5rem !important;">
+  <div class="modal-box overflow-hidden"
+    style="width: 90vw !important; max-width: 90vw !important; height: 95vh !important; max-height: 95vh !important; padding-right: 3.5rem !important;">
     <form method="dialog">
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
     </form>
@@ -15,7 +16,7 @@
         <option value="720">{{ t('history_last_30_days') }}</option>
       </select>
     </div>
-    
+
     <div class="w-full" style="height: calc(95vh - 110px);">
       <div id="history-chart" style="width: 100%; height: 100%;"></div>
     </div>
@@ -90,7 +91,7 @@
 
       // Get time range
       const timeRange = parseInt(document.getElementById('history-time-range').value);
-      
+
       // Generate data based on time range (await the promise)
       const data = await this.generateData(timeRange, config);
 
@@ -101,6 +102,18 @@
 
       // Prepare data for Highcharts (array of [timestamp, value])
       const seriesData = data.timestamps.map((timestamp, index) => [timestamp, data.values[index]]);
+
+      // Soft axis window around the actual data range: data min/max ± padding.
+      // `soft` bounds still zoom out automatically when the data spans more than
+      // the window, while the padding guarantees a minimum visible range (no
+      // over-zoom into noise for nearly flat signals like pressure ~1013 hPa).
+      let yAxisSoftMin = null;
+      let yAxisSoftMax = null;
+      if (data.values.length > 0) {
+        const padding = config.yAxisPadding ?? 20;
+        yAxisSoftMin = Math.min(...data.values) - padding;
+        yAxisSoftMax = Math.max(...data.values) + padding;
+      }
 
       // Create new Highcharts chart
       this.chart = Highcharts.chart('history-chart', {
@@ -141,6 +154,14 @@
           }
         },
         yAxis: {
+          // Soft window around the data range (see above) so small relative
+          // variations are visible without clipping extreme values.
+          softMin: yAxisSoftMin,
+          softMax: yAxisSoftMax,
+          // Don't round the axis range to "nice" ticks - otherwise Highcharts
+          // extends e.g. 990..1035 down to 0 and the soft window has no effect.
+          startOnTick: false,
+          endOnTick: false,
           title: {
             text: config.yAxisLabel || 'Value',
             style: {
@@ -149,7 +170,7 @@
             }
           },
           labels: {
-            formatter: function() {
+            formatter: function () {
               return this.value.toFixed(1) + (config.unit || '');
             },
             style: {
@@ -193,7 +214,10 @@
           data: seriesData,
           color: config.color || 'rgb(75, 192, 192)',
           fillColor: config.backgroundColor || 'rgba(75, 192, 192, 0.1)',
-          type: 'areaspline'
+          type: 'areaspline',
+          // Fill to the bottom of the axis instead of 0 - otherwise the area
+          // threshold forces the y-axis to always include 0.
+          threshold: null
         }],
         credits: {
           enabled: false
@@ -218,23 +242,23 @@
             throw new Error('Failed to fetch sensor data');
           }
           const apiData = await response.json();
-          
+
           const values = [];
           const timestamps = [];
-          
+
           for (const point of apiData.data) {
             const date = new Date(point.timestamp);
             timestamps.push(date.getTime());
             values.push(point.value);
           }
-          
+
           return { values, timestamps };
         } catch (error) {
           console.error('Error fetching sensor history:', error);
           // Fall back to generated data
         }
       }
-      
+
       // Fallback: generate hardcoded data for prototype
       const now = new Date();
       const values = [];
@@ -270,7 +294,7 @@
   };
 
   // Listen for time range changes
-  document.getElementById('history-time-range').addEventListener('change', function() {
+  document.getElementById('history-time-range').addEventListener('change', function () {
     HistoryChart.updateTimeRange();
   });
 
@@ -287,6 +311,7 @@
       apiEndpoint: '/api/sensor/v1/history',
       sensorLocation: 'interior',
       sensorType: 'temp_degC',
+      yAxisPadding: 2,
     });
   }
 
@@ -302,6 +327,7 @@
       apiEndpoint: '/api/sensor/v1/history',
       sensorLocation: 'interior',
       sensorType: 'humidity_%',
+      yAxisPadding: 5,
     });
   }
 
@@ -332,6 +358,7 @@
       apiEndpoint: '/api/sensor/v1/history',
       sensorLocation: 'interior',
       sensorType: 'pressure_hPa',
+      yAxisPadding: 10,
     });
   }
 
@@ -347,6 +374,7 @@
       apiEndpoint: '/api/sensor/v1/history',
       sensorLocation: 'exterior',
       sensorType: 'temp_degC',
+      yAxisPadding: 2,
     });
   }
 
@@ -362,6 +390,7 @@
       apiEndpoint: '/api/sensor/v1/history',
       sensorLocation: 'exterior',
       sensorType: 'humidity_%',
+      yAxisPadding: 5,
     });
   }
 
