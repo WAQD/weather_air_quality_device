@@ -293,6 +293,15 @@ export default defineConfig({
     },
   },
 
+  optimizeDeps: {
+    // The Open-Meteo OM file reader ships an Emscripten WASM module whose glue
+    // resolves its .wasm relative to import.meta.url. If Vite pre-bundles the
+    // package into .vite/deps, that relative URL breaks in dev and the weather
+    // map layers never render. Excluding it keeps the glue in node_modules so
+    // the sibling .wasm is found by the dev server.
+    exclude: ['@openmeteo/file-format-wasm'],
+  },
+
   server: {
     fs: {
       allow: [
