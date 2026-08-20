@@ -17,7 +17,8 @@
                     <button type="button" class="btn btn-xs btn-primary btn-circle shrink-0"
                         @click="togglePlayback" aria-label="Play animation">
                         <span v-if="isPreloading" class="loading loading-spinner loading-xs"></span>
-                        <svg v-else-if="isPlaying" viewBox="0 0 24 24" fill="currentColor" class="h-3 w-3">
+                        <svg v-else-if="isPlaying" viewBox="0 0 24 24" fill="currentColor"
+                            class="h-3 w-3">
                             <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
                         </svg>
                         <svg v-else viewBox="0 0 24 24" fill="currentColor" class="h-3 w-3">
@@ -38,25 +39,29 @@
                     <button type="button" class="link link-hover text-xs opacity-80"
                         :disabled="timeOffset === 0" @click="timeOffset = 0">Now</button>
                     <span class="text-xs opacity-70">Play</span>
-                    <select v-model.number="playbackLength"
-                        class="select select-xs select-bordered" aria-label="Playback length">
-                        <option v-for="option in playbackOptions" :key="option.value" :value="option.value">
+                    <select v-model.number="playbackLength" class="select select-xs select-bordered"
+                        aria-label="Playback length">
+                        <option v-for="option in playbackOptions" :key="option.value"
+                            :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
-                    <span class="ml-auto whitespace-nowrap text-xs opacity-80">{{ timeLabel }}</span>
+                    <span class="ml-auto whitespace-nowrap text-xs opacity-80">{{ timeLabel
+                    }}</span>
                 </div>
             </div>
 
             <div class="relative">
                 <div ref="mapContainer" class="h-[400px] w-full"></div>
-                <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-base-200/60">
+                <div v-if="isLoading"
+                    class="absolute inset-0 flex items-center justify-center bg-base-200/60">
                     <span class="loading loading-spinner loading-lg"></span>
                 </div>
             </div>
 
             <div v-if="activeLegend" class="px-4 pt-2">
-                <div class="h-2.5 w-full rounded-sm bg-base-200" :style="{ backgroundImage: activeLegend.gradient }"></div>
+                <div class="h-2.5 w-full rounded-sm bg-base-200"
+                    :style="{ backgroundImage: activeLegend.gradient }"></div>
                 <div class="relative mt-1 h-4 text-[10px] leading-none opacity-80">
                     <span v-for="(label, i) in activeLegend.labels" :key="i"
                         class="absolute top-0 whitespace-nowrap"
@@ -66,7 +71,8 @@
                 </div>
             </div>
 
-            <div class="text-xs p-2 text-center opacity-70 flex flex-wrap justify-center gap-x-3 gap-y-1">
+            <div
+                class="text-xs p-2 text-center opacity-70 flex flex-wrap justify-center gap-x-3 gap-y-1">
                 <span>Weather © <a href="https://open-meteo.com" target="_blank"
                         class="hover:underline">Open-Meteo</a></span>
                 <span>Map © <a href="https://www.openstreetmap.org/copyright" target="_blank"
@@ -289,7 +295,7 @@ function timeStepFor(offset: number): string {
 }
 
 function layerSourceUrl(variable: string, offset: number): string {
-    return `om://${DATA_BASE_URL}?time_step=${timeStepFor(offset)}&variable=${variable}`
+    return `om://${DATA_BASE_URL}?time_step=${timeStepFor(offset)}&variable=${variable}&tile_size=256`
 }
 
 function stepTime(delta: number): void {
@@ -306,6 +312,15 @@ function applyTimeOffset(offset: number = timeOffset.value): void {
 
     temperatureSource?.setUrl(layerSourceUrl('temperature_2m', offset))
     precipitationSource?.setUrl(layerSourceUrl('precipitation', offset))
+}
+
+function setWeatherLayersOpacity(opacity: number): void {
+    if (!map || !map.getLayer('weather-temperature')) {
+        return
+    }
+
+    map.setPaintProperty('weather-temperature', 'raster-opacity', opacity)
+    map.setPaintProperty('weather-precipitation', 'raster-opacity', opacity)
 }
 
 const PLAY_INTERVAL_MS = 350
@@ -348,6 +363,9 @@ async function startPlayback(): Promise<void> {
     const preloadEnd = Math.min(end, start + PRELOAD_LOOKAHEAD - 1)
     isPreloading.value = true
     preloadCancelled = false
+    // Keep the weather layers hidden while warming the tile cache so the map
+    // does not jump through frames before playback actually starts.
+    setWeatherLayersOpacity(0)
     try {
         for (let offset = start; offset <= preloadEnd; offset++) {
             if (preloadCancelled) {
@@ -355,8 +373,9 @@ async function startPlayback(): Promise<void> {
             }
             await preloadOffset(offset)
         }
-        applyTimeOffset(start)
     } finally {
+        applyTimeOffset(timeOffset.value)
+        setWeatherLayersOpacity(0.75)
         isPreloading.value = false
     }
 
@@ -453,14 +472,17 @@ async function initMap(): Promise<void> {
     initPromise = (async () => {
         isLoading.value = true
         try {
-            const [maplibreModule] = await Promise.all([
+            const [maplibreModule, , mapLayerModule, mapCacheModule] = await Promise.all([
                 import('maplibre-gl'),
                 import('maplibre-gl/dist/maplibre-gl.css'),
+                import('@openmeteo/weather-map-layer'),
+                import('../utils/weatherMapCache'),
             ])
             const maplibregl = (maplibreModule as unknown as { default: MapLibreGL }).default
-            const { omProtocol, getColorScale } = await import('@openmeteo/weather-map-layer')
+            const { getColorScale } = mapLayerModule
+            const { cachedOmProtocol } = mapCacheModule
 
-            maplibregl.addProtocol('om', omProtocol)
+            maplibregl.addProtocol('om', cachedOmProtocol)
 
             colorScales.value.temperature = buildLegendScale(getColorScale('temperature_2m', false))
             colorScales.value.precipitation = buildLegendScale(getColorScale('precipitation', false))
@@ -487,11 +509,13 @@ async function initMap(): Promise<void> {
                 instance.addSource('weather-temperature', {
                     type: 'raster',
                     url: layerSourceUrl('temperature_2m', offset),
+                    tileSize: 256,
                     maxzoom: 12,
                 })
                 instance.addSource('weather-precipitation', {
                     type: 'raster',
                     url: layerSourceUrl('precipitation', offset),
+                    tileSize: 256,
                     maxzoom: 12,
                 })
 
