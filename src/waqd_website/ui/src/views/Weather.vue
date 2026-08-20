@@ -7,7 +7,7 @@
                 <div id="current_weather_card"
                     class="order-2 xl:order-none card bg-base-100 shadow-xl overflow-hidden"
                     :style="weatherHeroStyle">
-                    <div class="card-body p-3 sm:p-6 bg-base-100/82 backdrop-blur-md">
+                    <div class="card-body p-3 sm:p-6 backdrop-blur-md" :class="weatherTintClass">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p
@@ -54,9 +54,10 @@
                                         style="width: 0.9em; height: 0.9em;"></span>
                                 </p>
                             </div>
-                            <div class="rounded-box bg-base-200/80 p-3">
+                            <div class="rounded-box bg-base-300 p-3">
                                 <div class="flex items-center gap-3">
-                                    <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                    <svg class="h-6 w-6 flex-none text-base-content/50"
+                                        aria-hidden="true">
                                         <use :href="cloudsIconUrl" fill="currentColor" />
                                     </svg>
                                     <div class="min-w-0">
@@ -69,9 +70,9 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 gap-3 text-sm">
-                                <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                        <svg class="h-6 w-6 flex-none text-info" aria-hidden="true">
                                             <use :href="raindropIconUrl" fill="currentColor" />
                                         </svg>
                                         <div class="min-w-0">
@@ -83,9 +84,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                        <svg class="h-6 w-6 flex-none text-accent"
                                             aria-hidden="true"
                                             :style="{ transform: `rotate(${((currentWeather.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                                             <use :href="windDegIconUrl" fill="currentColor" />
@@ -100,9 +101,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 flex-none" aria-hidden="true">
+                                        <svg class="h-6 w-6 flex-none text-secondary"
+                                            aria-hidden="true">
                                             <use :href="pressureIconUrl" fill="currentColor" />
                                         </svg>
                                         <div class="min-w-0">
@@ -114,9 +116,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                        <svg class="h-6 w-6 flex-none text-warning"
                                             aria-hidden="true">
                                             <use :href="sunriseIconUrl" fill="currentColor" />
                                         </svg>
@@ -129,9 +131,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                        <svg class="h-6 w-6 flex-none text-orange-400"
                                             aria-hidden="true">
                                             <use :href="sunsetIconUrl" fill="currentColor" />
                                         </svg>
@@ -144,9 +146,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rounded-box bg-base-200/80 p-3">
+                                <div class="rounded-box bg-base-300 p-3">
                                     <div class="flex items-center gap-3">
-                                        <svg class="h-6 w-6 weather-icon flex-none"
+                                        <svg class="h-6 w-6 flex-none text-base-content/50"
                                             aria-hidden="true">
                                             <use :href="altitudeIconUrl" fill="currentColor" />
                                         </svg>
@@ -421,6 +423,26 @@ const weatherHeroStyle = computed(() => {
     }
 
     return getWeatherBackground(WEATHER_VIEW_KEY)
+})
+
+// Subtle condition-based tint over the hero background image. The base-100 layer
+// keeps the original frosted look; the condition color is only a light whisper.
+const weatherTintClass = computed(() => {
+    const main = currentWeather.value?.main?.toLowerCase() ?? ''
+    switch (main) {
+        case 'clear':
+            return 'bg-warning/10'
+        case 'rain':
+        case 'drizzle':
+        case 'squall':
+            return 'bg-info/10'
+        case 'thunderstorm':
+            return 'bg-secondary/10'
+        case 'snow':
+            return 'bg-info/5'
+        default:
+            return 'bg-base-100/82'
+    }
 })
 
 const currentWeatherUpdatedAt = computed(() => {
