@@ -24,7 +24,7 @@ def test_open_meteo_geocoder(base_fixture, mocker):
     om = OpenMeteo()
     mock_call = mocker.Mock()
     mock_call.return_value = json.loads(test_json.read_text())
-    mocker.patch("waqd_common.weather.OpenMeteo._call_api", mock_call)
+    mocker.patch("waqd.components.weather.open_meteo.OpenMeteo._call_api", mock_call)
     ret = om.find_location_candidates("Berlin", "de")
     assert len(ret) == 10
     assert ret[0].name == "Berlin"
@@ -51,8 +51,7 @@ def test_open_meteo(base_fixture, mocker):
         assert ret
         ret = om.get_7_day_forecast()
         assert ret
-        assert om.nighttime_forecast_points
-        assert om.daytime_forecast_points
+        assert len(ret) == 7
 
 
 def test_open_topo():
