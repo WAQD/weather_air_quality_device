@@ -17,11 +17,14 @@
       <!-- Hamburger Nav Menu -->
       <div v-if="isLoggedIn" class="dropdown dropdown-bottom z-50">
         <label tabindex="0" class="btn btn-ghost btn-circle btn-sm md:btn-md">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </label>
-        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 mt-4">
+        <ul tabindex="0"
+          class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 mt-4 text-base lg:text-lg">
           <li>
             <router-link to="/home">{{ t('home') }}</router-link>
           </li>
@@ -54,7 +57,7 @@
                   d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z" />
               </svg>
               <input v-model="weatherSearchQuery" type="search"
-                :placeholder="t('home_weather_search_placeholder')" class="w-full"
+                :placeholder="t('home_weather_search_placeholder')" class="w-full lg:text-lg"
                 :disabled="isSelectingLocation" @focus="openDropdown"
                 @keydown.escape="closeDropdown" />
               <span v-if="isSearching || isSelectingLocation"
@@ -70,14 +73,15 @@
                 <li v-for="location in displayedSavedLocations"
                   :key="`${location.latitude}-${location.longitude}`">
                   <button type="button" class="w-full text-left flex items-center gap-3"
-                    :disabled="isSelectingLocation" @mousedown.prevent="selectSavedLocation(location)"
-                    @click.prevent>
+                    :disabled="isSelectingLocation"
+                    @mousedown.prevent="selectSavedLocation(location)" @click.prevent>
                     <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
                       class="w-5 h-4 rounded-sm" />
                     <div class="flex flex-col text-left">
-                      <span class="font-semibold">{{ location.name }}</span>
-                      <span class="text-xs opacity-70">{{ location.state || location.country }}, {{
-                        location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
+                      <span class="font-semibold lg:text-base">{{ location.name }}</span>
+                      <span class="text-xs lg:text-sm opacity-70">{{ location.state ||
+                        location.country }}, {{
+                          location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
                     </div>
                     <span v-if="selectingLocationKey === getLocationKey(location)"
                       class="loading loading-spinner loading-xs ml-auto"></span>
@@ -97,9 +101,10 @@
                   <img :src="getFlagIconUrl(location.country_code)" :alt="location.country_code"
                     class="w-5 h-4 rounded-sm" />
                   <div class="flex flex-col text-left">
-                    <span class="font-semibold">{{ location.name }}</span>
-                    <span class="text-xs opacity-70">{{ location.state || location.country }}, {{
-                      location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
+                    <span class="font-semibold lg:text-base">{{ location.name }}</span>
+                    <span class="text-xs lg:text-sm opacity-70">{{ location.state ||
+                      location.country }}, {{
+                        location.latitude.toFixed(2) }}, {{ location.longitude.toFixed(2) }}</span>
                   </div>
                   <span v-if="selectingLocationKey === getLocationKey(location)"
                     class="loading loading-spinner loading-xs ml-auto"></span>
@@ -142,7 +147,8 @@
         <label tabindex="0" class="btn btn-outline btn-sm mx-1 md:mx-2">
           {{ locale.toUpperCase() }}
         </label>
-        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-32 mt-4">
+        <ul tabindex="0"
+          class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-32 mt-4 text-base lg:text-lg">
           <li><a @click="setLocale('en')">English</a></li>
           <li><a @click="setLocale('de')">Deutsch</a></li>
           <li><a @click="setLocale('hu')">Magyar</a></li>
@@ -155,27 +161,31 @@
             <use :href="accountIconUrl" fill="currentColor" />
           </svg>
         </label>
-        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 mt-4">
+        <ul tabindex="0"
+          class="dropdown-content menu p-2 shadow bg-base-200 rounded-box w-52 mt-4 text-base lg:text-lg">
           <li v-if="isLoggedIn" class="menu-title">
             <span>{{ username }}</span>
           </li>
           <li v-if="!isLoggedIn">
-            <router-link to="/public/login" class="btn btn-ghost btn-sm">{{ t('login')
+            <router-link to="/public/login" class="btn btn-ghost btn-sm lg:text-base">{{ t('login')
               }}</router-link>
           </li>
           <li v-if="isLoggedIn">
-            <router-link to="/account" class="btn btn-ghost btn-sm">{{ t('account_settings')
-              }}</router-link>
+            <router-link to="/account" class="btn btn-ghost btn-sm lg:text-base">{{
+              t('account_settings')
+            }}</router-link>
           </li>
           <li v-if="isLoggedIn && isAdmin">
-            <router-link to="/admin" class="btn btn-ghost btn-sm">{{ t('admin_controls')
-              }}</router-link>
+            <router-link to="/admin" class="btn btn-ghost btn-sm lg:text-base">{{
+              t('admin_controls')
+            }}</router-link>
           </li>
           <li v-if="isLoggedIn">
-            <a @click="handleLogout" class="btn btn-ghost btn-sm ">{{ t('logout') }}</a>
+            <a @click="handleLogout" class="btn btn-ghost btn-sm lg:text-base ">{{ t('logout')
+            }}</a>
           </li>
           <li>
-            <a @click="toggleTheme" class="btn btn-ghost btn-sm capitalize">
+            <a @click="toggleTheme" class="btn btn-ghost btn-sm lg:text-base capitalize">
               {{ t('theme') || 'Theme' }}: {{ t(theme) }}
             </a>
           </li>

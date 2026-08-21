@@ -33,6 +33,10 @@
                 </svg>
                 {{ t('home_go_to_devices') }}
               </router-link>
+              <router-link v-if="homeDevice" to="/rest/devices"
+                class="btn btn-outline btn-md sm:btn-lg mt-4 w-full">
+                {{ t('home_show_more_devices') }}
+              </router-link>
             </div>
           </div>
 
@@ -147,6 +151,11 @@
             </div>
           </div>
 
+          <!-- Saved locations: full width on desktop, below weather on mobile -->
+          <div class="order-4 lg:col-start-2">
+            <SavedLocationsCard />
+          </div>
+
           <!-- Widget settings: right column row 2 on desktop, below devices on mobile -->
           <div v-if="Capacitor.isNativePlatform()"
             class="order-3 lg:col-start-2 glass rounded-box p-4 sm:p-6 bg-base-100/90 backdrop-blur-sm text-base-content shadow-2xl">
@@ -195,6 +204,7 @@ import { useUser } from '../composables/useUser'
 import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
 import { useWeather } from '../composables/useWeather'
 import DeviceCard from '../components/DeviceCard.vue'
+import SavedLocationsCard from '../components/SavedLocationsCard.vue'
 import type { Device } from '../types/device'
 
 const router = useRouter()
