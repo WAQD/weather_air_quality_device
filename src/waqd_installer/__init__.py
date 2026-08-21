@@ -22,10 +22,11 @@ def debian_codename() -> str | None:
 
 if debian_codename() == "trixie":
     from .trixie import AUTOSTART_FILE
+elif platform.machine() in ("aarch64", "armv7l", "armv6l", "armv8l"):
+    # on target hardware with an unsupported Debian version
+    raise NotImplementedError(f"Unsupported Debian version: {debian_codename()}")
 else:
-    if platform.system() == "Linux":
-        raise NotImplementedError(f"Unsupported Debian version: {debian_codename()}")
-    # dummy setup:
+    # non-target machine (dev/test): dummy setup
     AUTOSTART_FILE = Path("/tmp/dummy_autostart_file")
 
 __all__ = ["AUTOSTART_FILE"]

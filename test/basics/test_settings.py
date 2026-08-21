@@ -3,8 +3,19 @@ import tempfile
 import shutil
 import configparser
 
-from waqd.settings import BRIGHTNESS, DAY_STANDBY_TIMEOUT, DISPLAY_TYPE, LANG, LOCATION_NAME, MOTION_SENSOR_ENABLED, NIGHT_MODE_BEGIN, NIGHT_MODE_END, NIGHT_STANDBY_TIMEOUT, OW_API_KEY
-from waqd.settings.settings import Settings
+from waqd_station.settings import (
+    BRIGHTNESS,
+    DAY_STANDBY_TIMEOUT,
+    DISPLAY_TYPE,
+    LANG,
+    LOCATION_NAME,
+    MOTION_SENSOR_ENABLED,
+    NIGHT_MODE_BEGIN,
+    NIGHT_MODE_END,
+    NIGHT_STANDBY_TIMEOUT,
+    OW_API_KEY,
+    Settings,
+)
 
 
 def test_read_from_file(base_fixture):
@@ -57,9 +68,15 @@ def test_save_to_file(base_fixture):
     assert parser.get(sets._LOCATION_SECTION_NAME, LOCATION_NAME) == location
     assert parser.get(sets._ENERGY_SECTION_NAME, NIGHT_MODE_BEGIN) == str(night_mode_begin)
     assert parser.get(sets._ENERGY_SECTION_NAME, NIGHT_MODE_END) == str(night_mode_end)
-    assert parser.get(sets._SENSOR_SECTION_NAME, MOTION_SENSOR_ENABLED) == str(motion_sensor_enabled)
-    assert parser.get(sets._ENERGY_SECTION_NAME, DAY_STANDBY_TIMEOUT) == str(day_standby_timeout)
-    assert parser.get(sets._ENERGY_SECTION_NAME, NIGHT_STANDBY_TIMEOUT) == str(night_standby_timeout)
+    assert parser.get(sets._SENSOR_SECTION_NAME, MOTION_SENSOR_ENABLED) == str(
+        motion_sensor_enabled
+    )
+    assert parser.get(sets._ENERGY_SECTION_NAME, DAY_STANDBY_TIMEOUT) == str(
+        day_standby_timeout
+    )
+    assert parser.get(sets._ENERGY_SECTION_NAME, NIGHT_STANDBY_TIMEOUT) == str(
+        night_standby_timeout
+    )
 
     # assert, that original entries remain untouched
     assert parser.get("MyCustomSection", "MyCustomKey") == "123"
