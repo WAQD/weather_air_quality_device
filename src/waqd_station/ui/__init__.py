@@ -10,22 +10,16 @@ browser_proc = None
 def start_web_server(reload=False):
     import uvicorn
 
-    os.system("sudo setcap 'cap_net_bind_service=+ep' /usr/bin/python3.13")
-
-    if reload:
-        hostname = "localhost"
-    else:
-        hostname = "0.0.0.0"
-
     uvicorn.run(
-        "waqd_station.web.main:web_app",
-        host=hostname,
+        "waqd_station.ui.main:web_app",
+        host="localhost",
         port=8080,
         reload=reload,
         reload_excludes=["*.html", "*.css", ".log"],
     )
     if browser_proc is not None:
         browser_proc.terminate()
+
 
 def start_web_ui_chromium_kiosk_mode():
     # Start Chromium in kiosk mode
@@ -42,7 +36,7 @@ def start_web_ui_chromium_kiosk_mode():
             "--disable-translate",
             "--disable-pinch",
             "--disable-features=TranslateUI",
-            "http://localhost",
+            "http://localhost:8080",
             "--force-device-scale-factor=0.8",
         ]
     )

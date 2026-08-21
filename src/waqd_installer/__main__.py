@@ -28,4 +28,4 @@ if __name__ == '__main__':
         setup_system.set_wallpaper(common.get_waqd_install_path())
         setup_system.clean_lxde_desktop()
     else:
-        logging.info("Nothing to do!")
+        logging.info("Nothing to do!")  # noqa: LOG015

@@ -38,7 +38,7 @@ class Logger(logging.Logger):
     Singleton instance for the global dual logger (file/console)
     """
 
-    GLOBAL_LOGFILE_NAME = "waqd.log"
+    GLOBAL_LOGFILE_NAME: str = "waqd.log"
     LOGGER_NAME = "waqd_logger"
 
     _instance: Optional[logging.Logger] = None

@@ -60,6 +60,20 @@
         <option {% if motion_sensor_pin==26 %}selected{% endif %}>26</option>
     </select>
 </fieldset>
+
+<fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
+    <legend class="fieldset-legend">{{ t('network_recovery_legend') }}</legend>
+    {% with title=t('network_restart_wlan'), description=t('network_restart_wlan_desc'), icon="",
+    name="network_restart_wlan_enabled", value=network_restart_wlan_enabled %}
+    {% include "components/snippets/bool_setting.html" %}
+    {% endwith %}
+
+    {% with title=t('network_restart_system'), description=t('network_restart_system_desc'),
+    icon="",
+    name="network_restart_system_enabled", value=network_restart_system_enabled %}
+    {% include "components/snippets/bool_setting.html" %}
+    {% endwith %}
+</fieldset>
 <!-- 
 <fieldset class="fieldset bg-base-200 border-base-300 text-3xl rounded-box w-full border p-4 gap-4">
     <legend class="fieldset-legend">Remote WAQD</legend>

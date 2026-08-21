@@ -3,7 +3,6 @@ from typing import Generic, Optional, TypeVar
 
 from waqd.base.component_reg import ComponentRegistry, CyclicComponent
 from waqd.base.file_logger import Logger
-from waqd.base.network import Network
 from waqd.settings import Settings
 
 TRegistry = TypeVar("TRegistry", bound=ComponentRegistry)
@@ -14,7 +13,7 @@ class ComponentController(Generic[TRegistry]):
 
     UPDATE_TIME = 5
 
-    def __init__(self, settings: Settings, registry_class:type[TRegistry]):
+    def __init__(self, settings: Settings, registry_class: type[TRegistry]):
         self._components: TRegistry = registry_class(settings)
 
         # thread for watchdog
@@ -27,7 +26,7 @@ class ComponentController(Generic[TRegistry]):
             None  # re-usable thread, assignment is in unload_all
         )
         self._inited_all = False
-    
+
     def wait_for_stop(self):
         """Wait for stop event, used for headless mode."""
         self._stop_event.wait()
@@ -110,9 +109,6 @@ class ComponentController(Generic[TRegistry]):
         """
         Checks existence of global variable of each module and starts it.
         """
-        # check and restart wifi
-        # if RuntimeSystem().is_target_system:
-        Network().check_internet_connection()
         try:
             for comp_name in self._components.get_names():
                 component = self._components.get(comp_name)
@@ -143,7 +139,7 @@ class ComponentController(Generic[TRegistry]):
         except Exception as e:
             Logger().debug(f"ERROR: Watchdog crashed: {str(e)}")
 
-    def _unload_all_components(self, reload_intended:bool, updating: bool):
+    def _unload_all_components(self, reload_intended: bool, updating: bool):
         """
         Stop own watcher and unload modules.
         :param reload_intended: singals, that objects, which forbid reload will be skipped

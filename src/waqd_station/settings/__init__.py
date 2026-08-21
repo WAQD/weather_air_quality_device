@@ -24,6 +24,10 @@ MH_Z19_VALUE_OFFSET = "mh_z19_value_offset"
 BMX280_TEMP_OFFSET_C = "bmx280_temp_offset_c"
 LOG_SENSOR_DATA = "log_sensor_data"
 
+# network recovery strategy
+NETWORK_RESTART_WLAN_ENABLED = "network_restart_wlan_enabled"
+NETWORK_RESTART_SYSTEM_ENABLED = "network_restart_system_enabled"
+
 # WAQD Website
 USER_API_KEY = "user_api_key"
 # save mac address of the device for identification (could change, but still the saved one)

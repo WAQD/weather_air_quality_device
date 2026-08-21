@@ -103,6 +103,8 @@ async def readiness():
         raise HTTPException(status_code=503, detail=f"not ready: {exc}")
 
 
+Logger.GLOBAL_LOGFILE_NAME = "waqd_website.log"
+Logger(output_path=BASE_PATH).info("Starting WAQD Website FastAPI app")  # type: ignore
 # Mount the Vue.js frontend
 Logger().info("Mounting production frontend from %s", FRONTEND_DIST_DIR)
 static_path = FRONTEND_DIST_DIR / "static"
@@ -113,6 +115,7 @@ web_app.mount(
     "/assets", StaticFiles(directory=str(FRONTEND_DIST_DIR / "assets")), name="assets"
 )
 
+
 # Serve PWA-critical files explicitly
 @web_app.get("/manifest.webmanifest")
 async def serve_manifest():
@@ -121,6 +124,7 @@ async def serve_manifest():
     if manifest_path.exists():
         return FileResponse(manifest_path, media_type="application/manifest+json")
     raise HTTPException(status_code=404, detail="Manifest not found")
+
 
 @web_app.get("/sw.js")
 async def serve_service_worker():
@@ -134,6 +138,7 @@ async def serve_service_worker():
         )
     raise HTTPException(status_code=404, detail="Service worker not found")
 
+
 @web_app.get("/workbox-{filename:path}.js")
 async def serve_workbox(filename: str):
     """Serve workbox files"""
@@ -141,6 +146,7 @@ async def serve_workbox(filename: str):
     if wb_path.exists():
         return FileResponse(wb_path, media_type="application/javascript")
     raise HTTPException(status_code=404, detail="Workbox file not found")
+
 
 @web_app.get("/{filename}.png")
 async def serve_pwa_icons(filename: str):
@@ -151,11 +157,13 @@ async def serve_pwa_icons(filename: str):
             return FileResponse(icon_path, media_type="image/png")
     raise HTTPException(status_code=404, detail="Icon not found")
 
+
 # Catch-all route - must come last
 @web_app.get("/{full_path:path}")
 async def root_files(full_path: str):
     """Serve static files or SPA"""
     return resolve_path(full_path)
+
 
 def resolve_path(full_path: str):
     dist_dir = FRONTEND_DIST_DIR
@@ -163,14 +171,10 @@ def resolve_path(full_path: str):
 
     # Prevent traversal: only serve from dist_dir
     dist_dir_resolved = dist_dir.resolve()
-    if (
-        dist_dir_resolved not in candidate_path.parents
-        and candidate_path != dist_dir_resolved
-    ):
+    if dist_dir_resolved not in candidate_path.parents and candidate_path != dist_dir_resolved:
         return FileResponse(dist_dir / "index.html")
 
     if candidate_path.is_file():
         return FileResponse(candidate_path)
 
     return FileResponse(dist_dir / "index.html")
-

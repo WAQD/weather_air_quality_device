@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from waqd.base.network import Network
-from waqd_station.web.templates import render_main, sub_template
+from waqd_station.ui.templates import render_main, sub_template
 
 rt = APIRouter()
 

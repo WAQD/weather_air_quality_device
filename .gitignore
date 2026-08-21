@@ -33,5 +33,6 @@ waqd_userdata.db
 mail.py
 .pdm-python
 config
-src/waqd.log
 waqd.log
+src/waqd_website/waqd_website.log
+sensor_logs

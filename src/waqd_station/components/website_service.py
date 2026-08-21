@@ -11,8 +11,8 @@ import websockets
 import waqd_station.app as app
 from waqd.base.component import Component
 from waqd_station.settings import USER_API_KEY
-from waqd_station.web.api.sensor.v1.connector import SensorRetrieval
-from waqd_station.web.api.weather.v1.connector import WeatherRetrieval
+from waqd_station.ui.api.sensor.v1.connector import SensorRetrieval
+from waqd_station.ui.api.weather.v1.connector import WeatherRetrieval
 
 if TYPE_CHECKING:
     from waqd_station.app.component_reg import ComponentRegistry
