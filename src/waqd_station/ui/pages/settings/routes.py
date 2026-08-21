@@ -22,7 +22,7 @@ from waqd_station.settings import (
     LOCATION_STATE,
     USER_API_KEY,
 )
-from waqd_station.web.templates import render_main, sub_template
+from waqd_station.ui.templates import render_main, sub_template
 
 rt = APIRouter()
 

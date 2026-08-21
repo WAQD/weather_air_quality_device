@@ -27,6 +27,7 @@ unit_reg = waqd.unit_reg
 # for global access to settings
 settings = BorgSingleton(Settings, ini_folder=user_config_dir)
 
+
 class CompCtrlSingleton(BorgSingleton[ComponentController["ComponentRegistry"]]):
     @classmethod
     def _create_instance(cls, key: object) -> ComponentController["ComponentRegistry"]:
@@ -34,8 +35,10 @@ class CompCtrlSingleton(BorgSingleton[ComponentController["ComponentRegistry"]])
 
         return ComponentController(settings(), ComponentRegistry)
 
+
 # singleton with access to all backend components
 comp_ctrl = CompCtrlSingleton()
+
 
 def basic_setup():
     """
@@ -54,13 +57,15 @@ def basic_setup():
         Logger().info(f"DEBUG level set to {waqd.DEBUG_LEVEL}")
 
     from waqd.base.file_logger import SensorFileLogger
+
     SensorFileLogger.set_output_path(user_config_dir / "sensor_logs")
     if MIGRATE_SENSOR_LOGS:
         SensorFileLogger.migrate_txts_to_db()
         return None, None
-    
+
     # Init components after settings, so they can use settings
     comp_ctrl()
+
 
 def main():
     basic_setup()
@@ -70,11 +75,10 @@ def main():
     # Load the selected GUI mode
     try:
         comp_ctrl().init_all()
-
-        from waqd_station.web import start_web_server, start_web_ui_chromium_kiosk_mode
-
         if settings().get(STARTUP_JINGLE):
             comp_ctrl().components.sound.play(get_asset_file("sounds", "pera__introgui.wav"))
+
+        from waqd_station.ui import start_web_server, start_web_ui_chromium_kiosk_mode
 
         runtime_system = RuntimeSystem()
         if runtime_system.is_target_system and not waqd_station.HEADLESS_MODE:
@@ -110,7 +114,6 @@ def start_remote_debug():
         if waqd.DEBUG_LEVEL > 2:
             print("Waiting to attach on port %s", port)
             debugpy.wait_for_client()  # blocks execution until client is attached
-
 
 
 def crash_hook(exctype, excvalue, tb):

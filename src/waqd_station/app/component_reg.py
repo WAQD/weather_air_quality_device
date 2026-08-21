@@ -45,6 +45,7 @@ from waqd_station.components import (
     EventHandler,
     HumiditySensor,
     LightSensor,
+    NetworkManager,
     OnlineUpdater,
     WAQDRemoteSensor,
     BMP280,
@@ -97,6 +98,7 @@ class ComponentRegistry(ComponentRegistryBase):
         comps = [
             self.weather_info,
             self.auto_updater,
+            self.network_manager,
             self.temp_sensor,
             self.humidity_sensor,
             self.tvoc_sensor,
@@ -191,6 +193,15 @@ class ComponentRegistry(ComponentRegistryBase):
 
         return self._create_component_instance(
             OnlineUpdater,
+            (self, self._settings),
+        )
+
+    @property
+    def network_manager(self) -> "NetworkManager":
+        """Access for NetworkManager singleton"""
+
+        return self._create_component_instance(
+            NetworkManager,
             (self, self._settings),
         )
 

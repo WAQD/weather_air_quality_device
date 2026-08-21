@@ -9,10 +9,10 @@ import waqd_station.app as app
 from waqd.base.assets import get_asset_file_relative
 from waqd.components.translation import Translation
 from waqd_station.settings import LANG
-from waqd_station.web.api.sensor.v1.connector import SensorRetrieval
-from waqd_station.web.api.weather.v1.connector import WeatherRetrieval
-from waqd_station.web.pages.weather_main.model import ExteriorView, ForecastView
-from waqd_station.web.templates import render_main, sub_template
+from waqd_station.ui.api.sensor.v1.connector import SensorRetrieval
+from waqd_station.ui.api.weather.v1.connector import WeatherRetrieval
+from waqd_station.ui.pages.weather_main.model import ExteriorView, ForecastView
+from waqd_station.ui.templates import render_main, sub_template
 
 rt = APIRouter()
 

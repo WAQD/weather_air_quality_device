@@ -10,7 +10,6 @@ try:
 except ImportError:
     Logger().warning("nmcli library not found.")
 from waqd.base.file_logger import Logger
-from waqd.base.system import RuntimeSystem
 
 
 class Network:
@@ -19,11 +18,9 @@ class Network:
     """
 
     _instance = None
-    _internet_reconnect_try = 0  # internal counter for wlan restart
     _disable_network = False
     _netw_counter = 0
     _inet_counter = 0
-    internet_connected_once = False
 
     def __new__(cls):
         if cls._instance is None:
@@ -32,12 +29,10 @@ class Network:
         return cls._instance
 
     def init(self):
-        self._runtime_system = RuntimeSystem()
-        self._devices = nmcli.device.status()
-        self._wifi_networks = []
         self._eth_device = ""
         self._wlan_device = ""
 
+        self.refresh()
         self.is_connected_via_eth()  # init _eth_device
         self.is_connected_via_wlan()  # init _wlan_device
 
@@ -52,32 +47,10 @@ class Network:
         )
         return mac_hex
 
-    def check_internet_connection(self):
-        """
-        RPi fails often when WLAN conncetion is unstable.
-        The restart of the adapter is black voodo magic, which is attempted after the second failure.
-        If that doesn't help, the RPi reboots on the next failure.
-        """
+    def refresh(self):
+        """Refresh the device and wifi network lists."""
         self._devices = nmcli.device.status()
         self._wifi_networks = nmcli.device.wifi()
-        if self.internet_connected_once:  # at least once connected:
-            if self._internet_reconnect_try == 2:
-                if not self.is_connected_via_eth() and self.is_connected_via_wlan():
-                    Logger().error("Network: Restarting wlan - Net failure...")
-                    self.restart_wlan()
-                sleep(5)
-            # failed 3 times straight - restart linux
-            if self._internet_reconnect_try == 3:
-                # TODO dialog!
-                Logger().error("Network: Restarting system - Net failure...")
-                self._runtime_system.restart()
-        if not self.get_connectivity() == NetworkConnectivity.FULL:
-            self._internet_reconnect_try += 1
-            sleep(5)
-        else:
-            if self._internet_reconnect_try != 0:
-                self._internet_reconnect_try = 0
-                # TODO emit signal
 
     def wait_for_network(self) -> bool:
         max_error = 5
@@ -175,9 +148,11 @@ class Network:
         return nmcli.radio.wifi()
 
     def get_connectivity(self) -> NetworkConnectivity:
-        if (status := nmcli.networking.connectivity(check=True)) == NetworkConnectivity.FULL:
-            self.internet_connected_once = True
-        return status
+        return nmcli.networking.connectivity(check=True)
+
+    def is_fully_connected(self) -> bool:
+        """Return True, if the device has full internet connectivity."""
+        return self.get_connectivity() == NetworkConnectivity.FULL
 
     def restart_wlan(self):
         self.disable_wifi()

@@ -10,7 +10,7 @@ from waqd.web.api.sensor.v1 import (
     SensorDataPoint,
     SensorHistoryResponse,
 )
-from waqd_station.web.helper import format_unit_disp_value
+from waqd_station.ui.helper import format_unit_disp_value
 
 if TYPE_CHECKING:
     from pint.facets.plain import PlainQuantity as Quantity

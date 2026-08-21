@@ -21,6 +21,7 @@ from waqd.components.weather import OpenMeteo, WeatherProvider
 
 from .display import Display
 from .events import EventHandler
+from .network_manager import NetworkManager
 from .power import ESaver
 from .sensors import (
     BH1750,
@@ -64,6 +65,7 @@ __all__ = [
     "SoundInterface",
     "SoundVLC",
     "TextToSpeach",
+    "NetworkManager",
     "OnlineUpdater",
     "WAQDDeviceClient",
     "SENSOR_EXTERIOR_TYPE",
