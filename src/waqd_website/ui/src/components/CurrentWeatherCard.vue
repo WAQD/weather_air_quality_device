@@ -67,7 +67,22 @@
         {{ t('home_weather_needs_location') }}
       </div>
 
+      <div v-if="successMessage" class="alert alert-success mt-4 py-3 text-sm">
+        <span>{{ successMessage }}</span>
+      </div>
+      <div v-if="errorMessage" class="alert alert-error mt-4 py-3 text-sm">
+        <span>{{ errorMessage }}</span>
+      </div>
+
       <div class="mt-5 flex flex-col gap-3">
+        <button v-if="!isCurrentLocationSaved" class="btn btn-primary" type="button"
+          :disabled="isSavingLocation || !currentLocation" @click="saveCurrentLocation">
+          {{ t('save') }}
+        </button>
+        <button v-else class="btn btn-outline" type="button" :disabled="isSavingLocation"
+          @click="setAsHome(currentLocation)">
+          {{ t('set_home') }}
+        </button>
         <button class="btn btn-secondary" type="button"
           :disabled="isLoadingWeather || !currentLocation" @click="refreshWeather(true)">
           {{ t('home_weather_refresh') }}
@@ -98,14 +113,18 @@ const {
   homeLocation,
   currentWeather,
   cached,
+  savedLocations,
   isLoadingWeather,
   isRefreshingWeather,
   isSavingLocation,
   successMessage,
+  errorMessage,
   clearSuccess,
   clearError,
   loadWeather,
   loadWeatherForLocation,
+  saveLocation,
+  setHomeLocation,
   deleteLocation,
   getLocationKey
 } = useWebsiteWeather()
@@ -177,6 +196,40 @@ async function removeHomeLocation(): Promise<void> {
   }
 
   successMessage.value = t('home_weather_removed')
+}
+
+const isCurrentLocationSaved = computed(() => {
+  if (!currentLocation.value) {
+    return false
+  }
+
+  return savedLocations.value.some((loc) => getLocationKey(loc) === getLocationKey(currentLocation.value as WeatherLocationPayload))
+})
+
+async function saveCurrentLocation(): Promise<void> {
+  if (!currentLocation.value) {
+    return
+  }
+
+  clearSuccess()
+  clearError()
+  const saved = await saveLocation(currentLocation.value, false)
+  if (!saved) {
+    return
+  }
+
+  successMessage.value = t('home_weather_saved')
+}
+
+async function setAsHome(location: WeatherLocationPayload): Promise<void> {
+  clearSuccess()
+  clearError()
+  const saved = await setHomeLocation(location)
+  if (!saved) {
+    return
+  }
+
+  successMessage.value = t('saved_as_home')
 }
 
 function translateWeatherCondition(weather: { wid?: number, main?: string }): string {

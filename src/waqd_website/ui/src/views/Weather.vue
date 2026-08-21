@@ -5,7 +5,6 @@
       class="flex flex-col xl:grid gap-3 sm:gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <div class="contents xl:block xl:space-y-3 xl:sm:space-y-6">
         <CurrentWeatherCard />
-        <SavedLocationsCard />
       </div>
       <div class="contents xl:block xl:space-y-3 xl:sm:space-y-6">
         <LocationBanner />
@@ -21,7 +20,6 @@ import { useRoute, useRouter } from 'vue-router'
 import CurrentWeatherCard from '../components/CurrentWeatherCard.vue'
 import ForecastPanel from '../components/ForecastPanel.vue'
 import LocationBanner from '../components/LocationBanner.vue'
-import SavedLocationsCard from '../components/SavedLocationsCard.vue'
 import { useTranslation } from '../composables/useTranslation'
 import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
 
