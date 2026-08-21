@@ -9,8 +9,6 @@
             {{ t('current_weather') }}</p>
           <h1 class="mt-2 text-2xl sm:text-3xl font-bold">{{ t('home_weather') }}</h1>
         </div>
-        <span v-if="cached && currentWeather" class="badge badge-info badge-outline">{{
-          t('home_weather_cached') }}</span>
       </div>
 
       <div v-if="isLoadingWeather" class="mt-5">

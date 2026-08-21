@@ -16,7 +16,8 @@
       <div v-if="activeLayer !== 'none'" class="px-3 pt-2">
         <div>
           <input type="range" :min="minTimeOffset" :max="maxTimeOffset" step="1"
-            v-model.number="timeOffset" class="range range-xs w-full" aria-label="Forecast hour" />
+            v-model.number="timeOffset" class="range range-xs w-full"
+            :aria-label="t('weather_map_forecast_hour')" />
           <div class="relative h-4 text-[11px] leading-none opacity-70">
             <span v-for="(tick, i) in sliderTicks" :key="tick.text"
               class="absolute top-0 whitespace-nowrap" :class="{ 'hidden sm:inline': i === 0 }"
@@ -27,13 +28,13 @@
         </div>
         <div class="flex flex-col gap-1.5 px-1 pt-1 sm:flex-row sm:items-center sm:gap-2">
           <button type="button" class="link link-hover text-sm opacity-80"
-            :disabled="timeOffset === 0" @click="timeOffset = 0">Now</button>
+            :disabled="timeOffset === 0" @click="timeOffset = 0">{{ t('now') }}</button>
           <div class="flex items-center gap-2">
             <button type="button" class="btn btn-sm btn-outline btn-circle"
               :disabled="timeOffset <= minTimeOffset" @click="stepTime(-1)"
-              aria-label="One hour earlier">−</button>
+              :aria-label="t('weather_map_hour_earlier')">−</button>
             <button type="button" class="btn btn-sm btn-primary btn-circle shrink-0"
-              @click="togglePlayback" aria-label="Play animation">
+              @click="togglePlayback" :aria-label="t('weather_map_play')">
               <span v-if="isPreloading || isLoadingFrame"
                 class="loading loading-spinner loading-xs"></span>
               <svg v-else-if="isPlaying" viewBox="0 0 24 24" fill="currentColor" class="h-3 w-3">
@@ -45,9 +46,9 @@
             </button>
             <button type="button" class="btn btn-sm btn-outline btn-circle"
               :disabled="timeOffset >= maxTimeOffset" @click="stepTime(1)"
-              aria-label="One hour later">+</button>
+              :aria-label="t('weather_map_hour_later')">+</button>
             <select v-model.number="playbackLength" class="select select-sm select-bordered"
-              aria-label="Playback length">
+              :aria-label="t('weather_map_playback_length')">
               <option v-for="option in playbackOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
@@ -87,7 +88,7 @@
         <span>Map © <a href="https://www.openstreetmap.org/copyright" target="_blank"
             class="hover:underline">OpenStreetMap</a> contributors</span>
         <a :href="osmLinkUrl" target="_blank" class="hover:underline">
-          View Larger Map
+          {{ t('weather_map_view_larger') }}
         </a>
       </div>
     </div>
@@ -97,6 +98,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type {
+  IControl,
   Map as MapLibreMap,
   Marker as MapLibreMarker,
   RasterTileSource,
@@ -104,6 +106,7 @@ import type {
 } from 'maplibre-gl'
 import type { RenderableColorScale } from '@openmeteo/weather-map-layer'
 import { useWebsiteWeather } from '../composables/useWebsiteWeather'
+import { useTranslation } from '../composables/useTranslation'
 
 type MapLibreGL = typeof import('maplibre-gl')
 type LayerId = 'temperature' | 'precipitation' | 'none'
@@ -230,6 +233,7 @@ const BASE_STYLE: StyleSpecification = {
 }
 
 const { currentLocation, isLoadingWeather } = useWebsiteWeather()
+const { t } = useTranslation()
 
 const mapContainer = ref<HTMLElement | null>(null)
 const activeLayer = ref<LayerId>('temperature')
@@ -239,10 +243,12 @@ const minTimeOffset = -6
 const maxTimeOffset = 72
 
 // Slider tick labels: -6h, Now, then 12h increments up to +72h.
-const sliderTicks: LegendLabel[] = [-6, 0, 12, 24, 36, 48, 60, 72].map((offset) => ({
-  text: offset === 0 ? 'Now' : `${offset > 0 ? '+' : ''}${offset}h`,
-  pct: ((offset - minTimeOffset) / (maxTimeOffset - minTimeOffset)) * 100,
-}))
+const sliderTicks = computed<LegendLabel[]>(() =>
+  [-6, 0, 12, 24, 36, 48, 60, 72].map((offset) => ({
+    text: offset === 0 ? t('now') : `${offset > 0 ? '+' : ''}${offset}h`,
+    pct: ((offset - minTimeOffset) / (maxTimeOffset - minTimeOffset)) * 100,
+  })),
+)
 const playbackLength = ref(12)
 const playbackOptions: { value: number; label: string }[] = [
   { value: 12, label: '+12h' },
@@ -272,7 +278,9 @@ const activeLegend = computed<LegendScale | null>(() => {
 })
 
 const timeLabel = computed(() => {
-  const utcHour = Math.floor(Date.now() / 3_600_000)
+  // Round the current time up to the next full hour so "Now" points at the
+  // upcoming forecast rather than the hour that just passed.
+  const utcHour = Math.ceil(Date.now() / 3_600_000)
   const frame = new Date((utcHour + timeOffset.value) * 3_600_000)
   return frame.toLocaleString(undefined, {
     weekday: 'short',
@@ -283,15 +291,17 @@ const timeLabel = computed(() => {
   })
 })
 
-const layerOptions: { id: LayerId; label: string }[] = [
-  { id: 'temperature', label: 'Temperature' },
-  { id: 'precipitation', label: 'Precipitation' },
-  { id: 'none', label: 'Base map' },
-]
+const layerOptions = computed<{ id: LayerId; label: string }[]>(() => [
+  { id: 'temperature', label: t('temperature') },
+  { id: 'precipitation', label: t('precipitation') },
+  { id: 'none', label: t('weather_map_base_map') },
+])
 
 let map: MapLibreMap | null = null
 let marker: MapLibreMarker | null = null
 let initPromise: Promise<void> | null = null
+let resizeObserver: ResizeObserver | null = null
+let resizeRafId = 0
 
 const osmLinkUrl = computed(() => {
   if (!currentLocation.value) {
@@ -419,21 +429,6 @@ async function showFrame(variable: WeatherVariable, offset: number): Promise<voi
   state.active = backIndex
 }
 
-/** Load a frame into the hidden buffer in the background (fire and forget). */
-function prefetchFrame(variable: WeatherVariable, offset: number): void {
-  if (offset < minTimeOffset || offset > maxTimeOffset) {
-    return
-  }
-  const state = buffers[variable]
-  const hiddenIndex = (1 - state.active) as 0 | 1
-  const hidden = state.frames[hiddenIndex]
-  if (hidden.offset === offset) {
-    return
-  }
-  hidden.offset = offset
-  hidden.ready = loadBuffer(variable, hiddenIndex, offset)
-}
-
 // Latest-wins frame requests keep slider scrubbing responsive: intermediate
 // offsets are skipped instead of queued behind slow tile loads.
 let scrubRequest: { variable: WeatherVariable; offset: number; resolve: () => void } | null = null
@@ -457,7 +452,9 @@ async function scrubWorker(): Promise<void> {
   while (scrubRequest) {
     const { variable, offset, resolve } = scrubRequest
     scrubRequest = null
+    isLoadingFrame.value = true
     await showFrame(variable, offset)
+    isLoadingFrame.value = false
     resolve()
   }
   scrubWorkerRunning = false
@@ -481,6 +478,28 @@ function togglePlayback(): void {
   void startPlayback()
 }
 
+/**
+ * Preload every frame in [start, end] into the hidden buffer so their tiles
+ * land in the cache. The visible frame is left untouched (no flicker), and
+ * playback then re-loads each frame instantly from cache.
+ */
+async function preloadRange(variable: WeatherVariable, start: number, end: number): Promise<void> {
+  if (!map) {
+    return
+  }
+  const state = buffers[variable]
+  const hiddenIndex = (1 - state.active) as 0 | 1
+  for (let offset = start; offset <= end; offset++) {
+    if (preloadCancelled) {
+      return
+    }
+    await loadBuffer(variable, hiddenIndex, offset)
+  }
+  // Reset the hidden buffer's bookkeeping so playback loads frames cleanly.
+  state.frames[hiddenIndex].offset = null
+  state.frames[hiddenIndex].ready = null
+}
+
 async function startPlayback(): Promise<void> {
   if (!map || isPlaying.value || activeLayer.value === 'none') {
     return
@@ -491,14 +510,15 @@ async function startPlayback(): Promise<void> {
     timeOffset.value = 0
   }
 
-  const end = Math.min(maxTimeOffset, timeOffset.value + playbackLength.value)
+  const start = timeOffset.value
+  const end = Math.min(maxTimeOffset, start + playbackLength.value)
+  // Preload only the first half so playback starts sooner; the second half
+  // loads on demand and may stutter once playback catches up.
+  const preloadEnd = start + Math.floor((end - start) / 2)
 
-  // Prime the pipeline: show the current frame and start loading the next
-  // one before the loop begins.
   isPreloading.value = true
   preloadCancelled = false
-  await showFrame(variable, timeOffset.value)
-  prefetchFrame(variable, timeOffset.value + 1)
+  await preloadRange(variable, start, preloadEnd)
   isPreloading.value = false
 
   if (preloadCancelled || !map) {
@@ -506,19 +526,15 @@ async function startPlayback(): Promise<void> {
   }
 
   isPlaying.value = true
+  await showFrame(variable, start)
   while (isPlaying.value && timeOffset.value < end) {
     const next = timeOffset.value + 1
     const started = performance.now()
-    isLoadingFrame.value = true
     await showFrame(variable, next)
-    isLoadingFrame.value = false
     if (!isPlaying.value) {
       break
     }
     timeOffset.value = next
-    // The buffer that just faded out is free: start loading the frame
-    // after next into it while the current one is displayed.
-    prefetchFrame(variable, next + 1)
     const elapsed = performance.now() - started
     await new Promise((resolve) =>
       window.setTimeout(resolve, Math.max(0, PLAY_INTERVAL_MS - elapsed)),
@@ -586,6 +602,34 @@ function recenter(): void {
   marker?.setLngLat([longitude, latitude])
 }
 
+/** A map control button that resets the view to the user's location at default zoom. */
+function createRecenterControl(): IControl {
+  let button: HTMLButtonElement | null = null
+  return {
+    onAdd() {
+      button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'maplibregl-ctrl-icon'
+      button.setAttribute('aria-label', t('weather_map_reset_view'))
+      button.style.display = 'flex'
+      button.style.alignItems = 'center'
+      button.style.justifyContent = 'center'
+      button.innerHTML =
+        '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>'
+      button.addEventListener('click', recenter)
+
+      const container = document.createElement('div')
+      container.className = 'maplibregl-ctrl maplibregl-ctrl-group'
+      container.appendChild(button)
+      return container
+    },
+    onRemove() {
+      button?.removeEventListener('click', recenter)
+      button = null
+    },
+  }
+}
+
 async function initMap(): Promise<void> {
   if (map || !mapContainer.value || !currentLocation.value) {
     return
@@ -622,15 +666,33 @@ async function initMap(): Promise<void> {
         center: [longitude, latitude],
         zoom: 8,
         attributionControl: false,
+        // We handle resizing ourselves (debounced) so a drag-resize doesn't
+        // spam re-renders and tile requests while frames are buffering.
+        trackResize: false,
       })
 
       map = instance
+      // Debounced resize: re-render at the new container size without
+      // re-rendering on every intermediate size during a drag-resize.
+      resizeObserver = new ResizeObserver(() => {
+        if (resizeRafId) {
+          return
+        }
+        resizeRafId = requestAnimationFrame(() => {
+          resizeRafId = 0
+          map?.resize()
+        })
+      })
+      resizeObserver.observe(mapContainer.value as HTMLElement)
+
       marker = new maplibregl.Marker().setLngLat([longitude, latitude]).addTo(instance)
 
       instance.addControl(
         new maplibregl.NavigationControl({ showCompass: false }),
         'top-right',
       )
+
+      instance.addControl(createRecenterControl(), 'top-right')
 
       instance.on('load', () => {
         // Two sources/layers per variable enable double buffering:
@@ -674,6 +736,14 @@ async function initMap(): Promise<void> {
 }
 
 function destroyMap(): void {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+  if (resizeRafId) {
+    cancelAnimationFrame(resizeRafId)
+    resizeRafId = 0
+  }
   if (map) {
     map.remove()
     map = null

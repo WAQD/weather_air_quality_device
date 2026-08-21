@@ -34,3 +34,4 @@ mail.py
 .pdm-python
 config
 src/waqd.log
+waqd.log
