@@ -1,4 +1,5 @@
-This project is a DIY weather station based on a Raspberry Pi with a touchscreen and various sensors. It also has a web interface for remote access and control. The web PWA can built as and android app with capacitor because it also ships a widget. Web sytling always uses tailwindcss with DaisyUI components.
+This project is a DIY weather station based on a Raspberry Pi with a touchscreen and various sensors. It also has a web interface for remote access and control. It then expanded to be a full fledged weather website. The web PWA can built as and android app with capacitor because it also ships a widget. Web sytling always uses tailwindcss with DaisyUI components.
+
 Folder structure:
 - src/waqd: Common Python code for the backend mainly the weather component.
 - src/waqd_assets: Assets for the project, such as images, icons
