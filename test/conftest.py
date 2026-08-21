@@ -5,25 +5,9 @@ from pathlib import Path
 from tempfile import gettempdir
 import shutil
 import pytest
-import waqd
-waqd.DEBUG_LEVEL = 1
-import waqd.base.file_logger
-import waqd.base.system
-import waqd.base.network
-# from PyQt5 import QtCore, QtWidgets
-import waqd
-
-# # enable scaling
-# QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
 
 
-def is_ci_job():
-    """ Test runs in CI environment """
-    if os.getenv("GITHUB_WORKSPACE"):
-        return True
-    return False
-
-class PathSetup():
+class PathSetup:
     def __init__(self):
         self.test_path = Path(os.path.dirname(__file__))
         self.base_path = self.test_path.parent
@@ -35,6 +19,28 @@ def load_mocks():
     mockup_path = paths.test_path / "mock"
     sys.path = [str(mockup_path)] + sys.path
     os.environ["PYTHONPATH"] = str(paths.test_path / "mock")
+
+
+# Load hardware mocks before importing any module that does target-only imports
+# (e.g. ``nmcli``, ``board``, ``RPi.GPIO``) at module level, otherwise collection fails.
+if platform.machine() not in ("aarch64", "armv7l", "armv6l", "armv8l"):
+    load_mocks()
+
+
+import waqd
+
+waqd.DEBUG_LEVEL = 1
+import waqd.base.file_logger
+import waqd.base.system
+import waqd.base.network
+import waqd
+
+
+def is_ci_job():
+    """Test runs in CI environment"""
+    if os.getenv("GITHUB_WORKSPACE"):
+        return True
+    return False
 
 
 @pytest.fixture
@@ -62,25 +68,31 @@ def base_fixture(request):
 
 
 def mock_run_on_non_target(mocker):
-    class Detector():
-        class board():
+    class Detector:
+        class board:
             any_raspberry_pi = False
             id = "NOT_THE_TARGET"
 
         class chip:
             id = "arch"
-    mocker.patch('adafruit_platformdetect.Detector', Detector)
+
+    mocker.patch("adafruit_platformdetect.Detector", Detector)
 
 
 def mock_run_on_target(mocker):
     load_mocks()
     from target_pkgs.adafruit_platformdetect import Detector
-    mocker.patch('adafruit_platformdetect.Detector', Detector)
-    # need to patch RPi.GPIO - only installs on Linux 
-    if platform.system() == "Linux" and not platform.machine() in ["aarch64", "armv7l"]: # don't mock on RPi
+
+    mocker.patch("adafruit_platformdetect.Detector", Detector)
+    # need to patch RPi.GPIO - only installs on Linux
+    if platform.system() == "Linux" and not platform.machine() in [
+        "aarch64",
+        "armv7l",
+    ]:  # don't mock on RPi
         # mock_rpi_gpio = mocker.Mock()
         from target_pkgs.RPi import GPIO
+
         mocker.patch("RPi.GPIO", GPIO)
     mock_plaftorm = mocker.Mock()
-    mock_plaftorm.return_value = 'Linux'
-    mocker.patch('platform.system', mock_plaftorm)
+    mock_plaftorm.return_value = "Linux"
+    mocker.patch("platform.system", mock_plaftorm)

@@ -243,7 +243,9 @@ class BME280(TempSensor, BarometricSensor, HumiditySensor, CyclicComponent):
         pressure = 0
         humidity = 0
         try:
-            temperature = self._sensor_driver.temperature + self._settings.get_float(BMX280_TEMP_OFFSET_C)
+            temperature = self._sensor_driver.temperature + self._settings.get_float(
+                BMX280_TEMP_OFFSET_C
+            )
             pressure = self._sensor_driver.pressure
             humidity = self._sensor_driver.humidity
         except Exception as error:
@@ -589,7 +591,7 @@ class SR501(SensorComponent):  # pylint: disable=invalid-name
             self._disabled = True
             self._logger.error("MotionDetector: sensor cannot be initialized: %s", str(error))
 
-    def _wake_up_from_sensor(self):  # pylint: disable=unused-argument
+    def _wake_up_from_sensor(self, channel=None):  # pylint: disable=unused-argument
         """
         Callback function, when pin is high.
         Counting up and waiting is used to smooth out detection.
