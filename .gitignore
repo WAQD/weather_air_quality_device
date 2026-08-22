@@ -35,4 +35,4 @@ mail.py
 config
 waqd.log
 src/waqd_website/waqd_website.log
-sensor_logs
+./sensor_logs

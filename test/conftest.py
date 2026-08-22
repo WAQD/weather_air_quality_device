@@ -81,7 +81,7 @@ def mock_run_on_non_target(mocker):
 
 def mock_run_on_target(mocker):
     load_mocks()
-    from target_pkgs.adafruit_platformdetect import Detector
+    from test.waqd_station.mock.target_pkgs.adafruit_platformdetect import Detector
 
     mocker.patch("adafruit_platformdetect.Detector", Detector)
     # need to patch RPi.GPIO - only installs on Linux
