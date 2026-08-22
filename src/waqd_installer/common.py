@@ -1,5 +1,4 @@
 #!/bin/python3
-# This script is being run as admin!
 
 import logging
 import os
@@ -76,13 +75,18 @@ def get_waqd_version(package_root_dir: Path = installer_root_dir) -> str:
     return version
 
 
+def _is_writable_dir(directory: Path) -> bool:
+    """True if the current user can create files in the directory."""
+    return os.access(directory, os.W_OK)
+
+
 def assure_file_exists(file_path: Path, chown=True):
     """Create dirs, add to current user and create file. Returns True if file existed before."""
     if file_path.exists():
         return True
     logging.info(f"Cannot find file {str(file_path)}- creating it")
     os.makedirs(file_path.parent, exist_ok=True)
-    if chown:
+    if chown and not _is_writable_dir(file_path.parent):
         os.system(f"sudo chown {USERNAME} {str(file_path.parent)}")
     file_path.touch(exist_ok=True)
     return False
@@ -93,8 +97,8 @@ def assure_file_does_not_exist(file_path: Path, chown=True):
     if not file_path.exists():
         return True
     logging.info(f"File {str(file_path)} exists - deleting it")
-    if chown:
-        (f"sudo chown {USERNAME} {str(file_path.parent)}")
+    if chown and not _is_writable_dir(file_path.parent):
+        os.system(f"sudo chown {USERNAME} {str(file_path.parent)}")
     os.remove(file_path)
     return False
 
@@ -171,10 +175,10 @@ def remove_from_autostart(
     remove_line_in_file(remove_items, autostart_file)
 
 
-def rotate_and_overwrite_image(image_path: str|Path, degrees: int = 180):
+def rotate_and_overwrite_image(image_path: str | Path, degrees: int = 180):
     """Rotate the image by the given degrees and overwrite the original file."""
     try:
-        from PIL import Image # pyright: ignore[reportMissingImports]
+        from PIL import Image  # pyright: ignore[reportMissingImports]
 
         img = Image.open(str(image_path))
         img = img.rotate(degrees)

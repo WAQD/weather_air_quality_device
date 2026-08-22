@@ -5,7 +5,6 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from configparser import ConfigParser, DuplicateSectionError
 
 from waqd_installer.common import (
     HOME,
@@ -18,6 +17,7 @@ from waqd_installer.common import (
     rotate_and_overwrite_image,
 )
 from waqd_installer import AUTOSTART_FILE
+
 
 def disable_screensaver():
     logging.info("Check the screensaver")
@@ -33,7 +33,7 @@ def disable_screensaver():
 
 
 def hide_mouse_cursor():
-    """ Modify xserver-command to append -nocursor """
+    """Modify xserver-command to append -nocursor"""
     lightdm_config_file = Path("/usr/share/lightdm/lightdm.conf.d/01_debian.conf")
     assure_file_exists(lightdm_config_file, chown=False)
     logging.info("Hiding mouse cursor")
@@ -54,7 +54,6 @@ def enable_hw_access():
     add_line_to_file([enable_text], rules_path, unique=True)
 
 
-
 def customize_splash_screen(inverted_display: bool):
     # copy splash screen to /usr/share/plymouth/themes/pix
     os.makedirs("/usr/share/plymouth/themes/pix", exist_ok=True)
@@ -65,52 +64,13 @@ def customize_splash_screen(inverted_display: bool):
             rotate_and_overwrite_image(src_image, 180)
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
         # remove rainbow screen
-        os.system("raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt")
+        os.system(
+            "raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt"
+        )
         os.system("sudo plymouth-set-default-theme --rebuild-initrd pix")
     except Exception as e:
         logging.error(str(e))
 
-def set_wallpaper(install_path: Path, inverted_display=False):
-    # Can't be run as sudo, or as sudo -runuser. Needs desktop manager running.
-    # set wallpaper - get image from install dir
-    lib_paths = (install_path / "lib").iterdir()  # TODO does not work anymore
-    for lib_path in lib_paths:
-        if "python" in lib_path.name:
-            image = lib_path / "site-packages/waqd_assets/gui_base/pre_loading_screen.png"
-            if inverted_display:
-                rotate_and_overwrite_image(image, 180)
-            try:
-                logging.info("Setting wallpaper..." + f'pcmanfm --set-wallpaper="{str(image)}"')
-                os.system(f'pcmanfm --set-wallpaper="{str(image)}"')
-            except Exception as e:
-                logging.error(str(e))
-            break
-
-def clean_lxde_desktop(
-    desktop_conf_path=Path(HOME / ".config/pcmanfm/default/desktop-items-0.conf"),
-):
-    # Can't be run as sudo, or as sudo -runuser. Needs desktop manager running.
-    logging.info("Cleanup desktop icons... from " + str(desktop_conf_path))
-    
-    # Kill pcmanfm to prevent it from overwriting our changes
-    os.system("pkill -f 'pcmanfm-pi' || true")
-    
-    assure_file_exists(desktop_conf_path)
-    # needs to be under *
-    cp = ConfigParser()
-    with open(desktop_conf_path, "r", encoding="UTF-8") as fd:
-        cp.read_file(fd)
-    try:
-        cp.add_section("*")
-    except DuplicateSectionError:
-        pass  # don't care
-    cp["*"]["show_trash"] = "0"
-    cp["*"]["show_mounts"] = "0"
-    with open(desktop_conf_path, "w", encoding="UTF-8") as fd:
-        cp.write(fd, space_around_delimiters=False)
-    
-    # Restart pcmanfm desktop to apply changes
-    os.system("pcmanfm-pi </dev/null &>/dev/null &")
 
 def do_setup(inverted_dislplay: bool):
     # System setup
@@ -154,7 +114,7 @@ def configure_unnattended_updates(
     add_line_to_file(
         [
             # we have enough space, we don't know what pkgs are removed -> safety
-            'Unattended-Upgrade::Remove-Unused-Dependencies "false;',
+            'Unattended-Upgrade::Remove-Unused-Dependencies "false";',
             # try to repair if somehow update was interrupted
             'Unattended-Upgrade::AutoFixInterruptedDpkg "true";',
             # use minimal steps to have the lowest possible rate of failure if update is interrupted

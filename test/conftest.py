@@ -90,7 +90,7 @@ def mock_run_on_target(mocker):
         "armv7l",
     ]:  # don't mock on RPi
         # mock_rpi_gpio = mocker.Mock()
-        from target_pkgs.RPi import GPIO
+        from RPi import GPIO
 
         mocker.patch("RPi.GPIO", GPIO)
     mock_plaftorm = mocker.Mock()

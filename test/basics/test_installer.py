@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 import shutil
 from waqd_station import __version__
-from waqd_installer import common, setup_system
+from waqd_installer import common, desktop, setup_system
 from waqd_installer.common import assure_file_does_not_exist
 
 
@@ -48,14 +48,19 @@ def test_get_install_path():
     home = Path.home()
     from importlib import reload
     from waqd_installer import common
+
     reload(common)
     install_path = common.get_waqd_install_path(common.installer_root_dir)
     version_suffix = __version__.replace(".", "-")
-    assert install_path.as_posix() == Path(f"{home}/.local/share/pipx/venvs/waqd-{version_suffix}").as_posix()
+    assert (
+        install_path.as_posix()
+        == Path(f"{home}/.local/share/pipx/venvs/waqd-{version_suffix}").as_posix()
+    )
 
 
 def test_register_autostart(base_fixture):
     from waqd_installer.common import get_waqd_bin_name
+
     auto_update_file = base_fixture.testdata_path / "auto_updater" / "autostart.txt"
     os.environ["SUDO_USER"] = "user"
     from waqd_installer import install
@@ -65,8 +70,9 @@ def test_register_autostart(base_fixture):
     temp_autostart_file = tempdir / "tmp.txt"
 
     shutil.copyfile(str(auto_update_file), str(temp_autostart_file))
-    install.register_waqd_autostart(bin_path=tempdir/"bin",
-                                    autostart_file=temp_autostart_file)
+    install.register_waqd_autostart(
+        bin_path=tempdir / "bin", autostart_file=temp_autostart_file
+    )
     start_waqd_path = tempdir / "bin" / "waqd-start"
     with open(start_waqd_path) as ft:
         read = ft.read()
@@ -84,7 +90,7 @@ def test_clean_desktop(base_fixture):
     # no error should happen if file does not exist
     desktop_path = Path(tempfile.gettempdir()) / "tmp.conf"
     assure_file_does_not_exist(desktop_path)
-    setup_system.clean_lxde_desktop(desktop_path)
+    desktop.clean_lxde_desktop(desktop_path)
     assert desktop_path.exists()
 
     desktop_path = Path(tempfile.gettempdir()) / "tmp.conf"
@@ -94,7 +100,7 @@ def test_clean_desktop(base_fixture):
         fd.write("show_mounts=1\n")
         fd.write("[New]\n")
         fd.write("x=1\n")
-    setup_system.clean_lxde_desktop(desktop_path)
+    desktop.clean_lxde_desktop(desktop_path)
     text = desktop_path.read_text()
     assert "show_trash=0" in text
     assert "show_mounts=0" in text
@@ -102,12 +108,16 @@ def test_clean_desktop(base_fixture):
 
 def test_unattended_upgrades_config(base_fixture):
     auto_updates_path = Path(tempfile.gettempdir()) / "tmp.conf"
-    unattended_updates_path: Path = base_fixture.testdata_path / "auto_updater" / "50unattended-upgrades"
+    source_unattended_path = (
+        base_fixture.testdata_path / "auto_updater" / "50unattended-upgrades"
+    )
+    unattended_updates_path = Path(tempfile.gettempdir()) / "50unattended-upgrades"
 
     with open(auto_updates_path, "w") as fd:
         fd.write('APT::Periodic::Update-Package-Lists "0";\n')
         fd.write('APT::Periodic::Unattended-Upgrade "1";')
-    setup_system.configure_unnattended_updates(auto_updates_path)
+    shutil.copy(source_unattended_path, unattended_updates_path)
+    setup_system.configure_unnattended_updates(auto_updates_path, unattended_updates_path)
     content = auto_updates_path.read_text()
     assert 'Update-Package-Lists "1"' in content
     assert 'Unattended-Upgrade "1"' in content
