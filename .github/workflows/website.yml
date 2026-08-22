@@ -6,7 +6,9 @@ on:
     paths:
       - "src/waqd_website/**"
       - "src/waqd/**"
+      - "src/waqd_installer/**"
       - "src/waqd_assets/**"
+      - "test/**"
       - "pyproject.toml"
       - "pdm.lock"
       - ".github/workflows/website.yml"
@@ -17,7 +19,9 @@ on:
     paths:
       - "src/waqd_website/**"
       - "src/waqd/**"
+      - "src/waqd_installer/**"
       - "src/waqd_assets/**"
+      - "test/**"
       - "pyproject.toml"
       - "pdm.lock"
       - ".github/workflows/website.yml"
@@ -45,8 +49,28 @@ jobs:
         working-directory: src/waqd_website/ui
         run: npm run test:unit
 
+  test-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pdm
+          pdm install --frozen-lockfile -G test
+
+      - name: Run basics tests
+        run: PYTHONPATH=src pdm run pytest test/basics -q
+
   build:
-    needs: test
+    needs: [test, test-python]
     runs-on: ubuntu-latest
     outputs:
       version_comment: ${{ steps.set_tag.outputs.version_comment }}
