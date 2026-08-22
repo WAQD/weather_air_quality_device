@@ -19,5 +19,5 @@ gpg --show-keys --with-fingerprint --with-colons ./influxdata-archive.key 2>&1 \
 | sudo tee /etc/apt/sources.list.d/influxdata.list
 # Install influxdb
 export DEBIAN_FRONTEND=noninteractive
-sudo apt-get update && sudo apt-get install influxdb2
+sudo apt-get update && sudo apt-get install influxdb2 -y
 
