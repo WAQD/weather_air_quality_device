@@ -30,7 +30,7 @@ def test_max_delta(base_fixture, target_mockup_fixture, capsys):
     print(ureg("0.5 dimensionless").to("pct"))
     print(ureg("pct").to("ppm"))
     print(ureg("1e4 ppm").to("pct"))
-    import test.waqd_station.mock.adafruit_dht as adafruit_dht
+    import test.mock.adafruit_dht as adafruit_dht
 
     settings = Settings(base_fixture.testdata_path / "integration")
     sensor = TempSensor(False, 2)
@@ -46,7 +46,7 @@ def test_max_delta(base_fixture, target_mockup_fixture, capsys):
 
 
 def test_dht22(base_fixture, target_mockup_fixture):
-    from test.waqd_station.mock.adafruit_dht import TEMP, HUM
+    from test.mock.adafruit_dht import TEMP, HUM
 
     settings = Settings(base_fixture.testdata_path / "integration")
     comps = ComponentRegistry(settings)
@@ -67,7 +67,7 @@ def test_dht22(base_fixture, target_mockup_fixture):
 
 
 def test_ccs811(base_fixture, target_mockup_fixture):
-    from test.waqd_station.mock.adafruit_ccs811 import TVOC, CO2
+    from test.mock.adafruit_ccs811 import TVOC, CO2
 
     settings = Settings(base_fixture.testdata_path / "integration")
     measure_points = 2
@@ -100,7 +100,7 @@ def test_mh_z19(base_fixture, target_mockup_fixture, mocker):
     # wait until all measurement points are filled up, so that mean value equals the constant value
     # -> takes too long, every call spawns a new python process takes a few seconds
     time.sleep(sensor.UPDATE_TIME * (MH_Z19.MEASURE_POINTS + 1))
-    from test.waqd_station.mock.mh_z19 import CO2
+    from test.mock.mh_z19 import CO2
 
     assert sensor.get_co2().magnitude == 735
 
@@ -129,7 +129,7 @@ def test_sr501(base_fixture, target_mockup_fixture, mocker):
 
 
 def testBME280(base_fixture, target_mockup_fixture):
-    from test.waqd_station.mock.adafruit_bme280.advanced import TEMP, PRESSURE, HUMIDITY
+    from test.mock.adafruit_bme280.advanced import TEMP, PRESSURE, HUMIDITY
 
     settings = Settings(base_fixture.testdata_path / "integration")
     measure_points = 2
@@ -150,7 +150,7 @@ def testBME280(base_fixture, target_mockup_fixture):
 
 
 def test_bmp280(base_fixture, target_mockup_fixture):
-    from test.waqd_station.mock.adafruit_bmp280 import TEMP, PRESSURE
+    from test.mock.adafruit_bmp280 import TEMP, PRESSURE
 
     settings = Settings(base_fixture.testdata_path / "integration")
 
