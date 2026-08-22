@@ -110,6 +110,11 @@ or
   pdm install -G waqd,dev,test,website
   pdm lock -G waqd,dev,test,website
 
+frontend:
+
+ Test: npm run test:unit        # one-shot
+ Update: npx npm-check-updates -t minor -c 7d -u
+
 ## Performance Profiling
 
 https://github.com/dfeneyrou/palanteer/releases

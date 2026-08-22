@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # docker build --tag waqd_website:latest . -f src/waqd_website/Dockerfile
 # Stage 1: Build the Vue.js frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 ARG VCS_REF
 ENV VCS_REF=$VCS_REF
 WORKDIR /app

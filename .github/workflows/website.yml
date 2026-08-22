@@ -4,17 +4,49 @@ on:
   push:
     branches: [master]
     paths:
-      - 'src/waqd_website/**'
+      - "src/waqd_website/**"
+      - "src/waqd/**"
+      - "src/waqd_assets/**"
+      - "pyproject.toml"
+      - "pdm.lock"
+      - ".github/workflows/website.yml"
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches: [master]
     paths:
-      - 'src/waqd_website/**'
+      - "src/waqd_website/**"
+      - "src/waqd/**"
+      - "src/waqd_assets/**"
+      - "pyproject.toml"
+      - "pdm.lock"
+      - ".github/workflows/website.yml"
   workflow_dispatch:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: src/waqd_website/ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/waqd_website/ui
+        run: npm ci
+
+      - name: Run unit tests
+        working-directory: src/waqd_website/ui
+        run: npm run test:unit
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     outputs:
       version_comment: ${{ steps.set_tag.outputs.version_comment }}
@@ -35,7 +67,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "24"
 
       - name: Get package.json version
         id: package_version
