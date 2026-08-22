@@ -1,21 +1,24 @@
-
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
-from attr import dataclass
+
 
 class ConnectionActivateFailedException(Exception):
-    """"Raised when a connection activation fails."""
+    """ "Raised when a connection activation fails."""
+
 
 class NetworkConnectivity(Enum):
-    UNKNOWN = 'unknown'
-    NONE = 'none'
-    PORTAL = 'portal'
-    LIMITED = 'limited'
-    FULL = 'full'
+    UNKNOWN = "unknown"
+    NONE = "none"
+    PORTAL = "portal"
+    LIMITED = "limited"
+    FULL = "full"
+
 
 _syscmd_toggle = False
 
-class _syscmd():
+
+class _syscmd:
     @staticmethod
     def nmcli(cmd):
         # This is a mock implementation of the nmcli command execution.
@@ -26,7 +29,8 @@ class _syscmd():
         _syscmd_toggle = not _syscmd_toggle
         return "Mocked nmcli output for command: " + " ".join(cmd)
 
-class RadioMgr():
+
+class RadioMgr:
     _state = True
 
     def wifi_on(self):
@@ -34,17 +38,21 @@ class RadioMgr():
 
     def wifi_off(self):
         self._state = False
-    
+
     def wifi(self):
         return self._state
 
+
 radio = RadioMgr()
+
+
 @dataclass()
 class Device:
     device: str
     device_type: str
     state: str
     connection: Optional[str]
+
 
 @dataclass()
 class DeviceWifi:
@@ -58,7 +66,8 @@ class DeviceWifi:
     signal: int
     security: str
 
-class DeviceMgr():
+
+class DeviceMgr:
     _eth = True
     _wifi_list = [
         DeviceWifi(
@@ -208,7 +217,7 @@ class DeviceMgr():
         else:
             self._eth = True
             eth_status = "disconnected"
-        status=  [
+        status = [
             Device(
                 device="eth0",
                 device_type="ethernet",
@@ -229,13 +238,24 @@ class DeviceMgr():
             ),
         ]
         if radio.wifi():
-            status.append(Device(device="wlan0", device_type="wifi", state="connected", connection="HomeNet")),
-            status.append(Device(
-                device="p2p-dev-wlan0",
-                device_type="wifi-p2p",
-                state="disconnected",
-                connection=None,
-            ),)
+            (
+                status.append(
+                    Device(
+                        device="wlan0",
+                        device_type="wifi",
+                        state="connected",
+                        connection="HomeNet",
+                    )
+                ),
+            )
+            status.append(
+                Device(
+                    device="p2p-dev-wlan0",
+                    device_type="wifi-p2p",
+                    state="disconnected",
+                    connection=None,
+                ),
+            )
         return status
 
     def wifi_connect(self, ssid, password):
@@ -249,15 +269,16 @@ class DeviceMgr():
         for wconn in self._wifi_list:
             if wconn.in_use:
                 wconn.in_use = False
-            
 
 
 device = DeviceMgr()
+
 
 class Networking:
     def connectivity(self, check=False) -> NetworkConnectivity:
         # This is a mock implementation of network connectivity.
         # In a real scenario, this would check the actual network status.
         return NetworkConnectivity.FULL
+
 
 networking = Networking()
