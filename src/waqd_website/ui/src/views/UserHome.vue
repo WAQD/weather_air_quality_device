@@ -62,7 +62,7 @@
                   :alt="currentWeather.main" class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                 <div>
                   <h3 class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1)
-                    }}°C</h3>
+                  }}°C</h3>
                   <p class="text-base opacity-80">{{
                     translateWeatherCondition(currentWeather) }}</p>
                 </div>
@@ -164,11 +164,16 @@
             <div class="mt-3 flex flex-col gap-4">
               <p class="text-sm opacity-70">The widget uses your GPS location to show
                 current weather on your home screen.</p>
-              <div v-if="widgetDebug"
-                class="rounded-box border border-dashed border-base-300 bg-base-200/60 p-3 text-xs opacity-80">
+              <div v-if="widgetStatus" class="rounded-box border border-dashed p-3 text-xs" :class="widgetStatus.ok
+                ? 'border-success/40 bg-success/10'
+                : 'border-warning/50 bg-warning/10'">
                 <p class="font-semibold uppercase tracking-[0.16em] opacity-60 mb-1">
-                  Widget debug</p>
-                <p>{{ widgetDebug }}</p>
+                  {{ widgetStatus.ok ? 'Widget updated' : 'Widget needs attention' }}</p>
+                <p class="opacity-90">{{ widgetStatusText }}</p>
+                <button v-if="widgetStatusAction" class="btn btn-sm mt-2 btn-warning" type="button"
+                  @click="widgetStatusAction.handler">
+                  {{ widgetStatusAction.label }}
+                </button>
               </div>
               <div>
                 <p class="text-sm opacity-70 mb-2">Style</p>
@@ -199,6 +204,8 @@ import { useRouter } from 'vue-router'
 import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
 import { Preferences } from '@capacitor/preferences'
+import { NativeSettings, AndroidSettings } from 'capacitor-native-settings'
+import { LocationPermission } from '../capacitor/locationPermission'
 import { useTranslation } from '../composables/useTranslation'
 import { useUser } from '../composables/useUser'
 import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
@@ -232,7 +239,47 @@ const {
 const devices = ref<Device[]>([])
 const homeDevice = computed(() => devices.value[0] || null)
 
-const widgetDebug = ref('')
+interface WidgetStatus {
+  ts?: number
+  ok: boolean
+  code: string
+  message?: string
+}
+
+const widgetStatus = ref<WidgetStatus | null>(null)
+
+const widgetStatusText = computed(() => {
+  const s = widgetStatus.value
+  if (!s) return ''
+  if (s.ok) {
+    return s.ts ? `Updated ${new Date(s.ts).toLocaleTimeString()}` : 'Widget is up to date'
+  }
+  switch (s.code) {
+    case 'no_permission':
+      return "The widget needs 'Allow all the time' location access to refresh in the background."
+    case 'no_gps':
+      return 'The widget could not get your location. Turn on location services.'
+    case 'no_key':
+    case 'no_base_url':
+      return 'Log in to the app to enable the widget.'
+    case 'http':
+      return 'The widget server had an error. It will retry automatically.'
+    default:
+      return s.message || 'The widget could not refresh. It will retry automatically.'
+  }
+})
+
+const widgetStatusAction = computed<{ label: string, handler: () => void } | null>(() => {
+  const s = widgetStatus.value
+  if (!s || s.ok) return null
+  if (s.code === 'no_permission') {
+    return { label: 'Open settings', handler: openBackgroundPermissionSettings }
+  }
+  if (s.code === 'no_gps') {
+    return { label: 'Turn on location', handler: openLocationSettings }
+  }
+  return null
+})
 
 let weatherInterval: any = null
 
@@ -266,7 +313,7 @@ onMounted(async () => {
       if (isActive) {
         startWeatherPolling()
         refreshWeather(false)
-        loadWidgetDebug()
+        loadWidgetStatus()
       } else {
         stopWeatherPolling()
       }
@@ -275,7 +322,7 @@ onMounted(async () => {
     // Not on mobile
   }
 
-  await loadWidgetDebug()
+  await loadWidgetStatus()
 })
 
 onUnmounted(() => {
@@ -361,21 +408,31 @@ async function refreshWeather(force = false): Promise<void> {
   await loadWeather(force, false)
 }
 
-async function loadWidgetDebug(): Promise<void> {
+async function loadWidgetStatus(): Promise<void> {
   try {
-    const { value } = await Preferences.get({ key: 'waqd.widget.lastDebug' })
-    if (value) {
-      try {
-        const entry = JSON.parse(value)
-        const date = new Date(entry.ts).toLocaleTimeString()
-        widgetDebug.value = `[${date}] ${entry.msg}`
-      } catch {
-        widgetDebug.value = value
-      }
-    }
+    const { value } = await Preferences.get({ key: 'waqd.widget.lastStatus' })
+    widgetStatus.value = value ? JSON.parse(value) : null
   } catch {
-    widgetDebug.value = ''
+    widgetStatus.value = null
   }
+}
+
+async function openBackgroundPermissionSettings(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    await LocationPermission.openAppDetails()
+  } catch {
+    try {
+      await NativeSettings.openAndroid({ option: AndroidSettings.ApplicationDetails })
+    } catch { }
+  }
+}
+
+async function openLocationSettings(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return
+  try {
+    await NativeSettings.openAndroid({ option: AndroidSettings.Location })
+  } catch { }
 }
 </script>
 

@@ -17,7 +17,6 @@ import androidx.core.content.ContextCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -35,7 +34,7 @@ public class WidgetRefreshWorker extends Worker {
     private static final String PREF_WIDGET_KEY = "waqd.widget.key";
     private static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
     private static final String PREF_LOCALE = "waqd.locale";
-    private static final String PREF_DEBUG = "waqd.widget.lastDebug";
+    private static final String PREF_STATUS = "waqd.widget.lastStatus";
     private static final int GPS_TIMEOUT_SECONDS = 30;
 
     public WidgetRefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -46,31 +45,33 @@ public class WidgetRefreshWorker extends Worker {
     @Override
     public Result doWork() {
         Context appContext = getApplicationContext();
+        SharedPreferences prefs = appContext.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
 
         try {
             doRefresh(appContext);
-            logDebug(appContext.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE),
-                    "Widget refresh OK at " + System.currentTimeMillis());
+            logStatus(prefs, true, "ok", "Weather updated");
+            prefs.edit().putLong(WeatherWidgetProvider.PREF_LAST_SUCCESS, System.currentTimeMillis()).apply();
             return Result.success();
         } catch (RefreshException e) {
-            logDebug(appContext.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE),
-                    "Refresh failed: " + e.getMessage());
+            logStatus(prefs, false, e.code, e.getMessage());
             Log.e(TAG, "Refresh failed: " + e.getMessage(), e);
             return e.retryable ? Result.retry() : Result.failure();
         } catch (Exception e) {
-            logDebug(appContext.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE),
-                    "Refresh failed: " + e.getMessage());
+            logStatus(prefs, false, "error", e.getMessage());
             Log.e(TAG, "Unexpected error: " + e.getMessage(), e);
             return Result.retry();
         }
     }
 
-    private void logDebug(SharedPreferences prefs, String message) {
+    /** Structured status consumed by the web UI to render guided, actionable messages. */
+    private void logStatus(SharedPreferences prefs, boolean ok, String code, String message) {
         try {
             JSONObject entry = new JSONObject();
             entry.put("ts", System.currentTimeMillis());
-            entry.put("msg", message);
-            prefs.edit().putString(PREF_DEBUG, entry.toString()).apply();
+            entry.put("ok", ok);
+            entry.put("code", code == null ? "error" : code);
+            entry.put("message", message == null ? "" : message);
+            prefs.edit().putString(PREF_STATUS, entry.toString()).apply();
         } catch (Exception ignored) {}
     }
 
@@ -80,15 +81,15 @@ public class WidgetRefreshWorker extends Worker {
         String baseUrl = prefs.getString(PREF_BASE_URL, null);
 
         if (widgetKey == null || widgetKey.isEmpty()) {
-            throw new RefreshException("No widget key stored (waqd.widget.key). Open the app while logged in so the key gets saved.", false);
+            throw new RefreshException("No widget key stored (waqd.widget.key). Open the app while logged in so the key gets saved.", false, "no_key");
         }
         if (baseUrl == null || baseUrl.isEmpty()) {
-            throw new RefreshException("No base URL stored (waqd.background.apiBaseUrl). Open the app once to persist it.", false);
+            throw new RefreshException("No base URL stored (waqd.background.apiBaseUrl). Open the app once to persist it.", false, "no_base_url");
         }
 
         double[] coords = tryGetCoordinates(context);
         if (coords == null) {
-            throw new RefreshException("No GPS location available (fresh or cached). Turn on GPS.", true);
+            throw new RefreshException("No GPS location available (fresh or cached). Turn on GPS.", true, "no_gps");
         }
 
         double lat = coords[0];
@@ -117,7 +118,7 @@ public class WidgetRefreshWorker extends Worker {
             } catch (Exception ignored) {}
             conn.disconnect();
             boolean retryable = code >= 500 || code == 429;
-            throw new RefreshException("Widget API returned HTTP " + code + (errorBody.isEmpty() ? "" : " :: " + errorBody), retryable);
+            throw new RefreshException("Widget API returned HTTP " + code + (errorBody.isEmpty() ? "" : " :: " + errorBody), retryable, "http");
         }
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -147,7 +148,6 @@ public class WidgetRefreshWorker extends Worker {
         prefs.edit().putString("waqd.widget.lastGpsName", apiPayload.getString("locationName")).apply();
         String resolvedName = apiPayload.optString("locationName", "?");
         Log.d(TAG, "Widget data updated successfully: " + resolvedName + " at " + lat + "," + lon);
-        logDebug(prefs, "OK: " + resolvedName + " (" + lat + "," + lon + "), temp " + widgetData.optInt("temp") + "° at " + System.currentTimeMillis());
 
         Intent updateIntent = new Intent(context, WeatherWidgetProvider.class);
         updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
@@ -180,7 +180,7 @@ public class WidgetRefreshWorker extends Worker {
         boolean hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         if (!hasFine && !hasCoarse) {
-            throw new RefreshException("No location permission granted. Grant 'Allow all the time' in app settings.", false);
+            throw new RefreshException("No location permission granted. Grant 'Allow all the time' in app settings.", false, "no_permission");
         }
 
         // 1. Try fresh GPS fix via fused provider (30s timeout)
@@ -275,10 +275,16 @@ public class WidgetRefreshWorker extends Worker {
 
     private static final class RefreshException extends RuntimeException {
         final boolean retryable;
+        final String code;
 
         RefreshException(String message, boolean retryable) {
+            this(message, retryable, "error");
+        }
+
+        RefreshException(String message, boolean retryable, String code) {
             super(message);
             this.retryable = retryable;
+            this.code = code;
         }
     }
 }

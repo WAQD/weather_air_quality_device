@@ -20,9 +20,6 @@ import org.json.JSONArray;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +38,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final String BASE_URL = BuildConfig.WAQD_BASE_URL;
     private static final String PERIODIC_WORK_NAME = "waqd_widget_periodic";
+    /** Epoch millis of the last successful widget refresh (written by WidgetRefreshWorker). */
+    public static final String PREF_LAST_SUCCESS = "waqd.widget.lastSuccessTs";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -85,11 +84,17 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.REPLACE, request);
     }
 
+    /** Refresh the widget now, but never more often than every 5 minutes per success. */
+    public static void requestImmediateRefresh(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        long lastSuccess = prefs.getLong(PREF_LAST_SUCCESS, 0);
+        if (System.currentTimeMillis() - lastSuccess > 5 * 60_000L) {
+            enqueueImmediateRefresh(context);
+        }
+    }
+
     private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
         SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
-        if (!prefs.contains("widget_weather_data")) {
-            prefs = context.getSharedPreferences(context.getPackageName() + "_preferences", Context.MODE_PRIVATE);
-        }
 
         String weatherDataRaw = prefs.getString("widget_weather_data", "{}");
 
@@ -100,7 +105,6 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         String iconName = "";
         String widgetStyle = "simple";
         JSONArray forecastDataArr = null;
-        long updateTime = 0;
 
         try {
             JSONObject data = new JSONObject(weatherDataRaw);
@@ -125,24 +129,12 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             if (data.has("forecast_3_days")) {
                 forecastDataArr = data.getJSONArray("forecast_3_days");
             }
-            if (data.has("updateTime")) {
-                updateTime = data.getLong("updateTime");
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // If weather data is stale (> 1 hour old), trigger a refresh on background thread
-        final long finalUpdateTime = updateTime;
-        if (finalUpdateTime > 0 && (System.currentTimeMillis() - finalUpdateTime) > 3600_000L) {
-            executor.execute(() -> {
-                try {
-                    // Double-check staleness after delay to avoid race with in-progress refresh
-                    Thread.sleep(100);
-                    enqueueImmediateRefresh(context);
-                } catch (Exception ignored) {}
-            });
-        }
+        // If the stored weather is stale, kick off a refresh (rate-limited internally)
+        requestImmediateRefresh(context);
 
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);

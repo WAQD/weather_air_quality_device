@@ -1,44 +1,26 @@
 package com.waqd.app;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import com.getcapacitor.BridgeActivity;
 import java.net.URLEncoder;
 
 public class MainActivity extends BridgeActivity {
-    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     private String pendingNavigatePath = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        registerPlugin(LocationPermissionPlugin.class);
 
         Intent launchIntent = getIntent();
         if (launchIntent != null && launchIntent.hasExtra("navigate_to")) {
             pendingNavigatePath = launchIntent.getStringExtra("navigate_to");
         }
-
-        SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
-        prefListener = (sharedPreferences, key) -> {
-            if ("widget_weather_data".equals(key)) {
-                String val = sharedPreferences.getString(key, "");
-                Log.d("WeatherWidget", "MainActivity: widget_weather_data changed! Content: " + val);
-
-                Intent intent = new Intent(this, WeatherWidgetProvider.class);
-                intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), WeatherWidgetProvider.class));
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-                sendBroadcast(intent);
-            }
-        };
-        prefs.registerOnSharedPreferenceChangeListener(prefListener);
     }
 
     @Override
@@ -56,6 +38,9 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
+        // Opening the app is a good moment to refresh the widget (e.g. right after
+        // the user enabled background location). The worker/backend cache keeps it cheap.
+        WeatherWidgetProvider.requestImmediateRefresh(this);
         if (pendingNavigatePath != null) {
             final String path = pendingNavigatePath;
             pendingNavigatePath = null;
