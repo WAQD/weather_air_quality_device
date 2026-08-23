@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { Preferences } from '@capacitor/preferences'
+import { Capacitor } from '@capacitor/core'
 import { Geolocation } from '@capacitor/geolocation'
 import type { AvailableLocale } from '../i18n'
 import i18n from '../i18n'
@@ -153,6 +154,44 @@ function resetState(): void {
   resetWeatherData()
 }
 
+interface DeviceCoords {
+  latitude: number
+  longitude: number
+  altitude: number | null
+}
+
+function getDevicePosition(): Promise<DeviceCoords> {
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 30000,
+  }
+
+  if (Capacitor.isNativePlatform()) {
+    return Geolocation.getCurrentPosition(options).then((position) => ({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      altitude: position.coords.altitude ?? null,
+    }))
+  }
+
+  // On web, use the browser geolocation API directly. The Capacitor web
+  // implementation registers a deprecated `deviceorientation` listener for
+  // compass heading that we never use, so we avoid loading it entirely.
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          altitude: position.coords.altitude ?? null,
+        }),
+      reject,
+      options,
+    )
+  })
+}
+
 async function loadDeviceLocation(): Promise<WeatherLocationPayload | null> {
   if (isLoadingDeviceLocation.value) {
     return deviceLocation.value
@@ -160,11 +199,7 @@ async function loadDeviceLocation(): Promise<WeatherLocationPayload | null> {
   isLoadingDeviceLocation.value = true
 
   try {
-    const position = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 30000,
-    })
+    const coords = await getDevicePosition()
 
     const location: WeatherLocationPayload = {
       name: '',
@@ -172,9 +207,9 @@ async function loadDeviceLocation(): Promise<WeatherLocationPayload | null> {
       state: '',
       county: '',
       country_code: '',
-      altitude: position.coords.altitude ?? 0,
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
+      altitude: coords.altitude ?? 0,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
     }
     deviceLocation.value = location
     return location
