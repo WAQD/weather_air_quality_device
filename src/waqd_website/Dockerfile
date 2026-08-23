@@ -32,6 +32,10 @@ RUN . pdm-venv/bin/activate && \
     rm -rf ~/.cache
 
 COPY --chown=waqd:waqd src/waqd src/waqd
+# Backend Translation loads locales/*.json at runtime to localize the widget's
+# weather strings. The frontend already bundles these via npm, so only copy the
+# locales (not the rest of waqd_assets).
+COPY --chown=waqd:waqd src/waqd_assets/locales src/waqd_assets/locales
 # Exclude the frontend source folder from the final image
 COPY --exclude=ui --chown=waqd:waqd src/waqd_website src/waqd_website
 
