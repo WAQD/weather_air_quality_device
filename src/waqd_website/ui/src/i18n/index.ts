@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import { Preferences } from '@capacitor/preferences'
 
 export type MessageSchema = Record<string, string>
 
@@ -36,10 +37,10 @@ async function loadLocaleMessages(locale: AvailableLocale): Promise<void> {
       throw new Error(`Failed to fetch locale ${locale}: ${response.statusText}`)
     }
     const messages = await response.json()
-    
+
     // Set the locale messages
     i18n.global.setLocaleMessage(locale, messages)
-    
+
     // Mark as loaded
     loadedLocales.add(locale)
   } catch (error) {
@@ -54,12 +55,19 @@ async function loadLocaleMessages(locale: AvailableLocale): Promise<void> {
 export async function setLocale(locale: AvailableLocale): Promise<void> {
   // Load the locale if not already loaded
   await loadLocaleMessages(locale)
-  
+
   // @ts-ignore - locale.value type issue with vue-i18n
   i18n.global.locale.value = locale
-  
+
   // Store preference in localStorage
   localStorage.setItem('waqd-locale', locale)
+
+  // Also persist for the native widget (read via Capacitor Preferences)
+  try {
+    await Preferences.set({ key: 'waqd.locale', value: locale })
+  } catch {
+    // non-critical (e.g. running in a plain browser)
+  }
 }
 
 /**
@@ -81,6 +89,13 @@ export async function initI18n(): Promise<void> {
   await loadLocaleMessages(storedLocale)
   // @ts-ignore
   i18n.global.locale.value = storedLocale
+
+  // Persist for the native widget in case it was set in a previous session
+  try {
+    await Preferences.set({ key: 'waqd.locale', value: storedLocale })
+  } catch {
+    // non-critical (e.g. running in a plain browser)
+  }
 }
 
 export default i18n

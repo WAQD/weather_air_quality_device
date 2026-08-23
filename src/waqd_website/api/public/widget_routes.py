@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from waqd.components.weather.base_types import Location
+from waqd.components.translation import Translation
+from waqd.settings import LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN
 from waqd_website.auth.authentication import get_current_user_from_widget_key
 from waqd_website.database import User
 from waqd_website.database.weather import get_user_weather_location
@@ -49,7 +51,10 @@ async def get_widget_weather(
     user: User = Depends(get_current_user_from_widget_key),
     latitude: Optional[float] = Query(default=None),
     longitude: Optional[float] = Query(default=None),
+    lang: str = Query(default=LANG_ENGLISH),
 ):
+    if lang not in (LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN):
+        lang = LANG_ENGLISH
     if latitude is not None and longitude is not None:
         location = _empty_location()
         location.name = "Selected location"
@@ -78,30 +83,47 @@ async def get_widget_weather(
 
     resolved_name = location.name
     if resolved_name == "Selected location" or not resolved_name.strip():
-        resolved = weather_service.resolve_location_name(
-            location.latitude, location.longitude
-        )
+        resolved = weather_service.resolve_location_name(location.latitude, location.longitude)
         if resolved:
             resolved_name = resolved.name
+
+    translator = Translation()
+    weekday_keys = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 
     today_fc = forecast_list[0] if forecast_list else None
     forecast_3: list[WidgetForecastDay] = []
     for day in forecast_list[1:4]:
         import datetime as dt
+
         date_obj = dt.datetime.fromisoformat(day.get("date_time", ""))
-        short_day = date_obj.strftime("%a")
-        forecast_3.append(WidgetForecastDay(
-            day=short_day,
-            icon=day.get("icon", ""),
-            temp_min=round(day.get("temp_min", 0)),
-            temp_max=round(day.get("temp_max", 0)),
-        ))
+        short_day = translator.get_localized_string(
+            "ui_dict.json", "weekday_" + weekday_keys[date_obj.weekday()], lang
+        )
+        if not short_day:
+            short_day = date_obj.strftime("%a")
+        forecast_3.append(
+            WidgetForecastDay(
+                day=short_day,
+                icon=day.get("icon", ""),
+                temp_min=round(day.get("temp_min", 0)),
+                temp_max=round(day.get("temp_max", 0)),
+            )
+        )
 
     condition = ""
-    if current.get("main"):
-        condition = current["main"]
+    wid = current.get("wid")
+    main_category = current.get("main", "")
+    if wid is not None:
+        condition = translator.get_localized_string("ui_dict.json", f"weather_{wid}", lang)
+    if not condition and main_category:
+        condition = translator.get_localized_string(
+            "ui_dict.json", f"weather_{main_category.lower()}", lang
+        )
+    if not condition:
+        condition = main_category
 
     import time
+
     return WidgetWeatherResponse(
         temp=round(current.get("temp", 0)),
         temp_min=round(

@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,6 +34,7 @@ public class WidgetRefreshWorker extends Worker {
     private static final String TAG = "WidgetRefreshWorker";
     private static final String PREF_WIDGET_KEY = "waqd.widget.key";
     private static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
+    private static final String PREF_LOCALE = "waqd.locale";
     private static final String PREF_DEBUG = "waqd.widget.lastDebug";
     private static final int GPS_TIMEOUT_SECONDS = 30;
 
@@ -93,7 +95,8 @@ public class WidgetRefreshWorker extends Worker {
         double lon = coords[1];
         Log.d(TAG, "Fetching weather for " + lat + ", " + lon);
 
-        String apiUrl = baseUrl + "/api/public/widget/weather?latitude=" + lat + "&longitude=" + lon;
+        String apiUrl = baseUrl + "/api/public/widget/weather?latitude=" + lat + "&longitude=" + lon
+                + "&lang=" + resolveLocale(prefs);
         URL url = new URL(apiUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -153,6 +156,17 @@ public class WidgetRefreshWorker extends Worker {
         updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         context.sendBroadcast(updateIntent);
         Log.d(TAG, "Widget update broadcast sent for " + ids.length + " instances");
+    }
+
+    private static String resolveLocale(SharedPreferences prefs) {
+        String locale = prefs.getString(PREF_LOCALE, null);
+        if (locale == null || locale.isEmpty()) {
+            locale = Locale.getDefault().getLanguage();
+        }
+        if ("de".equals(locale) || "hu".equals(locale)) {
+            return locale;
+        }
+        return "en";
     }
 
     private double[] tryGetCoordinates(Context context) throws RefreshException {
