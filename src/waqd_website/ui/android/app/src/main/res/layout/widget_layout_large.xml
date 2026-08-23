@@ -301,5 +301,23 @@
             </LinearLayout>
 
         </LinearLayout>
+
+        <!-- Warning banner (shown by the provider when the widget can't refresh) -->
+        <TextView
+            android:id="@+id/widget_warning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:gravity="center"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:paddingTop="2dp"
+            android:textColor="#FFD54F"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:shadowColor="#CC000000"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2" />
     </LinearLayout>
 </FrameLayout>

@@ -1,5 +1,6 @@
 package com.waqd.app;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -7,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import androidx.core.content.ContextCompat;
 import androidx.work.BackoffPolicy;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
@@ -90,6 +93,45 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         long lastSuccess = prefs.getLong(PREF_LAST_SUCCESS, 0);
         if (System.currentTimeMillis() - lastSuccess > 5 * 60_000L) {
             enqueueImmediateRefresh(context);
+        }
+    }
+
+    /** Refresh immediately, bypassing the rate limit. Use for explicit user actions (e.g. language change). */
+    public static void refreshNow(Context context) {
+        enqueueImmediateRefresh(context);
+    }
+
+    /**
+     * Returns a short warning to display on the widget, or null when everything is fine.
+     * Prefers the background-location check (the silent-failure case) over the last error status.
+     */
+    private static String getWidgetWarning(Context context, SharedPreferences prefs) {
+        boolean bgGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!bgGranted) {
+            return "Allow location \u201cAll the time\u201d \u2014 tap to fix";
+        }
+
+        String statusRaw = prefs.getString("waqd.widget.lastStatus", null);
+        if (statusRaw == null) return null;
+        try {
+            JSONObject status = new JSONObject(statusRaw);
+            if (status.optBoolean("ok", false)) return null;
+            switch (status.optString("code", "error")) {
+                case "no_permission":
+                    return "Allow location \u201cAll the time\u201d \u2014 tap to fix";
+                case "no_gps":
+                    return "Turn on location \u2014 tap to fix";
+                case "no_key":
+                case "no_base_url":
+                    return "Log in to set up the widget";
+                case "http":
+                    return "Update failed \u2014 will retry";
+                default:
+                    return "Couldn't update \u2014 tap for details";
+            }
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -160,6 +202,24 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent clockPendingIntent = PendingIntent.getActivity(context, 1, clockIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.clock_section, clockPendingIntent);
+
+        // Warning banner: shown on the widget itself when background refresh can't work,
+        // so the user sees the problem without opening the app. Tapping it opens the app
+        // home page, where the fix (e.g. "Allow all the time") lives.
+        String warning = getWidgetWarning(context, prefs);
+        if (warning != null) {
+            views.setTextViewText(R.id.widget_warning, "\u26A0 " + warning);
+            views.setViewVisibility(R.id.widget_warning, android.view.View.VISIBLE);
+
+            Intent warnIntent = new Intent(context, MainActivity.class);
+            warnIntent.putExtra("navigate_to", "/home");
+            warnIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent warnPendingIntent = PendingIntent.getActivity(context, 2, warnIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            views.setOnClickPendingIntent(R.id.widget_warning, warnPendingIntent);
+        } else {
+            views.setViewVisibility(R.id.widget_warning, android.view.View.GONE);
+        }
 
         if (layoutId == R.layout.widget_layout_large) {
             if ("forecast".equals(widgetStyle) && forecastDataArr != null && forecastDataArr.length() >= 3) {

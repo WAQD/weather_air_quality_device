@@ -11,6 +11,7 @@ import java.net.URLEncoder;
 
 public class MainActivity extends BridgeActivity {
     private String pendingNavigatePath = null;
+    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +22,18 @@ public class MainActivity extends BridgeActivity {
         if (launchIntent != null && launchIntent.hasExtra("navigate_to")) {
             pendingNavigatePath = launchIntent.getStringExtra("navigate_to");
         }
+
+        // Refresh the widget right away when the app language changes (so it re-fetches
+        // in the new locale immediately), or when login/first-setup keys become available.
+        SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        prefListener = (sharedPreferences, key) -> {
+            if ("waqd.locale".equals(key)
+                    || "waqd.widget.key".equals(key)
+                    || "waqd.background.apiBaseUrl".equals(key)) {
+                WeatherWidgetProvider.refreshNow(this);
+            }
+        };
+        prefs.registerOnSharedPreferenceChangeListener(prefListener);
     }
 
     @Override

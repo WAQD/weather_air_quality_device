@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -35,6 +36,7 @@ public class WidgetRefreshWorker extends Worker {
     private static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
     private static final String PREF_LOCALE = "waqd.locale";
     private static final String PREF_STATUS = "waqd.widget.lastStatus";
+    private static final String PREF_UPDATE_HISTORY = "waqd.widget.updateHistory";
     private static final int GPS_TIMEOUT_SECONDS = 30;
 
     public WidgetRefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -49,8 +51,10 @@ public class WidgetRefreshWorker extends Worker {
 
         try {
             doRefresh(appContext);
+            long now = System.currentTimeMillis();
             logStatus(prefs, true, "ok", "Weather updated");
-            prefs.edit().putLong(WeatherWidgetProvider.PREF_LAST_SUCCESS, System.currentTimeMillis()).apply();
+            prefs.edit().putLong(WeatherWidgetProvider.PREF_LAST_SUCCESS, now).apply();
+            logUpdateHistory(prefs, now);
             return Result.success();
         } catch (RefreshException e) {
             logStatus(prefs, false, e.code, e.getMessage());
@@ -72,6 +76,22 @@ public class WidgetRefreshWorker extends Worker {
             entry.put("code", code == null ? "error" : code);
             entry.put("message", message == null ? "" : message);
             prefs.edit().putString(PREF_STATUS, entry.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+
+    /** Keeps a rolling list of the last 3 successful update timestamps (newest first). */
+    private void logUpdateHistory(SharedPreferences prefs, long ts) {
+        try {
+            JSONArray history = new JSONArray();
+            history.put(ts);
+            String existing = prefs.getString(PREF_UPDATE_HISTORY, null);
+            if (existing != null && !existing.isEmpty()) {
+                JSONArray old = new JSONArray(existing);
+                for (int i = 0; i < old.length() && history.length() < 3; i++) {
+                    history.put(old.getLong(i));
+                }
+            }
+            prefs.edit().putString(PREF_UPDATE_HISTORY, history.toString()).apply();
         } catch (Exception ignored) {}
     }
 
@@ -202,6 +222,17 @@ public class WidgetRefreshWorker extends Worker {
         if (networkFix != null) {
             Log.d(TAG, "Using network provider location: " + networkFix.getLatitude() + ", " + networkFix.getLongitude());
             return new double[]{networkFix.getLatitude(), networkFix.getLongitude()};
+        }
+
+        // If we could not get a fix and the app lacks background location access, that is
+        // almost certainly why — foreground-only permission can't be used while the worker
+        // runs in the background. Point the user at the correct fix ("Allow all the time").
+        boolean hasBackground = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        if (!hasBackground) {
+            throw new RefreshException(
+                    "The widget needs 'Allow all the time' location access to refresh in the background.",
+                    false, "no_permission");
         }
 
         Log.w(TAG, "No location available (GPS timeout, no cached, no network). Will retry.");

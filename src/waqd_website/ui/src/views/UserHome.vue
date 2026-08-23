@@ -34,7 +34,7 @@
                 {{ t('home_go_to_devices') }}
               </router-link>
               <router-link v-if="homeDevice" to="/rest/devices"
-                class="btn btn-outline btn-md sm:btn-lg mt-4 w-full">
+                class="btn btn-secondary btn-md sm:btn-lg mt-4 w-full">
                 {{ t('home_show_more_devices') }}
               </router-link>
             </div>
@@ -175,6 +175,17 @@
                   {{ widgetStatusAction.label }}
                 </button>
               </div>
+              <div v-if="showBackgroundPermissionWarning"
+                class="rounded-box border border-dashed border-warning/50 bg-warning/10 p-3 text-xs">
+                <p class="font-semibold uppercase tracking-[0.16em] opacity-60 mb-1">
+                  Background refresh off</p>
+                <p class="opacity-90">The widget can't refresh in the background until
+                  you allow location "All the time".</p>
+                <button class="btn btn-sm btn-warning mt-2" type="button"
+                  @click="openBackgroundPermissionSettings">
+                  Open settings
+                </button>
+              </div>
               <div>
                 <p class="text-sm opacity-70 mb-2">Style</p>
                 <div class="join">
@@ -247,11 +258,23 @@ interface WidgetStatus {
 }
 
 const widgetStatus = ref<WidgetStatus | null>(null)
+const widgetUpdateHistory = ref<number[]>([])
+const backgroundPermissionGranted = ref(true)
+
+const showBackgroundPermissionWarning = computed(() =>
+  !backgroundPermissionGranted.value && (!widgetStatus.value || widgetStatus.value.ok)
+)
 
 const widgetStatusText = computed(() => {
   const s = widgetStatus.value
   if (!s) return ''
   if (s.ok) {
+    if (widgetUpdateHistory.value.length) {
+      const times = widgetUpdateHistory.value
+        .map(t => new Date(t).toLocaleTimeString())
+        .join(' · ')
+      return `Updated ${times}`
+    }
     return s.ts ? `Updated ${new Date(s.ts).toLocaleTimeString()}` : 'Widget is up to date'
   }
   switch (s.code) {
@@ -414,6 +437,22 @@ async function loadWidgetStatus(): Promise<void> {
     widgetStatus.value = value ? JSON.parse(value) : null
   } catch {
     widgetStatus.value = null
+  }
+  try {
+    const { value } = await Preferences.get({ key: 'waqd.widget.updateHistory' })
+    widgetUpdateHistory.value = value ? JSON.parse(value) : []
+  } catch {
+    widgetUpdateHistory.value = []
+  }
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { granted } = await LocationPermission.isBackgroundGranted()
+      backgroundPermissionGranted.value = granted
+    } catch {
+      backgroundPermissionGranted.value = true
+    }
+  } else {
+    backgroundPermissionGranted.value = true
   }
 }
 
