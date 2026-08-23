@@ -118,7 +118,7 @@ jobs:
         id: build_image
         run: |
           VCS_REF=$(git rev-parse --short=6 HEAD)
-          IMAGE_TAG="v${{ steps.package_version.outputs.version }}+${VCS_REF}"
+          IMAGE_TAG="v${{ steps.package_version.outputs.version }}-${VCS_REF}"
           echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
           TAGS="-t goszpeti/waqd_website:latest -t goszpeti/waqd_website:${IMAGE_TAG}"
           docker buildx build \
