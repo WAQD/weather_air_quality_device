@@ -436,7 +436,7 @@ function renderHourlyChart(): void {
     chart: {
       backgroundColor: 'transparent',
       style: { fontFamily: 'inherit' },
-      spacing: [4, 0, 4, 12]
+      spacing: [16, 0, 4, 12]
     },
     title: { text: undefined },
     xAxis: {
@@ -455,7 +455,7 @@ function renderHourlyChart(): void {
         softMin: tempSoftMin,
         softMax: tempSoftMax,
         startOnTick: false,
-        endOnTick: false,
+        endOnTick: true,
         title: { text: undefined },
         labels: { format: '{value}°', style: { fontSize: '11px', color: axisLabelColor } },
         gridLineColor: gridColor
