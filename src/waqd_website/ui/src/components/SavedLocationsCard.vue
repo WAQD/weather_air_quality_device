@@ -4,7 +4,7 @@
       <div class="flex items-start justify-between gap-3">
         <div>
           <h2 class="card-title text-base sm:text-lg">{{ t('home_weather_saved_location')
-          }}</h2>
+            }}</h2>
           <p class="mt-1 text-sm opacity-70">{{ t('home_weather_search_help') }}</p>
         </div>
       </div>
@@ -45,9 +45,11 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useTranslation } from '../composables/useTranslation'
 import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
 
+const router = useRouter()
 const { t } = useTranslation()
 const {
   savedLocations,
@@ -78,6 +80,7 @@ async function selectLocation(location: WeatherLocationPayload): Promise<void> {
   clearSuccess()
   clearError()
   setCurrentLocation(location)
+  await router.push({ name: 'weather' })
   await loadWeatherForLocation(location)
 }
 
