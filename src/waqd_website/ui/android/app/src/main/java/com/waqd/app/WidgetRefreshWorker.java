@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -107,17 +108,46 @@ public class WidgetRefreshWorker extends Worker {
             throw new RefreshException("No base URL stored (waqd.background.apiBaseUrl). Open the app once to persist it.", false, "no_base_url");
         }
 
-        double[] coords = tryGetCoordinates(context);
-        if (coords == null) {
-            throw new RefreshException("No GPS location available (fresh or cached). Turn on GPS.", true, "no_gps");
+        // Fetch the saved locations and build the cycle: [GPS] + saved locations.
+        JSONArray savedLocations = new JSONArray();
+        try {
+            savedLocations = fetchSavedLocations(baseUrl, widgetKey);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to fetch saved locations, defaulting to GPS only: " + e.getMessage());
         }
 
-        double lat = coords[0];
-        double lon = coords[1];
-        Log.d(TAG, "Fetching weather for " + lat + ", " + lon);
+        int total = 1 + savedLocations.length();
+        int index = prefs.getInt(WeatherWidgetProvider.PREF_SELECTED_INDEX, 0);
+        if (index < 0 || index >= total) {
+            index = 0;
+        }
+        prefs.edit().putInt(WeatherWidgetProvider.PREF_SELECTED_INDEX, index).apply();
+        prefs.edit().putInt(WeatherWidgetProvider.PREF_LOCATION_COUNT, total).apply();
+
+        double lat;
+        double lon;
+        String locationName = null;
+        if (index == 0) {
+            double[] coords = tryGetCoordinates(context);
+            if (coords == null) {
+                throw new RefreshException("No GPS location available (fresh or cached). Turn on GPS.", true, "no_gps");
+            }
+            lat = coords[0];
+            lon = coords[1];
+        } else {
+            JSONObject loc = savedLocations.getJSONObject(index - 1);
+            lat = loc.getDouble("latitude");
+            lon = loc.getDouble("longitude");
+            locationName = loc.optString("name", null);
+        }
+
+        Log.d(TAG, "Fetching weather for " + lat + ", " + lon + (locationName != null ? " (" + locationName + ")" : ""));
 
         String apiUrl = baseUrl + "/api/public/widget/weather?latitude=" + lat + "&longitude=" + lon
                 + "&lang=" + resolveLocale(prefs);
+        if (locationName != null && !locationName.isEmpty()) {
+            apiUrl += "&name=" + URLEncoder.encode(locationName, "UTF-8");
+        }
         URL url = new URL(apiUrl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -187,6 +217,31 @@ public class WidgetRefreshWorker extends Worker {
             return locale;
         }
         return "en";
+    }
+
+    /** Fetches the user's saved locations as a JSON array of {name, latitude, longitude}. */
+    private JSONArray fetchSavedLocations(String baseUrl, String widgetKey) throws Exception {
+        String url = baseUrl + "/api/public/widget/locations";
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Authorization", "WidgetToken " + widgetKey);
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+
+        int code = conn.getResponseCode();
+        if (code != 200) {
+            conn.disconnect();
+            throw new RefreshException("Locations API returned HTTP " + code, false, "http");
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) sb.append(line);
+        reader.close();
+        conn.disconnect();
+
+        return new JSONObject(sb.toString()).getJSONArray("locations");
     }
 
     private double[] tryGetCoordinates(Context context) throws RefreshException {

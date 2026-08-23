@@ -43,6 +43,11 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static final String PERIODIC_WORK_NAME = "waqd_widget_periodic";
     /** Epoch millis of the last successful widget refresh (written by WidgetRefreshWorker). */
     public static final String PREF_LAST_SUCCESS = "waqd.widget.lastSuccessTs";
+    /** Persisted selected location index and total count for the location switcher. */
+    public static final String PREF_SELECTED_INDEX = "waqd.widget.selectedIndex";
+    public static final String PREF_LOCATION_COUNT = "waqd.widget.locationCount";
+    private static final String ACTION_LOCATION_PREV = "com.waqd.app.action.LOCATION_PREV";
+    private static final String ACTION_LOCATION_NEXT = "com.waqd.app.action.LOCATION_NEXT";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -68,6 +73,28 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
         updateAppWidget(context, appWidgetManager, appWidgetId);
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        String action = intent.getAction();
+        if (ACTION_LOCATION_PREV.equals(action)) {
+            changeLocation(context, true);
+        } else if (ACTION_LOCATION_NEXT.equals(action)) {
+            changeLocation(context, false);
+        }
+    }
+
+    /** Steps the selected location index (prev/next, wrapping) and triggers a refresh. */
+    private void changeLocation(Context context, boolean prev) {
+        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        int count = prefs.getInt(PREF_LOCATION_COUNT, 1);
+        if (count <= 1) return;
+        int index = prefs.getInt(PREF_SELECTED_INDEX, 0);
+        index = prev ? (index - 1 + count) % count : (index + 1) % count;
+        prefs.edit().putInt(PREF_SELECTED_INDEX, index).apply();
+        refreshNow(context);
     }
 
     private static void schedulePeriodicWork(Context context) {
@@ -202,6 +229,25 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent clockPendingIntent = PendingIntent.getActivity(context, 1, clockIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.clock_section, clockPendingIntent);
+
+        // Location switcher arrows (left = prev, right = next); hidden when there is
+        // only the GPS location (no saved locations to switch to).
+        int locationCount = prefs.getInt(PREF_LOCATION_COUNT, 1);
+        int arrowsVisible = locationCount > 1 ? android.view.View.VISIBLE : android.view.View.GONE;
+        views.setViewVisibility(R.id.widget_prev, arrowsVisible);
+        views.setViewVisibility(R.id.widget_next, arrowsVisible);
+
+        Intent prevIntent = new Intent(context, WeatherWidgetProvider.class);
+        prevIntent.setAction(ACTION_LOCATION_PREV);
+        PendingIntent prevPending = PendingIntent.getBroadcast(context, 3, prevIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        views.setOnClickPendingIntent(R.id.widget_prev, prevPending);
+
+        Intent nextIntent = new Intent(context, WeatherWidgetProvider.class);
+        nextIntent.setAction(ACTION_LOCATION_NEXT);
+        PendingIntent nextPending = PendingIntent.getBroadcast(context, 4, nextIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        views.setOnClickPendingIntent(R.id.widget_next, nextPending);
 
         // Warning banner: shown on the widget itself when background refresh can't work,
         // so the user sees the problem without opening the app. Tapping it opens the app

@@ -8,7 +8,7 @@ from waqd.components.translation import Translation
 from waqd.settings import LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN
 from waqd_website.auth.authentication import get_current_user_from_widget_key
 from waqd_website.database import User
-from waqd_website.database.weather import get_user_weather_location
+from waqd_website.database.weather import get_user_saved_locations, get_user_weather_location
 from waqd_website.service.weather_service import weather_service
 
 rt = APIRouter()
@@ -33,6 +33,16 @@ class WidgetWeatherResponse(BaseModel):
     forecast_3_days: list[WidgetForecastDay]
 
 
+class WidgetLocation(BaseModel):
+    name: str
+    latitude: float
+    longitude: float
+
+
+class WidgetLocationsResponse(BaseModel):
+    locations: list[WidgetLocation]
+
+
 def _empty_location() -> Location:
     return Location(
         name="Unknown",
@@ -46,18 +56,38 @@ def _empty_location() -> Location:
     )
 
 
+@rt.get("/locations", response_model=WidgetLocationsResponse)
+async def get_widget_locations(
+    user: User = Depends(get_current_user_from_widget_key),
+):
+    if user.id is None:
+        return WidgetLocationsResponse(locations=[])
+    saved = get_user_saved_locations(user.id)
+    return WidgetLocationsResponse(
+        locations=[
+            WidgetLocation(
+                name=loc.name,
+                latitude=loc.latitude,
+                longitude=loc.longitude,
+            )
+            for loc in saved
+        ]
+    )
+
+
 @rt.get("/weather", response_model=WidgetWeatherResponse)
 async def get_widget_weather(
     user: User = Depends(get_current_user_from_widget_key),
     latitude: Optional[float] = Query(default=None),
     longitude: Optional[float] = Query(default=None),
     lang: str = Query(default=LANG_ENGLISH),
+    name: Optional[str] = Query(default=None),
 ):
     if lang not in (LANG_ENGLISH, LANG_GERMAN, LANG_HUNGARIAN):
         lang = LANG_ENGLISH
     if latitude is not None and longitude is not None:
         location = _empty_location()
-        location.name = "Selected location"
+        location.name = name if name else "Selected location"
         location.latitude = latitude
         location.longitude = longitude
     else:

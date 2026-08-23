@@ -13,18 +13,18 @@ const imageExtensions = ['.jpg', '.jpeg', '.png', '.avif', '.webp']
 async function getFiles(dir) {
   const files = []
   const items = await readdir(dir)
-  
+
   for (const item of items) {
     const fullPath = join(dir, item)
     const stats = await stat(fullPath)
-    
+
     if (stats.isDirectory()) {
       files.push(...await getFiles(fullPath))
     } else if (imageExtensions.includes(extname(item).toLowerCase())) {
       files.push(fullPath)
     }
   }
-  
+
   return files
 }
 
@@ -32,9 +32,9 @@ async function optimizeImage(filePath) {
   const ext = extname(filePath).toLowerCase()
   const image = sharp(filePath)
   const metadata = await image.metadata()
-  
+
   console.log(`Optimizing: ${filePath}`)
-  
+
   try {
     if (ext === '.jpg' || ext === '.jpeg') {
       await image
@@ -55,15 +55,25 @@ async function optimizeImage(filePath) {
     } else {
       return
     }
-    
+
     // Replace original with optimized
     const fs = await import('fs/promises')
     await fs.rename(filePath + '.tmp', filePath)
-    
+
     const newStats = await stat(filePath)
-    const reduction = ((1 - newStats.size / metadata.size) * 100).toFixed(1)
-    console.log(`  ✓ Reduced by ${reduction}%`)
-    
+    const oldSize = metadata.size
+    const newSize = newStats.size
+    if (oldSize && newSize) {
+      const ratio = 1 - newSize / oldSize
+      if (Number.isFinite(ratio) && ratio > 0) {
+        console.log(`  ✓ Reduced by ${(ratio * 100).toFixed(1)}%`)
+      } else {
+        console.log('  ✓ Optimized')
+      }
+    } else {
+      console.log('  ✓ Optimized')
+    }
+
   } catch (error) {
     console.error(`  ✗ Failed to optimize: ${error.message}`)
   }
@@ -71,15 +81,15 @@ async function optimizeImage(filePath) {
 
 async function main() {
   console.log('🖼️  Optimizing images in dist/static...\n')
-  
+
   try {
     const files = await getFiles(distDir)
     console.log(`Found ${files.length} images to optimize\n`)
-    
+
     for (const file of files) {
       await optimizeImage(file)
     }
-    
+
     console.log('\n✅ Image optimization complete!')
   } catch (error) {
     console.error('❌ Error during optimization:', error)

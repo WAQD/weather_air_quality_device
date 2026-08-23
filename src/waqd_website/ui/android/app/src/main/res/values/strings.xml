@@ -4,4 +4,6 @@
     <string name="title_activity_main">Waqd App</string>
     <string name="package_name">com.waqd.app</string>
     <string name="custom_url_scheme">com.waqd.app</string>
+    <string name="widget_prev_location">Previous location</string>
+    <string name="widget_next_location">Next location</string>
 </resources>

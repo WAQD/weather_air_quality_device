@@ -30,57 +30,86 @@
             android:id="@+id/clock_section"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2.2"
+            android:layout_weight="1"
             android:gravity="center"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginEnd="@dimen/widget_clock_margin">
+                android:layout_marginEnd="@dimen/widget_clock_margin"
+                android:layout_weight="1">
 
                 <TextClock
                     android:id="@+id/widget_clock_hour"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/clock_panel"
-                    android:gravity="center"
+                    android:fontFamily="sans-serif-condensed-light"
                     android:format12Hour="hh"
                     android:format24Hour="HH"
-                    android:textColor="#222222"
-                    android:textSize="110sp"
-                    android:fontFamily="sans-serif-condensed-light"
-                    android:textStyle="normal"
+                    android:gravity="center"
                     android:shadowColor="#40000000"
                     android:shadowDx="0"
                     android:shadowDy="4"
-                    android:shadowRadius="4" />
+                    android:shadowRadius="4"
+                    android:textColor="#222222"
+                    android:textSize="110sp"
+                    android:textStyle="normal" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_marginStart="@dimen/widget_clock_margin">
+                android:layout_marginStart="@dimen/widget_clock_margin"
+                android:layout_weight="1">
 
                 <TextClock
                     android:id="@+id/widget_clock_minute"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/clock_panel"
-                    android:gravity="center"
+                    android:fontFamily="sans-serif-condensed-light"
                     android:format12Hour="mm"
                     android:format24Hour="mm"
-                    android:textColor="#222222"
-                    android:textSize="110sp"
-                    android:fontFamily="sans-serif-condensed-light"
-                    android:textStyle="normal"
+                    android:gravity="center"
                     android:shadowColor="#40000000"
                     android:shadowDx="0"
                     android:shadowDy="4"
-                    android:shadowRadius="4" />
+                    android:shadowRadius="4"
+                    android:textColor="#222222"
+                    android:textSize="110sp"
+                    android:textStyle="normal" />
             </LinearLayout>
+        </LinearLayout>
+
+        <!-- Location switcher: prev/next arrows between clock and weather -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
+
+            <ImageView
+                android:id="@+id/widget_prev"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_arrow_left"
+                android:contentDescription="@string/widget_prev_location" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/widget_next"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_arrow_right"
+                android:contentDescription="@string/widget_next_location" />
         </LinearLayout>
 
         <!-- Bottom Section: Weather Info -->
