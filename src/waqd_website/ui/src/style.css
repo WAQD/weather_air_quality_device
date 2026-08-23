@@ -1,6 +1,60 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light --default, dark;
+}
+
+/* Custom WAQD themes, ported from daisyui-theme.js to Tailwind v4 CSS-first config */
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  color-scheme: light;
+  --color-base-100: oklch(90% 0 0);
+  --color-base-200: oklch(85% 0 0);
+  --color-base-300: oklch(95% 0 0);
+  --color-base-content: oklch(0.17 0.0718 295.71);
+  --color-primary: oklch(0.4 0.2099 294.94);
+  --color-primary-content: oklch(96% 0 0);
+  --color-secondary: oklch(0.8 0.1 286.68);
+  --color-secondary-content: oklch(10% 0 0);
+  --color-accent: oklch(0.6 0.0718 295.71);
+  --color-accent-content: oklch(96% 0 0);
+  --color-neutral: oklch(0.4 0.2099 294.94);
+  --color-neutral-content: oklch(96% 0 0);
+  --color-info: oklch(0.6 0.0718 295.71);
+  --color-info-content: oklch(96% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  color-scheme: dark;
+  --color-base-100: oklch(0.17 0.0718 295.71);
+  --color-base-200: oklch(0.24 0.1403 286.92);
+  --color-base-300: oklch(0.42 0.2119 286.68);
+  --color-base-content: oklch(100% 0 0);
+  --color-primary: oklch(0.4 0.2099 294.94);
+  --color-primary-content: oklch(96% 0 0);
+  --color-secondary: oklch(0.42 0.2119 286.68);
+  --color-secondary-content: oklch(96% 0 0);
+  --color-accent: oklch(0.6 0.0718 295.71);
+  --color-accent-content: oklch(18.685% 0.02 94.555);
+  --color-neutral: oklch(0.24 0.1403 286.92);
+  --color-neutral-content: oklch(96% 0 0);
+  --color-info: oklch(0.17 0.0718 295.71);
+  --color-info-content: oklch(96% 0 0);
+  --color-success: oklch(62.705% 0.169 149.213);
+  --color-success-content: oklch(12.541% 0.033 149.213);
+  --color-warning: oklch(66.584% 0.157 58.318);
+  --color-warning-content: oklch(27% 0.077 45.635);
+  --color-error: oklch(73.95% 0.19 27.33);
+  --color-error-content: oklch(14.79% 0.038 27.33);
+}
 
 /* Optional: global font to mirror your WAQD setup */
 @font-face {
@@ -8,13 +62,16 @@
   src: url('/static/font/Franzo-E4GA.woff') format('woff');
 }
 
-html, body {
+html,
+body {
   overflow-x: hidden;
   max-width: 100vw;
   box-sizing: border-box;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
@@ -47,4 +104,3 @@ body {
     filter: brightness(50%) !important;
   }
 }
-
