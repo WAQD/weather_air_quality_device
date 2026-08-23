@@ -178,32 +178,39 @@ export default defineConfig({
       targets: [
         {
           src: '../../waqd_assets/gui_base/**/*.{avif,jpg,jpeg,png,svg}',
-          dest: 'static/gui_base'
+          dest: 'static/gui_base',
+          rename: { stripBase: 2 }
         },
         {
           src: '../../waqd_assets/doc_images/**/*.{avif,jpg,jpeg,png,svg}',
-          dest: 'static/doc_images'
+          dest: 'static/doc_images',
+          rename: { stripBase: 2 }
         },
         {
           src: '../../waqd_assets/general_icons/**/*.svg',
-          dest: 'static/general_icons'
+          dest: 'static/general_icons',
+          rename: { stripBase: 2 }
         },
         {
           // Copy entire folder preserving nested structure (keep 'google' subfolder)
           src: '../../waqd_assets/weather_icons',
-          dest: 'static/'
+          dest: 'static/',
+          rename: { stripBase: 1 }
         },
         {
           src: '../../waqd_assets/weather_bgrs/**/*.jpg',
-          dest: 'static/weather_bgrs'
+          dest: 'static/weather_bgrs',
+          rename: { stripBase: 2 }
         },
         {
           src: '../../waqd_assets/font/**/*.{woff,woff2,ttf,otf}',
-          dest: 'static/font'
+          dest: 'static/font',
+          rename: { stripBase: 2 }
         },
         {
           src: '../../waqd_assets/locales/*.json',
-          dest: 'static/locales'
+          dest: 'static/locales',
+          rename: { stripBase: 2 }
         }
       ]
     }),
