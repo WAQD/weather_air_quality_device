@@ -3,11 +3,8 @@
     class="order-1 sticky top-2 z-20 rounded-box border border-base-300 bg-base-100/70 backdrop-blur-md p-2.5 sm:p-4 overflow-hidden"
     :style="weatherHeroStyle">
     <div class="flex items-start gap-3">
-      <div class="text-2xl font-thin tabular-nums hidden sm:block min-w-10 text-center">
-        {{ currentLocation.country_code }}
-      </div>
       <div>
-        <img class="size-8 rounded-box p-1 bg-base-100"
+        <img class="size-8 mask mask-circle bg-base-100"
           :src="getFlagIconUrl(currentLocation.country_code)" :alt="currentLocation.country_code"
           :style="{ visibility: flagLoaded ? 'visible' : 'hidden' }" @load="flagLoaded = true"
           @error="flagLoaded = false" />
