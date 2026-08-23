@@ -53,6 +53,19 @@ async def search_locations(
     )
 
 
+@rt.get("/reverse-geocode", response_model=SavedLocationResponse)
+async def reverse_geocode(
+    latitude: float,
+    longitude: float,
+    current_user: User = user_exception_check,
+):
+    del current_user
+    resolved = weather_service.resolve_location_name(latitude, longitude)
+    return SavedLocationResponse(
+        location=None if resolved is None else WeatherLocationPayload(**resolved.model_dump())
+    )
+
+
 @rt.get("/location", response_model=SavedLocationResponse)
 async def get_saved_location(current_user: User = user_exception_check):
     if current_user.id is None:

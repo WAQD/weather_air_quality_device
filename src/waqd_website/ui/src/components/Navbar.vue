@@ -65,6 +65,32 @@
             </label>
             <ul v-if="dropdownOpen"
               class="dropdown-content menu flex flex-col flex-nowrap p-2 shadow bg-base-100 rounded-box w-full mt-1 max-h-96 overflow-y-auto overflow-x-hidden z-50">
+              <!-- Current Location Section -->
+              <template v-if="deviceLocation && weatherSearchQuery.length === 0">
+                <li class="menu-title">
+                  <span>{{ t('current_location') }}</span>
+                </li>
+                <li>
+                  <button type="button" class="w-full text-left flex items-center gap-3"
+                    :disabled="isSelectingLocation" @mousedown.prevent="selectDeviceLocation"
+                    @click.prevent>
+                    <svg viewBox="0 0 24 24" class="h-5 w-5 flex-shrink-0 opacity-80"
+                      aria-hidden="true">
+                      <use :href="locationIconUrl" fill="currentColor" />
+                    </svg>
+                    <div class="flex flex-col text-left">
+                      <span class="font-semibold lg:text-base">{{ deviceLocationName }}</span>
+                      <span class="text-xs lg:text-sm opacity-70">{{ deviceLocationSubtitle
+                        }}</span>
+                    </div>
+                    <span v-if="isResolvingDeviceLocation"
+                      class="loading loading-spinner loading-xs ml-auto"></span>
+                    <span v-else-if="selectingLocationKey === getLocationKey(deviceLocation)"
+                      class="loading loading-spinner loading-xs ml-auto"></span>
+                  </button>
+                </li>
+              </template>
+
               <!-- Saved Location Section -->
               <template v-if="hasSavedLocation && weatherSearchQuery.length === 0">
                 <li class="menu-title">
@@ -168,21 +194,21 @@
           </li>
           <li v-if="!isLoggedIn">
             <router-link to="/public/login" class="btn btn-ghost btn-sm lg:text-base">{{ t('login')
-              }}</router-link>
+            }}</router-link>
           </li>
           <li v-if="isLoggedIn">
             <router-link to="/account" class="btn btn-ghost btn-sm lg:text-base">{{
               t('account_settings')
-            }}</router-link>
+              }}</router-link>
           </li>
           <li v-if="isLoggedIn && isAdmin">
             <router-link to="/admin" class="btn btn-ghost btn-sm lg:text-base">{{
               t('admin_controls')
-            }}</router-link>
+              }}</router-link>
           </li>
           <li v-if="isLoggedIn">
             <a @click="handleLogout" class="btn btn-ghost btn-sm lg:text-base ">{{ t('logout')
-            }}</a>
+              }}</a>
           </li>
           <li>
             <a @click="toggleTheme" class="btn btn-ghost btn-sm lg:text-base capitalize">
@@ -214,6 +240,9 @@ const {
   setCurrentLocation,
   loadWeatherForLocation,
   loadSavedLocation,
+  resolveDeviceLocation,
+  deviceLocation,
+  isResolvingDeviceLocation,
   isSearching,
   isLoadingWeather
 } = useWebsiteWeather()
@@ -225,6 +254,7 @@ const dropdownOpen = ref(false)
 const selectingLocationKey = ref<string | null>(null)
 const accountIconUrl = '/static/general_icons/account_circle.svg#main'
 const cancelIconUrl = '/static/general_icons/cancel.svg#main'
+const locationIconUrl = '/static/general_icons/location.svg#main'
 let searchDebounce: number | null = null
 
 const hasSavedLocation = computed(() => savedLocations.value.length > 0 || savedLocation.value !== null)
@@ -242,12 +272,32 @@ const displayedResults = computed(() => {
 
 const isSelectingLocation = computed(() => selectingLocationKey.value !== null && isLoadingWeather.value)
 
+const deviceLocationName = computed(() => {
+  return deviceLocation.value?.name || t('current_location')
+})
+
+const deviceLocationSubtitle = computed(() => {
+  const loc = deviceLocation.value
+  if (!loc) {
+    return ''
+  }
+  const place = loc.state || loc.country
+  const coords = `${loc.latitude.toFixed(2)}, ${loc.longitude.toFixed(2)}`
+  return place ? `${place}, ${coords}` : coords
+})
+
 // Auto-hide logout toast after 5 seconds
 watch(showLogoutToast, (newValue) => {
   if (newValue) {
     setTimeout(() => {
       showLogoutToast.value = false
     }, 5000)
+  }
+})
+
+watch(isLoggedIn, (loggedIn) => {
+  if (loggedIn) {
+    void resolveDeviceLocation()
   }
 })
 
@@ -284,6 +334,7 @@ function handleLogout() {
 
 function openDropdown() {
   dropdownOpen.value = true
+  void resolveDeviceLocation()
 }
 
 function closeDropdown() {
@@ -320,6 +371,13 @@ async function selectLocation(location: WeatherLocationPayload): Promise<void> {
   await selectLocationAndOpenWeather(location)
 }
 
+function selectDeviceLocation(): void {
+  if (!deviceLocation.value) {
+    return
+  }
+  void selectLocationAndOpenWeather(deviceLocation.value)
+}
+
 function applyTheme() {
   if (theme.value === 'system') {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -347,6 +405,7 @@ onMounted(() => {
 
   if (isLoggedIn.value) {
     loadSavedLocation()
+    void resolveDeviceLocation()
   }
 })
 </script>

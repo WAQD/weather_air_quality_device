@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { Preferences } from '@capacitor/preferences'
+import { Geolocation } from '@capacitor/geolocation'
 import type { AvailableLocale } from '../i18n'
 import i18n from '../i18n'
 import type { ForecastData, HourlyWeatherData, WeatherData } from './useWeather'
@@ -47,6 +48,9 @@ const forecastData = ref<ForecastData[]>([])
 const hourlyDaytimeData = ref<HourlyWeatherData[][]>([])
 const hourlyNighttimeData = ref<HourlyWeatherData[][]>([])
 const searchResults = ref<WeatherLocationPayload[]>([])
+const deviceLocation = ref<WeatherLocationPayload | null>(null)
+const isLoadingDeviceLocation = ref(false)
+const isResolvingDeviceLocation = ref(false)
 const isLoadingLocation = ref(false)
 const isLoadingWeather = ref(false)
 const isRefreshingWeather = ref(false)
@@ -142,10 +146,91 @@ function resetState(): void {
   savedLocation.value = null
   homeLocation.value = null
   currentLocation.value = null
+  deviceLocation.value = null
   savedLocations.value = []
   clearSearchResults()
   clearError()
   resetWeatherData()
+}
+
+async function loadDeviceLocation(): Promise<WeatherLocationPayload | null> {
+  if (isLoadingDeviceLocation.value) {
+    return deviceLocation.value
+  }
+  isLoadingDeviceLocation.value = true
+
+  try {
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 30000,
+    })
+
+    const location: WeatherLocationPayload = {
+      name: '',
+      country: '',
+      state: '',
+      county: '',
+      country_code: '',
+      altitude: position.coords.altitude ?? 0,
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    }
+    deviceLocation.value = location
+    return location
+  } catch (error) {
+    deviceLocation.value = null
+    console.warn('Could not determine device location:', error)
+    return null
+  } finally {
+    isLoadingDeviceLocation.value = false
+  }
+}
+
+async function resolveDeviceLocation(): Promise<WeatherLocationPayload | null> {
+  if (isResolvingDeviceLocation.value) {
+    return deviceLocation.value
+  }
+  isResolvingDeviceLocation.value = true
+
+  try {
+    let location = deviceLocation.value
+    if (!location) {
+      location = await loadDeviceLocation()
+    }
+    if (!location) {
+      return null
+    }
+    // Already resolved (has a name); no need to reverse-geocode again
+    if (location.name) {
+      return location
+    }
+
+    const params = new URLSearchParams({
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString(),
+    })
+
+    const response = await fetch(`/api/user/weather/reverse-geocode?${params.toString()}`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      return location
+    }
+
+    const payload = await response.json() as SavedLocationResponse
+    if (payload.location) {
+      deviceLocation.value = payload.location
+      return payload.location
+    }
+
+    return location
+  } catch {
+    return deviceLocation.value
+  } finally {
+    isResolvingDeviceLocation.value = false
+  }
 }
 
 async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
@@ -524,9 +609,12 @@ export function useWebsiteWeather() {
     hourlyDaytimeData,
     hourlyNighttimeData,
     searchResults,
+    deviceLocation,
     cached,
     errorMessage,
     successMessage,
+    isLoadingDeviceLocation,
+    isResolvingDeviceLocation,
     isLoadingLocation,
     isLoadingWeather,
     isRefreshingWeather,
@@ -542,6 +630,8 @@ export function useWebsiteWeather() {
     cancelSearch,
     resetState,
     loadSavedLocation,
+    loadDeviceLocation,
+    resolveDeviceLocation,
     loadWeather,
     searchLocations,
     saveLocation,
