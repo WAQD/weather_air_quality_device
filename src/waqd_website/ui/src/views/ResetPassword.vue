@@ -27,18 +27,12 @@
             <fieldset class="fieldset">
               <label class="label text-sm">{{ t('new_password') }}</label>
               <div class="flex items-center">
-                <input
-                  :type="passwordVisible ? 'text' : 'password'"
-                  v-model="newPassword"
-                  :placeholder="t('new_password')"
-                  class="input input-bordered flex-grow"
-                  @keyup.enter="submitReset"
-                />
-                <button
-                  type="button"
+                <input :type="passwordVisible ? 'text' : 'password'" v-model="newPassword"
+                  :placeholder="t('new_password')" class="input input-bordered flex-grow"
+                  @keyup.enter="submitReset" />
+                <button type="button"
                   :class="['btn btn-square ml-2 min-h-0', { 'btn-active btn-primary': passwordVisible }]"
-                  @click="passwordVisible = !passwordVisible"
-                >
+                  @click="passwordVisible = !passwordVisible">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24">
                     <use :href="visibilityIconUrl" fill="white" />
                   </svg>
@@ -46,19 +40,12 @@
               </div>
 
               <label class="label text-sm mt-2">{{ t('confirm_password') }}</label>
-              <input
-                :type="passwordVisible ? 'text' : 'password'"
-                v-model="confirmPassword"
-                :placeholder="t('confirm_password')"
-                class="input input-bordered w-full"
-                @keyup.enter="submitReset"
-              />
+              <input :type="passwordVisible ? 'text' : 'password'" v-model="confirmPassword"
+                :placeholder="t('confirm_password')" class="input input-bordered w-full"
+                @keyup.enter="submitReset" />
 
-              <button
-                class="btn btn-primary mt-4 w-full"
-                :disabled="loading || !newPassword || !confirmPassword"
-                @click="submitReset"
-              >
+              <button class="btn btn-primary mt-4 w-full"
+                :disabled="loading || !newPassword || !confirmPassword" @click="submitReset">
                 {{ t('reset_password') }}
                 <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
               </button>

@@ -58,13 +58,13 @@
                   </svg>
                 </button>
               </div>
-              <div class="text-right mt-1">
-                <label class="flex items-center justify-end text-xs sm:text-sm gap-2">
+              <div class="text-left mt-1">
+                <label class="flex items-center justify-start text-xs sm:text-sm gap-2">
                   <input type="checkbox" v-model="rememberMe" class="checkbox h-4 w-4" />
                   <span class="label-text">{{ t('remember_me_30_days') }}</span>
                 </label>
               </div>
-              <div class="flex items-center justify-start gap-3 mt-4 flex-wrap">
+              <div class="flex items-center justify-end gap-3 mt-4 flex-wrap">
                 <button class="btn btn-primary w-full text-base sm:text-lg" @click="login">
                   {{ t('login') }}
                   <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
@@ -162,4 +162,3 @@ function login() {
   }
 }
 </style>
-
