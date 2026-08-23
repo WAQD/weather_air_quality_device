@@ -22,7 +22,7 @@
       <div
         class="bg-base-100/80 backdrop-blur-sm p-6 rounded-lg overflow-hidden transition-all duration-500"
         :style="weatherBackgroundStyle">
-        <button @click="goBack" class="btn btn-ghost btn-sm mb-4">
+        <button @click="goBack" class="btn btn-secondary btn-sm mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
             fill="currentColor">
             <path fill-rule="evenodd"
@@ -34,8 +34,12 @@
 
         <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div class="w-full sm:w-auto">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">{{ deviceName ||
-              t('loading') }}</h1>
+            <h1 class="mb-2">
+              <div
+                class="badge badge-neutral badge-lg text-2xl sm:text-3xl lg:text-4xl font-bold p-8">
+                {{ deviceName ||
+                  t('loading') }}</div>
+            </h1>
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
               <div class="badge" :class="isConnected ? 'badge-success' : 'badge-error'">
                 {{ isConnected ? t('online') : t('offline') }}
@@ -57,7 +61,7 @@
               alt="Weather icon" class="h-12 w-12 sm:h-16 sm:w-16 brightness-0 flex-shrink-0" />
             <div class="flex-1 text-center sm:text-left">
               <h3 class="font-bold text-base sm:text-lg">{{ translateWeatherCondition(weatherData)
-              }}</h3>
+                }}</h3>
               <p class="text-xs sm:text-sm opacity-70 truncate max-w-full">{{ deviceLocation ||
                 t('current_weather') }}</p>
             </div>
@@ -121,7 +125,7 @@
                 t('humidity') }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
                 <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.hum ?? '--'
-                }}</span>
+                  }}</span>
                 <span v-if="sensorData.hum"
                   class="opacity-70 text-xl sm:text-2xl lg:text-2xl">%</span>
               </div>
@@ -142,10 +146,10 @@
           <div class="flex justify-between items-center gap-2">
             <div class="min-w-0">
               <h2 class="card-title text-sm sm:text-base lg:text-lg opacity-70 truncate">{{ t('co2')
-              }}</h2>
+                }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap" :class="co2ColorClass">
                 <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.co2 ?? '--'
-                }}</span>
+                  }}</span>
                 <span v-if="sensorData.co2"
                   class="opacity-70 text-lg sm:text-xl lg:text-xl">ppm</span>
               </div>
@@ -169,7 +173,7 @@
                 t('pressure') }}</h2>
               <div class="flex items-baseline gap-1 mt-1 sm:mt-2 flex-wrap">
                 <span class="text-3xl sm:text-4xl lg:text-4xl font-bold">{{ sensorData.baro ?? '--'
-                }}</span>
+                  }}</span>
                 <span v-if="sensorData.baro"
                   class="opacity-70 text-lg sm:text-xl lg:text-xl">hPa</span>
               </div>

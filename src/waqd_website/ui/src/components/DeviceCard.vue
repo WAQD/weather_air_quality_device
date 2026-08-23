@@ -4,23 +4,32 @@
     :style="getWeatherBackground(props.device.device_id)">
     <div class="card-body bg-base-100/80 backdrop-blur-sm flex flex-col">
       <div class="flex justify-between items-start mb-2">
-        <h2 class="card-title text-xl">{{ props.device.name }}</h2>
-        <div class="badge" :class="props.device.status === 'online' ? 'badge-success' : 'badge-error'">
+        <h2 class="card-title text-xl">
+          <div class="badge badge-neutral badge-lg">{{ props.device.name }}</div>
+        </h2>
+        <div class="badge"
+          :class="props.device.status === 'online' ? 'badge-success' : 'badge-error'">
           {{ props.device.status }}
         </div>
       </div>
 
       <div class="space-y-2 text-sm opacity-70 flex-grow">
         <div class="flex items-center gap-2">
-          <svg class="h-6 w-6"><use :href="locationIconUrl" fill="currentColor" /></svg>
+          <svg class="h-6 w-6">
+            <use :href="locationIconUrl" fill="currentColor" />
+          </svg>
           <span>{{ props.device.location || t('no_location') }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <svg class="h-6 w-6"><use :href="codeXmlIconUrl" fill="currentColor" /></svg>
+          <svg class="h-6 w-6">
+            <use :href="codeXmlIconUrl" fill="currentColor" />
+          </svg>
           <span class="font-mono text-xs">{{ props.device.device_id }}</span>
         </div>
         <div v-if="props.device.last_seen" class="flex items-center gap-2">
-          <svg class="h-6 w-6"><use :href="lastSeenIconUrl" fill="currentColor" /></svg>
+          <svg class="h-6 w-6">
+            <use :href="lastSeenIconUrl" fill="currentColor" />
+          </svg>
           <span>{{ t('last_seen') }}: {{ formatDate(props.device.last_seen) }}</span>
         </div>
       </div>
