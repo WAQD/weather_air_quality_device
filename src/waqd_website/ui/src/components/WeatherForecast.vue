@@ -7,7 +7,7 @@
       <div v-if="forecastData && forecastData.length > 0" class="mb-2 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-1.5 sm:mb-4">{{
           t('weekly_weather_forecast')
-          }}</h3>
+        }}</h3>
         <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-1.5 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
@@ -94,7 +94,7 @@
             :alt="selectedDay.main" class="h-10 w-10 sm:h-14 sm:w-14 weather-icon" />
           <div class="min-w-0">
             <p class="font-bold text-sm sm:text-base">{{ formatForecastDate(selectedDay.date_time)
-              }}</p>
+            }}</p>
             <p class="text-xs sm:text-sm opacity-70">{{ translateWeatherCondition(selectedDay) }}
             </p>
           </div>
@@ -436,7 +436,7 @@ function renderHourlyChart(): void {
     chart: {
       backgroundColor: 'transparent',
       style: { fontFamily: 'inherit' },
-      spacing: [4, 0, 4, 0]
+      spacing: [4, 0, 4, 12]
     },
     title: { text: undefined },
     xAxis: {
