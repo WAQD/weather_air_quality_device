@@ -26,13 +26,19 @@
         android:padding="@dimen/widget_padding">
 
         <!-- Top Section: HTC Style Clock Panels -->
-        <LinearLayout
-            android:id="@+id/clock_section"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_weight="2.2"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:id="@+id/clock_section"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="horizontal">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -83,34 +89,28 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Location switcher: prev/next arrows between clock and weather -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp">
-
             <ImageView
                 android:id="@+id/widget_prev"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="start|bottom"
+                android:layout_marginStart="0dp"
+                android:padding="8dp"
+                android:background="@drawable/widget_arrow_bg"
                 android:src="@drawable/ic_arrow_left"
                 android:contentDescription="@string/widget_prev_location" />
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
             <ImageView
                 android:id="@+id/widget_next"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end|bottom"
+                android:layout_marginEnd="0dp"
+                android:padding="8dp"
+                android:background="@drawable/widget_arrow_bg"
                 android:src="@drawable/ic_arrow_right"
                 android:contentDescription="@string/widget_next_location" />
-        </LinearLayout>
+        </FrameLayout>
 
         <!-- Bottom Section: Weather Info -->
         <RelativeLayout
@@ -131,6 +131,20 @@
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_gps_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GPS"
+                    android:textColor="#FFFFFF"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    android:shadowColor="#CC000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2" />
 
                 <TextView
                     android:id="@+id/widget_location"

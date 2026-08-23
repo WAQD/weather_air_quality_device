@@ -36,10 +36,13 @@ interface WebsiteWeatherResponse {
 
 const SAVED_LOCATIONS_KEY = 'waqd.website.savedLocations'
 const WIDGET_STYLE_KEY = 'waqd.website.widgetStyle'
+const WIDGET_LOCATION_MODE_KEY = 'waqd.widget.locationMode'
 
 export type WidgetStyle = 'simple' | 'forecast'
+export type WidgetLocationMode = 'gps' | 'selectable'
 
 const widgetStyle = ref<WidgetStyle>('simple')
+const locationMode = ref<WidgetLocationMode>('selectable')
 const savedLocation = ref<WeatherLocationPayload | null>(null)
 const savedLocations = ref<WeatherLocationPayload[]>([])
 const currentLocation = ref<WeatherLocationPayload | null>(null)
@@ -273,12 +276,17 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   clearError()
 
   try {
-    const [styleRes] = await Promise.all([
-      Preferences.get({ key: WIDGET_STYLE_KEY })
+    const [styleRes, modeRes] = await Promise.all([
+      Preferences.get({ key: WIDGET_STYLE_KEY }),
+      Preferences.get({ key: WIDGET_LOCATION_MODE_KEY })
     ])
 
     if (styleRes.value === 'simple' || styleRes.value === 'forecast') {
       widgetStyle.value = styleRes.value as WidgetStyle
+    }
+
+    if (modeRes.value === 'gps' || modeRes.value === 'selectable') {
+      locationMode.value = modeRes.value as WidgetLocationMode
     }
 
     const [response, savedResponse] = await Promise.all([
@@ -532,6 +540,11 @@ async function setWidgetStyle(style: WidgetStyle): Promise<void> {
   // Widget is GPS-only; style is applied by the native worker, not by writing home data here
 }
 
+async function setLocationMode(mode: WidgetLocationMode): Promise<void> {
+  locationMode.value = mode
+  await Preferences.set({ key: WIDGET_LOCATION_MODE_KEY, value: mode })
+}
+
 async function setHomeLocation(location: WeatherLocationPayload): Promise<WeatherLocationPayload | null> {
   const result = await saveLocation(location, true)
   if (result) {
@@ -659,6 +672,7 @@ export function useWebsiteWeather() {
     hasWeather,
     isBusy,
     widgetStyle,
+    locationMode,
     clearError,
     clearSuccess,
     clearSearchResults,
@@ -674,6 +688,7 @@ export function useWebsiteWeather() {
     removeSavedLocation,
     setHomeLocation,
     setWidgetStyle,
+    setLocationMode,
     setCurrentLocation,
     loadWeatherForLocation,
     getLocationKey

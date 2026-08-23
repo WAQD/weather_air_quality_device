@@ -46,6 +46,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     /** Persisted selected location index and total count for the location switcher. */
     public static final String PREF_SELECTED_INDEX = "waqd.widget.selectedIndex";
     public static final String PREF_LOCATION_COUNT = "waqd.widget.locationCount";
+    /** "gps" = GPS only (no arrows); "selectable" = arrows cycle GPS + saved locations. */
+    public static final String PREF_LOCATION_MODE = "waqd.widget.locationMode";
     private static final String ACTION_LOCATION_PREV = "com.waqd.app.action.LOCATION_PREV";
     private static final String ACTION_LOCATION_NEXT = "com.waqd.app.action.LOCATION_NEXT";
 
@@ -233,9 +235,19 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         // Location switcher arrows (left = prev, right = next); hidden when there is
         // only the GPS location (no saved locations to switch to).
         int locationCount = prefs.getInt(PREF_LOCATION_COUNT, 1);
-        int arrowsVisible = locationCount > 1 ? android.view.View.VISIBLE : android.view.View.GONE;
+        boolean arrowsEnabled = !"gps".equals(prefs.getString(PREF_LOCATION_MODE, "selectable"));
+        int arrowsVisible = (arrowsEnabled && locationCount > 1) ? android.view.View.VISIBLE : android.view.View.GONE;
         views.setViewVisibility(R.id.widget_prev, arrowsVisible);
         views.setViewVisibility(R.id.widget_next, arrowsVisible);
+
+        // GPS label: shown when the selected location is the device GPS (index 0).
+        int selectedIndex = prefs.getInt(PREF_SELECTED_INDEX, 0);
+        if (selectedIndex == 0) {
+            views.setTextViewText(R.id.widget_gps_label, "GPS");
+            views.setViewVisibility(R.id.widget_gps_label, android.view.View.VISIBLE);
+        } else {
+            views.setViewVisibility(R.id.widget_gps_label, android.view.View.GONE);
+        }
 
         Intent prevIntent = new Intent(context, WeatherWidgetProvider.class);
         prevIntent.setAction(ACTION_LOCATION_PREV);

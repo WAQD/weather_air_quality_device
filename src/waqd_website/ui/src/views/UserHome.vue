@@ -62,7 +62,7 @@
                   :alt="currentWeather.main" class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                 <div>
                   <h3 class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1)
-                    }}°C</h3>
+                  }}°C</h3>
                   <p class="text-base opacity-80">{{
                     translateWeatherCondition(currentWeather) }}</p>
                 </div>
@@ -201,6 +201,21 @@
                   </button>
                 </div>
               </div>
+              <div>
+                <p class="text-sm opacity-70 mb-2">Location</p>
+                <div class="join">
+                  <button class="btn btn-sm join-item"
+                    :class="locationMode === 'gps' ? 'btn-neutral' : 'btn-ghost'"
+                    @click="setLocationMode('gps')">
+                    Only GPS
+                  </button>
+                  <button class="btn btn-sm join-item"
+                    :class="locationMode === 'selectable' ? 'btn-neutral' : 'btn-ghost'"
+                    @click="setLocationMode('selectable')">
+                    Selectable (arrows)
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -242,9 +257,11 @@ const {
   cached,
   isLoadingWeather,
   widgetStyle,
+  locationMode,
   loadSavedLocation,
   loadWeather,
-  setWidgetStyle
+  setWidgetStyle,
+  setLocationMode
 } = useWebsiteWeather()
 
 const devices = ref<Device[]>([])

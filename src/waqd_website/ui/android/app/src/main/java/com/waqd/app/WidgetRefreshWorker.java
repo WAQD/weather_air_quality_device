@@ -117,7 +117,8 @@ public class WidgetRefreshWorker extends Worker {
         }
 
         int total = 1 + savedLocations.length();
-        int index = prefs.getInt(WeatherWidgetProvider.PREF_SELECTED_INDEX, 0);
+        boolean arrowsEnabled = !"gps".equals(prefs.getString(WeatherWidgetProvider.PREF_LOCATION_MODE, "selectable"));
+        int index = arrowsEnabled ? prefs.getInt(WeatherWidgetProvider.PREF_SELECTED_INDEX, 0) : 0;
         if (index < 0 || index >= total) {
             index = 0;
         }
@@ -258,18 +259,18 @@ public class WidgetRefreshWorker extends Worker {
             throw new RefreshException("No location permission granted. Grant 'Allow all the time' in app settings.", false, "no_permission");
         }
 
-        // 1. Try fresh GPS fix via fused provider (30s timeout)
-        Location fresh = tryGetFreshLocation(lm, LocationManager.FUSED_PROVIDER, GPS_TIMEOUT_SECONDS);
-        if (fresh != null) {
-            return new double[]{fresh.getLatitude(), fresh.getLongitude()};
-        }
-
-        // 2. Fused-provider cached location (same cache Maps uses) — instant
+        // 1. Cached location first (instant) — avoids blocking the render on a fresh fix
         Location cached = tryGetCachedLocation(lm, LocationManager.FUSED_PROVIDER);
         if (cached != null) {
             long ageMs = System.currentTimeMillis() - cached.getTime();
             Log.d(TAG, "Using fused cached location: " + cached.getLatitude() + ", " + cached.getLongitude() + " (age " + (ageMs / 1000) + "s)");
             return new double[]{cached.getLatitude(), cached.getLongitude()};
+        }
+
+        // 2. Fresh GPS fix (30s timeout) — only when nothing cached
+        Location fresh = tryGetFreshLocation(lm, LocationManager.FUSED_PROVIDER, GPS_TIMEOUT_SECONDS);
+        if (fresh != null) {
+            return new double[]{fresh.getLatitude(), fresh.getLongitude()};
         }
 
         // 3. Quick network-based approximate fix (10s timeout) — cell/WiFi, works indoors
