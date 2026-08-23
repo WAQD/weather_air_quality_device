@@ -55,7 +55,7 @@
             </select>
           </div>
           <span class="whitespace-nowrap text-sm opacity-80 sm:ml-auto">{{ timeLabel
-          }}</span>
+            }}</span>
         </div>
       </div>
 
@@ -650,7 +650,7 @@ async function initMap(): Promise<void> {
         import('@openmeteo/weather-map-layer'),
         import('../utils/weatherMapCache'),
       ])
-      const maplibregl = (maplibreModule as unknown as { default: MapLibreGL }).default
+      const maplibregl = maplibreModule as unknown as MapLibreGL
       const { getColorScale } = mapLayerModule
       const { cachedOmProtocol } = mapCacheModule
 
