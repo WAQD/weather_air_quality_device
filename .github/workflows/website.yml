@@ -61,7 +61,7 @@ jobs:
           python-version: "3.14"
 
       - name: Cache PDM dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache/pdm
@@ -115,12 +115,12 @@ jobs:
           driver: docker-container
 
       - name: Build Docker image
+        id: build_image
         run: |
-          TAGS="-t goszpeti/waqd_website:latest"
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAGS="$TAGS -t goszpeti/waqd_website:${{ steps.package_version.outputs.version }}"
-          fi
           VCS_REF=$(git rev-parse --short=6 HEAD)
+          IMAGE_TAG="v${{ steps.package_version.outputs.version }}+${VCS_REF}"
+          echo "image_tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          TAGS="-t goszpeti/waqd_website:latest -t goszpeti/waqd_website:${IMAGE_TAG}"
           docker buildx build \
             --platform linux/amd64 \
             --cache-from=type=gha \
@@ -137,9 +137,7 @@ jobs:
         run: |
           echo ${{ secrets.DOCKER_ACCESS_TOKEN }} | docker login -u goszpeti --password-stdin
           docker push goszpeti/waqd_website:latest
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            docker push goszpeti/waqd_website:${{ steps.package_version.outputs.version }}
-          fi
+          docker push goszpeti/waqd_website:${{ steps.build_image.outputs.image_tag }}
 
   # update-image-tag:
   #   # TODO: later; only on tagged releases if: startsWith(github.ref, 'refs/tags/')
