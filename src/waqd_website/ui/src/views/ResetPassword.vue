@@ -36,7 +36,7 @@
                 />
                 <button
                   type="button"
-                  :class="['btn btn-square ml-2 min-h-0 h-12', { 'btn-active btn-primary': passwordVisible }]"
+                  :class="['btn btn-square ml-2 min-h-0', { 'btn-active btn-primary': passwordVisible }]"
                   @click="passwordVisible = !passwordVisible"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24">

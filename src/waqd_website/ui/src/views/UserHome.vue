@@ -62,7 +62,7 @@
                   :alt="currentWeather.main" class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                 <div>
                   <h3 class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1)
-                  }}°C</h3>
+                    }}°C</h3>
                   <p class="text-base opacity-80">{{
                     translateWeatherCondition(currentWeather) }}</p>
                 </div>

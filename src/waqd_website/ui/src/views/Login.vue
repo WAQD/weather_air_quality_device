@@ -50,7 +50,7 @@
                   class="join-item input input-bordered w-full text-sm sm:text-base"
                   autocomplete="password" :placeholder="t('password')" @keyup.enter="login" />
                 <button type="button"
-                  :class="['join-item btn h-12 min-h-0', { 'btn-active btn-primary': passwordVisible }]"
+                  :class="['join-item btn min-h-0', { 'btn-active btn-primary': passwordVisible }]"
                   @click="togglePasswordVisibility" aria-label="Toggle password visibility">
                   <svg class="h-6 w-6">
                     <use :href="passwordVisible ? visibilityOffIconUrl : visibilityIconUrl"
@@ -59,19 +59,19 @@
                 </button>
               </div>
               <div class="text-right mt-1">
-                <router-link to="/public/forgot-password" class="link link-hover text-sm">
-                  {{ t('forgot_password') }}
-                </router-link>
+                <label class="flex items-center justify-end text-xs sm:text-sm gap-2">
+                  <input type="checkbox" v-model="rememberMe" class="checkbox h-4 w-4" />
+                  <span class="label-text">{{ t('remember_me_30_days') }}</span>
+                </label>
               </div>
               <div class="flex items-center justify-start gap-3 mt-4 flex-wrap">
                 <button class="btn btn-primary w-full text-base sm:text-lg" @click="login">
                   {{ t('login') }}
                   <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
                 </button>
-                <label class="flex items-center text-xs sm:text-sm gap-2">
-                  <input type="checkbox" v-model="rememberMe" class="checkbox h-4 w-4" />
-                  <span class="label-text">{{ t('remember_me_30_days') }}</span>
-                </label>
+                <router-link to="/public/forgot-password" class="link link-hover text-sm">
+                  {{ t('forgot_password') }}
+                </router-link>
               </div>
             </fieldset>
           </div>
