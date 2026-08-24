@@ -25,12 +25,16 @@ public class MainActivity extends BridgeActivity {
 
         // Refresh the widget right away when the app language changes (so it re-fetches
         // in the new locale immediately), or when login/first-setup keys become available.
+        // Also update widget UI layout immediately when style or location mode settings change.
         SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
         prefListener = (sharedPreferences, key) -> {
             if ("waqd.locale".equals(key)
                     || "waqd.widget.key".equals(key)
                     || "waqd.background.apiBaseUrl".equals(key)) {
                 WeatherWidgetProvider.refreshNow(this);
+            } else if ("waqd.widget.locationMode".equals(key)
+                    || "waqd.website.widgetStyle".equals(key)) {
+                WeatherWidgetProvider.updateAllWidgets(this);
             }
         };
         prefs.registerOnSharedPreferenceChangeListener(prefListener);

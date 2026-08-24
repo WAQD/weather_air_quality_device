@@ -130,6 +130,16 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         enqueueImmediateRefresh(context);
     }
 
+    /** Updates the RemoteViews of all placed widgets immediately with current local preferences without a network call. */
+    public static void updateAllWidgets(Context context) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName provider = new ComponentName(context, WeatherWidgetProvider.class);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(provider);
+        for (int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId);
+        }
+    }
+
     /**
      * Returns a short warning to display on the widget, or null when everything is fine.
      * Prefers the background-location check (the silent-failure case) over the last error status.
