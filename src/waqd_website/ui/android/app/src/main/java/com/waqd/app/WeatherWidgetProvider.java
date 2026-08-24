@@ -42,14 +42,16 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static final String BASE_URL = BuildConfig.WAQD_BASE_URL;
     private static final String PERIODIC_WORK_NAME = "waqd_widget_periodic";
     /** Epoch millis of the last successful widget refresh (written by WidgetRefreshWorker). */
-    public static final String PREF_LAST_SUCCESS = "waqd.widget.lastSuccessTs";
+    public static final String PREF_LAST_SUCCESS = WidgetContract.PREF_LAST_SUCCESS;
     /** Persisted selected location index and total count for the location switcher. */
-    public static final String PREF_SELECTED_INDEX = "waqd.widget.selectedIndex";
-    public static final String PREF_LOCATION_COUNT = "waqd.widget.locationCount";
+    public static final String PREF_SELECTED_INDEX = WidgetContract.PREF_SELECTED_INDEX;
+    public static final String PREF_LOCATION_COUNT = WidgetContract.PREF_LOCATION_COUNT;
     /** "gps" = GPS only (no arrows); "selectable" = arrows cycle GPS + saved locations. */
-    public static final String PREF_LOCATION_MODE = "waqd.widget.locationMode";
+    public static final String PREF_LOCATION_MODE = WidgetContract.PREF_LOCATION_MODE;
     private static final String ACTION_LOCATION_PREV = "com.waqd.app.action.LOCATION_PREV";
     private static final String ACTION_LOCATION_NEXT = "com.waqd.app.action.LOCATION_NEXT";
+    /** Widgets at least this tall (dp) get the large (forecast) layout. */
+    private static final int LAYOUT_LARGE_MIN_HEIGHT_DP = 220;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -90,7 +92,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     /** Steps the selected location index (prev/next, wrapping) and triggers a refresh. */
     private void changeLocation(Context context, boolean prev) {
-        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
         int count = prefs.getInt(PREF_LOCATION_COUNT, 1);
         if (count <= 1) return;
         int index = prefs.getInt(PREF_SELECTED_INDEX, 0);
@@ -118,7 +120,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     /** Refresh the widget now, but never more often than every 5 minutes per success. */
     public static void requestImmediateRefresh(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
         long lastSuccess = prefs.getLong(PREF_LAST_SUCCESS, 0);
         if (System.currentTimeMillis() - lastSuccess > 5 * 60_000L) {
             enqueueImmediateRefresh(context);
@@ -148,26 +150,28 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         boolean bgGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         if (!bgGranted) {
-            return "Allow location \u201cAll the time\u201d \u2014 tap to fix";
+            return context.getString(R.string.widget_warn_no_permission);
         }
 
-        String statusRaw = prefs.getString("waqd.widget.lastStatus", null);
+        String statusRaw = prefs.getString(WidgetContract.PREF_STATUS, null);
         if (statusRaw == null) return null;
         try {
             JSONObject status = new JSONObject(statusRaw);
             if (status.optBoolean("ok", false)) return null;
             switch (status.optString("code", "error")) {
                 case "no_permission":
-                    return "Allow location \u201cAll the time\u201d \u2014 tap to fix";
+                    // Unreachable in practice: bgGranted is checked above, so a stored
+                    // no_permission status is stale and should not warn.
+                    return null;
                 case "no_gps":
-                    return "Turn on location \u2014 tap to fix";
+                    return context.getString(R.string.widget_warn_no_gps);
                 case "no_key":
                 case "no_base_url":
-                    return "Log in to set up the widget";
+                    return context.getString(R.string.widget_warn_no_key);
                 case "http":
-                    return "Update failed \u2014 will retry";
+                    return context.getString(R.string.widget_warn_http);
                 default:
-                    return "Couldn't update \u2014 tap for details";
+                    return context.getString(R.string.widget_warn_generic);
             }
         } catch (Exception e) {
             return null;
@@ -175,75 +179,86 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     }
 
     private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
 
-        String weatherDataRaw = prefs.getString("widget_weather_data", "{}");
-
-        String tempStr = "--°";
-        String locationStr = "Waiting...";
-        String conditionStr = "---";
-        String dailyTempStr = "--° / --°";
-        String iconName = "";
-        String widgetStyle = "simple";
-        JSONArray forecastDataArr = null;
-
-        try {
-            JSONObject data = new JSONObject(weatherDataRaw);
-            if (data.has("temp")) {
-                tempStr = Math.round(data.getDouble("temp")) + "°";
-            }
-            if (data.has("locationName")) {
-                locationStr = data.getString("locationName");
-            }
-            if (data.has("main")) {
-                conditionStr = data.getString("main");
-            }
-            if (data.has("icon")) {
-                iconName = data.getString("icon");
-            }
-            if (data.has("temp_min") && data.has("temp_max")) {
-                dailyTempStr = Math.round(data.getDouble("temp_max")) + "° / " + Math.round(data.getDouble("temp_min")) + "°";
-            }
-            if (data.has("widget_style")) {
-                widgetStyle = data.getString("widget_style");
-            }
-            if (data.has("forecast_3_days")) {
-                forecastDataArr = data.getJSONArray("forecast_3_days");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        WidgetData data = parseWidgetData(prefs);
 
         // If the stored weather is stale, kick off a refresh (rate-limited internally)
         requestImmediateRefresh(context);
 
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
-
-        int layoutId = maxHeight >= 220 ? R.layout.widget_layout_large : R.layout.widget_layout;
+        boolean isLargeLayout = maxHeight >= LAYOUT_LARGE_MIN_HEIGHT_DP;
+        int layoutId = isLargeLayout ? R.layout.widget_layout_large : R.layout.widget_layout;
 
         final RemoteViews views = new RemoteViews(context.getPackageName(), layoutId);
+        bindTexts(views, data);
+        bindTapTargets(context, views);
+        bindLocationSwitcher(context, views, prefs);
+        bindWarningBanner(context, views, prefs);
 
-        views.setTextViewText(R.id.widget_temp, tempStr);
-        views.setTextViewText(R.id.widget_location, locationStr);
-        views.setTextViewText(R.id.widget_condition, conditionStr);
-        views.setTextViewText(R.id.widget_daily_temp, dailyTempStr);
+        if (isLargeLayout) {
+            bindForecastSection(context, views, data);
+        }
 
-        // Tap: open app + enqueue immediate weather refresh
+        loadIconsAsync(context, appWidgetManager, appWidgetId, views, layoutId, data);
+    }
+
+    /** Parses the cached widget weather JSON; missing fields fall back to placeholders. */
+    private static WidgetData parseWidgetData(SharedPreferences prefs) {
+        WidgetData data = new WidgetData();
+        try {
+            JSONObject json = new JSONObject(prefs.getString(WidgetContract.PREF_WEATHER_DATA, "{}"));
+            if (json.has("temp")) {
+                data.tempStr = Math.round(json.getDouble("temp")) + "°";
+            }
+            if (json.has("locationName")) {
+                data.locationStr = json.getString("locationName");
+            }
+            if (json.has("main")) {
+                data.conditionStr = json.getString("main");
+            }
+            if (json.has("icon")) {
+                data.iconName = json.getString("icon");
+            }
+            if (json.has("temp_min") && json.has("temp_max")) {
+                data.dailyTempStr = Math.round(json.getDouble("temp_max")) + "° / " + Math.round(json.getDouble("temp_min")) + "°";
+            }
+            if (json.has("widget_style")) {
+                data.widgetStyle = json.getString("widget_style");
+            }
+            if (json.has("forecast_3_days")) {
+                data.forecastArr = json.getJSONArray("forecast_3_days");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return data;
+    }
+
+    private static void bindTexts(RemoteViews views, WidgetData data) {
+        views.setTextViewText(R.id.widget_temp, data.tempStr);
+        views.setTextViewText(R.id.widget_location, data.locationStr);
+        views.setTextViewText(R.id.widget_condition, data.conditionStr);
+        views.setTextViewText(R.id.widget_daily_temp, data.dailyTempStr);
+    }
+
+    /** Tap targets: main area opens the app's weather page, clock icon opens the clock app. */
+    private static void bindTapTargets(Context context, RemoteViews views) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra("navigate_to", "/rest/weather?day=0");
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_container, pendingIntent);
 
-        // Tap clock icon: open clock app
         Intent clockIntent = new Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS);
         clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent clockPendingIntent = PendingIntent.getActivity(context, 1, clockIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.clock_section, clockPendingIntent);
+    }
 
-        // Location switcher arrows (left = prev, right = next); hidden when there is
-        // only the GPS location (no saved locations to switch to).
+    /** Location switcher arrows and GPS label. */
+    private static void bindLocationSwitcher(Context context, RemoteViews views, SharedPreferences prefs) {
         int locationCount = prefs.getInt(PREF_LOCATION_COUNT, 1);
         boolean arrowsEnabled = !"gps".equals(prefs.getString(PREF_LOCATION_MODE, "selectable"));
         int arrowsVisible = (arrowsEnabled && locationCount > 1) ? android.view.View.VISIBLE : android.view.View.GONE;
@@ -270,10 +285,14 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         PendingIntent nextPending = PendingIntent.getBroadcast(context, 4, nextIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_next, nextPending);
+    }
 
-        // Warning banner: shown on the widget itself when background refresh can't work,
-        // so the user sees the problem without opening the app. Tapping it opens the app
-        // home page, where the fix (e.g. "Allow all the time") lives.
+    /**
+     * Warning banner: shown on the widget itself when background refresh can't work,
+     * so the user sees the problem without opening the app. Tapping it opens the app
+     * home page, where the fix (e.g. "Allow all the time") lives.
+     */
+    private static void bindWarningBanner(Context context, RemoteViews views, SharedPreferences prefs) {
         String warning = getWidgetWarning(context, prefs);
         if (warning != null) {
             views.setTextViewText(R.id.widget_warning, "\u26A0 " + warning);
@@ -288,80 +307,100 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         } else {
             views.setViewVisibility(R.id.widget_warning, android.view.View.GONE);
         }
+    }
 
-        if (layoutId == R.layout.widget_layout_large) {
-            if ("forecast".equals(widgetStyle) && forecastDataArr != null && forecastDataArr.length() >= 3) {
-                views.setViewVisibility(R.id.forecast_section, android.view.View.VISIBLE);
-                try {
-                    for (int i = 0; i < 3; i++) {
-                        JSONObject dayObj = forecastDataArr.getJSONObject(i);
-                        String fDay = dayObj.getString("day");
-                        String fTempMin = String.valueOf(dayObj.getInt("temp_min"));
-                        String fTempMax = String.valueOf(dayObj.getInt("temp_max"));
-                        String fTempStr = fTempMax + "°\n" + fTempMin + "°";
-
-                        int dayId = context.getResources().getIdentifier("forecast_day_" + (i+1), "id", context.getPackageName());
-                        int tempId = context.getResources().getIdentifier("forecast_temp_" + (i+1), "id", context.getPackageName());
-                        int cellId = context.getResources().getIdentifier("forecast_cell_" + (i+1), "id", context.getPackageName());
-
-                        views.setTextViewText(dayId, fDay);
-                        views.setTextViewText(tempId, fTempStr);
-
-                        int appDayIndex = i + 1;
-                        Intent dayIntent = new Intent(context, MainActivity.class);
-                        dayIntent.putExtra("navigate_to", "/rest/weather?day=" + appDayIndex);
-                        dayIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        PendingIntent dayPendingIntent = PendingIntent.getActivity(context, 10 + i, dayIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-                        if (cellId != 0) {
-                            views.setOnClickPendingIntent(cellId, dayPendingIntent);
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else {
-                views.setViewVisibility(R.id.forecast_section, android.view.View.GONE);
-            }
+    /** Forecast cells on the large layout (only when style is "forecast" and data is present). */
+    private static void bindForecastSection(Context context, RemoteViews views, WidgetData data) {
+        if (!"forecast".equals(data.widgetStyle) || data.forecastArr == null || data.forecastArr.length() < 3) {
+            views.setViewVisibility(R.id.forecast_section, android.view.View.GONE);
+            return;
         }
+        views.setViewVisibility(R.id.forecast_section, android.view.View.VISIBLE);
+        try {
+            for (int i = 0; i < 3; i++) {
+                JSONObject dayObj = data.forecastArr.getJSONObject(i);
+                String fDay = dayObj.getString("day");
+                String fTempMin = String.valueOf(dayObj.getInt("temp_min"));
+                String fTempMax = String.valueOf(dayObj.getInt("temp_max"));
+                String fTempStr = fTempMax + "°\n" + fTempMin + "°";
 
-        final JSONArray finalForecastData = forecastDataArr;
-        final String finalWidgetStyle = widgetStyle;
-        if (!iconName.isEmpty()) {
-            final String mappedIconName = getGoogleIconName(iconName);
-            executor.execute(() -> {
-                try {
-                    Bitmap mainBitmap = fetchIcon(context, mappedIconName);
+                int dayId = context.getResources().getIdentifier("forecast_day_" + (i+1), "id", context.getPackageName());
+                int tempId = context.getResources().getIdentifier("forecast_temp_" + (i+1), "id", context.getPackageName());
+                int cellId = context.getResources().getIdentifier("forecast_cell_" + (i+1), "id", context.getPackageName());
 
-                    Bitmap[] forecastBitmaps = new Bitmap[3];
-                    if (layoutId == R.layout.widget_layout_large && "forecast".equals(finalWidgetStyle) && finalForecastData != null && finalForecastData.length() >= 3) {
-                        for (int i = 0; i < 3; i++) {
-                            String fIconName = finalForecastData.getJSONObject(i).getString("icon");
-                            forecastBitmaps[i] = fetchIcon(context, getGoogleIconName(fIconName));
-                        }
+                views.setTextViewText(dayId, fDay);
+                views.setTextViewText(tempId, fTempStr);
+
+                int appDayIndex = i + 1;
+                Intent dayIntent = new Intent(context, MainActivity.class);
+                dayIntent.putExtra("navigate_to", "/rest/weather?day=" + appDayIndex);
+                dayIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                PendingIntent dayPendingIntent = PendingIntent.getActivity(context, 10 + i, dayIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                if (cellId != 0) {
+                    views.setOnClickPendingIntent(cellId, dayPendingIntent);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Downloads (or loads from cache) the main and forecast icons off the main thread,
+     * then applies them to the RemoteViews and pushes the update.
+     */
+    private static void loadIconsAsync(final Context context, final AppWidgetManager appWidgetManager,
+                                       final int appWidgetId, final RemoteViews views, final int layoutId,
+                                       final WidgetData data) {
+        if (data.iconName.isEmpty()) {
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+            return;
+        }
+        executor.execute(() -> {
+            try {
+                Bitmap mainBitmap = fetchIcon(context, getGoogleIconName(data.iconName));
+
+                Bitmap[] forecastBitmaps = new Bitmap[3];
+                boolean showForecast = layoutId == R.layout.widget_layout_large
+                        && "forecast".equals(data.widgetStyle)
+                        && data.forecastArr != null && data.forecastArr.length() >= 3;
+                if (showForecast) {
+                    for (int i = 0; i < 3; i++) {
+                        String fIconName = data.forecastArr.getJSONObject(i).getString("icon");
+                        forecastBitmaps[i] = fetchIcon(context, getGoogleIconName(fIconName));
                     }
+                }
 
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        if (mainBitmap != null) {
-                            views.setImageViewBitmap(R.id.widget_icon, mainBitmap);
-                        }
-                        if (layoutId == R.layout.widget_layout_large && "forecast".equals(finalWidgetStyle)) {
-                            for (int i = 0; i < 3; i++) {
-                                if (forecastBitmaps[i] != null) {
-                                    int iconId = context.getResources().getIdentifier("forecast_icon_" + (i+1), "id", context.getPackageName());
-                                    views.setImageViewBitmap(iconId, forecastBitmaps[i]);
-                                }
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (mainBitmap != null) {
+                        views.setImageViewBitmap(R.id.widget_icon, mainBitmap);
+                    }
+                    if (showForecast) {
+                        for (int i = 0; i < 3; i++) {
+                            if (forecastBitmaps[i] != null) {
+                                int iconId = context.getResources().getIdentifier("forecast_icon_" + (i+1), "id", context.getPackageName());
+                                views.setImageViewBitmap(iconId, forecastBitmaps[i]);
                             }
                         }
-                        appWidgetManager.updateAppWidget(appWidgetId, views);
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-        } else {
-            appWidgetManager.updateAppWidget(appWidgetId, views);
-        }
+                    }
+                    appWidgetManager.updateAppWidget(appWidgetId, views);
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /** Mutable holder for the parsed widget weather data. */
+    private static final class WidgetData {
+        String tempStr = "--°";
+        String locationStr = "Waiting…";
+        String conditionStr = "---";
+        String dailyTempStr = "--° / --°";
+        String iconName = "";
+        String widgetStyle = "simple";
+        JSONArray forecastArr = null;
     }
 
     private static Bitmap fetchIcon(Context context, String mappedIconName) throws Exception {

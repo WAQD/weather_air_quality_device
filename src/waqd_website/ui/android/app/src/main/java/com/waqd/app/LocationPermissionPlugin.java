@@ -29,6 +29,7 @@ public class LocationPermissionPlugin extends Plugin {
         boolean granted = ContextCompat.checkSelfPermission(
                 getContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
+        android.util.Log.d("WAQD", "isBackgroundGranted called, result: " + granted);
         JSObject ret = new JSObject();
         ret.put("granted", granted);
         call.resolve(ret);

@@ -6,4 +6,12 @@
     <string name="custom_url_scheme">com.waqd.app</string>
     <string name="widget_prev_location">Previous location</string>
     <string name="widget_next_location">Next location</string>
+
+    <!-- Widget warning banners -->
+    <string name="widget_warn_no_permission">Allow location “All the time” — tap to fix</string>
+    <string name="widget_warn_no_gps">Turn on location — tap to fix</string>
+    <string name="widget_warn_no_key">Log in to set up the widget</string>
+    <string name="widget_warn_http">Update failed — will retry</string>
+    <string name="widget_warn_generic">Couldn\'t update — tap for details</string>
+    <string name="widget_waiting">Waiting…</string>
 </resources>

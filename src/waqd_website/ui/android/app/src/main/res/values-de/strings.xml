@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="widget_warn_no_permission">Standort „Immer zulassen“ erlauben – zum Beheben tippen</string>
+    <string name="widget_warn_no_gps">Standort aktivieren – zum Beheben tippen</string>
+    <string name="widget_warn_no_key">Zum Einrichten des Widgets anmelden</string>
+    <string name="widget_warn_http">Aktualisierung fehlgeschlagen – wird wiederholt</string>
+    <string name="widget_warn_generic">Update nicht möglich – für Details tippen</string>
+    <string name="widget_waiting">Warte…</string>
+</resources>

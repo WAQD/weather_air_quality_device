@@ -20,10 +20,6 @@ import androidx.work.WorkerParameters;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -33,11 +29,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class WidgetRefreshWorker extends Worker {
 
     private static final String TAG = "WidgetRefreshWorker";
-    private static final String PREF_WIDGET_KEY = "waqd.widget.key";
-    private static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
-    private static final String PREF_LOCALE = "waqd.locale";
-    private static final String PREF_STATUS = "waqd.widget.lastStatus";
-    private static final String PREF_UPDATE_HISTORY = "waqd.widget.updateHistory";
     private static final int GPS_TIMEOUT_SECONDS = 30;
 
     public WidgetRefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -48,7 +39,7 @@ public class WidgetRefreshWorker extends Worker {
     @Override
     public Result doWork() {
         Context appContext = getApplicationContext();
-        SharedPreferences prefs = appContext.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences prefs = appContext.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
 
         try {
             doRefresh(appContext);
@@ -76,7 +67,7 @@ public class WidgetRefreshWorker extends Worker {
             entry.put("ok", ok);
             entry.put("code", code == null ? "error" : code);
             entry.put("message", message == null ? "" : message);
-            prefs.edit().putString(PREF_STATUS, entry.toString()).apply();
+            prefs.edit().putString(WidgetContract.PREF_STATUS, entry.toString()).apply();
         } catch (Exception ignored) {}
     }
 
@@ -85,21 +76,21 @@ public class WidgetRefreshWorker extends Worker {
         try {
             JSONArray history = new JSONArray();
             history.put(ts);
-            String existing = prefs.getString(PREF_UPDATE_HISTORY, null);
+            String existing = prefs.getString(WidgetContract.PREF_UPDATE_HISTORY, null);
             if (existing != null && !existing.isEmpty()) {
                 JSONArray old = new JSONArray(existing);
                 for (int i = 0; i < old.length() && history.length() < 3; i++) {
                     history.put(old.getLong(i));
                 }
             }
-            prefs.edit().putString(PREF_UPDATE_HISTORY, history.toString()).apply();
+            prefs.edit().putString(WidgetContract.PREF_UPDATE_HISTORY, history.toString()).apply();
         } catch (Exception ignored) {}
     }
 
     private void doRefresh(Context context) throws Exception {
-        SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
-        String widgetKey = prefs.getString(PREF_WIDGET_KEY, null);
-        String baseUrl = prefs.getString(PREF_BASE_URL, null);
+        SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
+        String widgetKey = prefs.getString(WidgetContract.PREF_WIDGET_KEY, null);
+        String baseUrl = prefs.getString(WidgetContract.PREF_BASE_URL, null);
 
         if (widgetKey == null || widgetKey.isEmpty()) {
             throw new RefreshException("No widget key stored (waqd.widget.key). Open the app while logged in so the key gets saved.", false, "no_key");
@@ -149,38 +140,14 @@ public class WidgetRefreshWorker extends Worker {
         if (locationName != null && !locationName.isEmpty()) {
             apiUrl += "&name=" + URLEncoder.encode(locationName, "UTF-8");
         }
-        URL url = new URL(apiUrl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "WidgetToken " + widgetKey);
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(10000);
 
-        int code = conn.getResponseCode();
-        if (code != 200) {
-            String errorBody = "";
-            try {
-                BufferedReader errReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-                StringBuilder errSb = new StringBuilder();
-                String line;
-                while ((line = errReader.readLine()) != null) errSb.append(line);
-                errReader.close();
-                errorBody = errSb.toString();
-            } catch (Exception ignored) {}
-            conn.disconnect();
-            boolean retryable = code >= 500 || code == 429;
-            throw new RefreshException("Widget API returned HTTP " + code + (errorBody.isEmpty() ? "" : " :: " + errorBody), retryable, "http");
+        String body;
+        try {
+            body = WidgetContract.httpGet(apiUrl, widgetKey);
+        } catch (WidgetContract.HttpException e) {
+            boolean retryable = e.statusCode >= 500 || e.statusCode == 429;
+            throw new RefreshException("Widget API returned HTTP " + e.statusCode, retryable, "http");
         }
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
-        }
-        reader.close();
-        String body = sb.toString();
-        conn.disconnect();
 
         JSONObject apiPayload = new JSONObject(body);
         JSONObject widgetData = new JSONObject();
@@ -194,9 +161,9 @@ public class WidgetRefreshWorker extends Worker {
         widgetData.put("widget_style", apiPayload.getString("widget_style"));
         widgetData.put("forecast_3_days", apiPayload.getJSONArray("forecast_3_days"));
 
-        prefs.edit().putString("widget_weather_data", widgetData.toString()).apply();
-        prefs.edit().putString("waqd.widget.lastGpsCoords", lat + "," + lon).apply();
-        prefs.edit().putString("waqd.widget.lastGpsName", apiPayload.getString("locationName")).apply();
+        prefs.edit().putString(WidgetContract.PREF_WEATHER_DATA, widgetData.toString()).apply();
+        prefs.edit().putString(WidgetContract.PREF_LAST_GPS_COORDS, lat + "," + lon).apply();
+        prefs.edit().putString(WidgetContract.PREF_LAST_GPS_NAME, apiPayload.getString("locationName")).apply();
         String resolvedName = apiPayload.optString("locationName", "?");
         Log.d(TAG, "Widget data updated successfully: " + resolvedName + " at " + lat + "," + lon);
 
@@ -210,7 +177,7 @@ public class WidgetRefreshWorker extends Worker {
     }
 
     private static String resolveLocale(SharedPreferences prefs) {
-        String locale = prefs.getString(PREF_LOCALE, null);
+        String locale = prefs.getString(WidgetContract.PREF_LOCALE, null);
         if (locale == null || locale.isEmpty()) {
             locale = Locale.getDefault().getLanguage();
         }
@@ -223,26 +190,12 @@ public class WidgetRefreshWorker extends Worker {
     /** Fetches the user's saved locations as a JSON array of {name, latitude, longitude}. */
     private JSONArray fetchSavedLocations(String baseUrl, String widgetKey) throws Exception {
         String url = baseUrl + "/api/public/widget/locations";
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "WidgetToken " + widgetKey);
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(10000);
-
-        int code = conn.getResponseCode();
-        if (code != 200) {
-            conn.disconnect();
-            throw new RefreshException("Locations API returned HTTP " + code, false, "http");
+        try {
+            String body = WidgetContract.httpGet(url, widgetKey);
+            return new JSONObject(body).getJSONArray("locations");
+        } catch (WidgetContract.HttpException e) {
+            throw new RefreshException("Locations API returned HTTP " + e.statusCode, false, "http");
         }
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) sb.append(line);
-        reader.close();
-        conn.disconnect();
-
-        return new JSONObject(sb.toString()).getJSONArray("locations");
     }
 
     private double[] tryGetCoordinates(Context context) throws RefreshException {

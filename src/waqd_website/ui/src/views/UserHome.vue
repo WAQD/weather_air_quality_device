@@ -164,11 +164,12 @@
             <div class="mt-3 flex flex-col gap-4">
               <p class="text-sm opacity-70">The widget uses your GPS location to show
                 current weather on your home screen.</p>
-              <div v-if="widgetStatus" class="rounded-box border border-dashed p-3 text-xs" :class="widgetStatus.ok
-                ? 'border-success/40 bg-success/10'
-                : 'border-warning/50 bg-warning/10'">
+              <div v-if="effectiveWidgetStatus" class="rounded-box border border-dashed p-3 text-xs"
+                :class="effectiveWidgetStatus.ok
+                  ? 'border-success/40 bg-success/10'
+                  : 'border-warning/50 bg-warning/10'">
                 <p class="font-semibold uppercase tracking-[0.16em] opacity-60 mb-1">
-                  {{ widgetStatus.ok ? 'Widget updated' : 'Widget needs attention' }}</p>
+                  {{ effectiveWidgetStatus.ok ? 'Widget updated' : 'Widget needs attention' }}</p>
                 <p class="opacity-90">{{ widgetStatusText }}</p>
                 <button v-if="widgetStatusAction" class="btn btn-sm mt-2 btn-warning" type="button"
                   @click="widgetStatusAction.handler">
@@ -278,12 +279,31 @@ const widgetStatus = ref<WidgetStatus | null>(null)
 const widgetUpdateHistory = ref<number[]>([])
 const backgroundPermissionGranted = ref(true)
 
+// Keep the displayed status in sync with the *actual* permission state:
+// - A stale "no_permission" status is resolved once background location is granted.
+// - If background location was revoked, surface it even when the last stored
+//   refresh succeeded (it can't succeed in the background anymore).
+const effectiveWidgetStatus = computed<WidgetStatus | null>(() => {
+  const s = widgetStatus.value
+  if (!backgroundPermissionGranted.value) {
+    if (!s || s.ok || s.code === 'no_permission') {
+      return { ts: s?.ts, ok: false, code: 'no_permission', message: s?.message }
+    }
+    return s
+  }
+  if (!s || s.ok) return s
+  if (s.code === 'no_permission') {
+    return { ...s, ok: true }
+  }
+  return s
+})
+
 const showBackgroundPermissionWarning = computed(() =>
-  !backgroundPermissionGranted.value && (!widgetStatus.value || widgetStatus.value.ok)
+  !backgroundPermissionGranted.value && (!effectiveWidgetStatus.value || effectiveWidgetStatus.value.ok)
 )
 
 const widgetStatusText = computed(() => {
-  const s = widgetStatus.value
+  const s = effectiveWidgetStatus.value
   if (!s) return ''
   if (s.ok) {
     if (widgetUpdateHistory.value.length) {
@@ -310,7 +330,7 @@ const widgetStatusText = computed(() => {
 })
 
 const widgetStatusAction = computed<{ label: string, handler: () => void } | null>(() => {
-  const s = widgetStatus.value
+  const s = effectiveWidgetStatus.value
   if (!s || s.ok) return null
   if (s.code === 'no_permission') {
     return { label: 'Open settings', handler: openBackgroundPermissionSettings }
@@ -362,12 +382,32 @@ onMounted(async () => {
     // Not on mobile
   }
 
+  // Native MainActivity.onResume() fires this directly; more reliable than
+  // appStateChange for detecting a return from the system permission settings.
+  window.addEventListener('waqdAppResume', onAppResume)
+  // Web/dev fallback: fires when returning to the tab.
+  document.addEventListener('visibilitychange', onVisibilityChange)
+
   await loadWidgetStatus()
 })
 
 onUnmounted(() => {
   stopWeatherPolling()
+  window.removeEventListener('waqdAppResume', onAppResume)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
+
+function onAppResume(): void {
+  console.log('[WAQD widget] waqdAppResume event received')
+  loadWidgetStatus()
+}
+
+function onVisibilityChange(): void {
+  if (!document.hidden) {
+    console.log('[WAQD widget] visibilitychange -> visible')
+    loadWidgetStatus()
+  }
+}
 
 function startWeatherPolling() {
   stopWeatherPolling()
@@ -461,11 +501,14 @@ async function loadWidgetStatus(): Promise<void> {
   } catch {
     widgetUpdateHistory.value = []
   }
+  console.log('[WAQD widget] loadWidgetStatus called, isNative:', Capacitor.isNativePlatform())
   if (Capacitor.isNativePlatform()) {
     try {
       const { granted } = await LocationPermission.isBackgroundGranted()
+      console.log('[WAQD widget] isBackgroundGranted result:', granted)
       backgroundPermissionGranted.value = granted
-    } catch {
+    } catch (err) {
+      console.error('[WAQD widget] isBackgroundGranted FAILED:', err)
       backgroundPermissionGranted.value = true
     }
   } else {

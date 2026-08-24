@@ -15,8 +15,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        // Must register plugins BEFORE super.onCreate(): the Capacitor bridge
+        // initializes there and ignores plugins registered afterwards.
         registerPlugin(LocationPermissionPlugin.class);
+        super.onCreate(savedInstanceState);
 
         Intent launchIntent = getIntent();
         if (launchIntent != null && launchIntent.hasExtra("navigate_to")) {
@@ -26,13 +28,13 @@ public class MainActivity extends BridgeActivity {
         // Refresh the widget right away when the app language changes (so it re-fetches
         // in the new locale immediately), or when login/first-setup keys become available.
         // Also update widget UI layout immediately when style or location mode settings change.
-        SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
         prefListener = (sharedPreferences, key) -> {
-            if ("waqd.locale".equals(key)
-                    || "waqd.widget.key".equals(key)
-                    || "waqd.background.apiBaseUrl".equals(key)) {
+            if (WidgetContract.PREF_LOCALE.equals(key)
+                    || WidgetContract.PREF_WIDGET_KEY.equals(key)
+                    || WidgetContract.PREF_BASE_URL.equals(key)) {
                 WeatherWidgetProvider.refreshNow(this);
-            } else if ("waqd.widget.locationMode".equals(key)
+            } else if (WidgetContract.PREF_LOCATION_MODE.equals(key)
                     || "waqd.website.widgetStyle".equals(key)) {
                 WeatherWidgetProvider.updateAllWidgets(this);
             }
@@ -55,9 +57,22 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
-        // Opening the app is a good moment to refresh the widget (e.g. right after
-        // the user enabled background location). The worker/backend cache keeps it cheap.
-        WeatherWidgetProvider.requestImmediateRefresh(this);
+        // Re-render the widget right away: if the user just granted the location
+        // permission in system settings, this clears the warning banner immediately.
+        WeatherWidgetProvider.updateAllWidgets(this);
+        // Then re-fetch weather (bypassing the rate limit) so a stale error status
+        // like "no_permission" is replaced with an up-to-date success status.
+        WeatherWidgetProvider.refreshNow(this);
+        // Notify the web UI directly so it re-checks the permission state and the
+        // widget status (the Capacitor 'appStateChange' event alone proved unreliable).
+        // Guard against the WebView/JS runtime not being ready yet (cold start).
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            android.util.Log.d("WAQD", "onResume: triggering waqdAppResume JS event");
+            getBridge().getWebView().post(() ->
+                getBridge().triggerJSEvent("waqdAppResume", "window"));
+        } else {
+            android.util.Log.w("WAQD", "onResume: bridge/webview not ready, skipping JS event");
+        }
         if (pendingNavigatePath != null) {
             final String path = pendingNavigatePath;
             pendingNavigatePath = null;
@@ -68,13 +83,13 @@ public class MainActivity extends BridgeActivity {
     private void dispatchNavigation(String path) {
         if (getBridge() == null || getBridge().getWebView() == null) return;
 
-        SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
-        String gpsCoords = prefs.getString("waqd.widget.lastGpsCoords", null);
+        SharedPreferences prefs = getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
+        String gpsCoords = prefs.getString(WidgetContract.PREF_LAST_GPS_COORDS, null);
         if (gpsCoords != null && !gpsCoords.isEmpty()) {
             String[] parts = gpsCoords.split(",");
             if (parts.length == 2) {
                 try {
-                    String gpsName = prefs.getString("waqd.widget.lastGpsName", "GPS Location");
+                    String gpsName = prefs.getString(WidgetContract.PREF_LAST_GPS_NAME, "GPS Location");
                     String encodedName = URLEncoder.encode(gpsName != null ? gpsName : "GPS Location", "UTF-8");
                     path += (path.contains("?") ? "&" : "?") + "gps_lat=" + parts[0] + "&gps_lon=" + parts[1] + "&gps_name=" + encodedName;
                 } catch (Exception ignored) {}

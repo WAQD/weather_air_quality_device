@@ -64,7 +64,9 @@
 
 html,
 body {
-  overflow-x: hidden;
+  /* `clip` prevents horizontal overflow without creating a scroll
+     container, so `position: sticky` (e.g. the navbar) keeps working. */
+  overflow-x: clip;
   max-width: 100vw;
   box-sizing: border-box;
 }

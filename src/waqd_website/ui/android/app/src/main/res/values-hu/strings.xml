@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="widget_warn_no_permission">Engedélyezze a helymeghatározást „Mindig” beállítással – koppintson a javításhoz</string>
+    <string name="widget_warn_no_gps">Kapcsolja be a helymeghatározást – koppintson a javításhoz</string>
+    <string name="widget_warn_no_key">Jelentkezzen be a widget beállításához</string>
+    <string name="widget_warn_http">Frissítés sikertelen – újrapróbálás folyamatban</string>
+    <string name="widget_warn_generic">Nem sikerült frissíteni – koppintson a részletekért</string>
+    <string name="widget_waiting">Várakozás…</string>
+</resources>
