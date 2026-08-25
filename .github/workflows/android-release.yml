@@ -141,7 +141,7 @@ jobs:
               working-directory: src/waqd_website/ui/android
               run: ./gradlew --no-daemon :app:assembleRelease
 
-            # ---------- Locate + verify ----------
+            # ---------- Locate + verify + rename ----------
             - name: Find built APK
               id: find_apk
               working-directory: src/waqd_website/ui/android
@@ -152,16 +152,18 @@ jobs:
                     ls -R app/build/outputs || true
                     exit 1
                   fi
-                  echo "apk_path=${APK}" >> "$GITHUB_OUTPUT"
-                  ls -la "${APK}"
+                  # Copy to a stable, canonical name so the GitHub Release asset
+                  # URL is predictable (waqd-app-release.apk).
+                  cp "${APK}" "waqd-app-release.apk"
+                  echo "apk_path=waqd-app-release.apk" >> "$GITHUB_OUTPUT"
+                  ls -la "${APK}" "waqd-app-release.apk"
 
             - name: Verify APK signature
               working-directory: src/waqd_website/ui/android
               run: |
-                  APK="${{ steps.find_apk.outputs.apk_path }}"
                   BUILD_TOOLS_VERSION=$(ls -1 "$ANDROID_HOME/build-tools" | sort -V | tail -1)
                   "$ANDROID_HOME/build-tools/${BUILD_TOOLS_VERSION}/apksigner" \
-                    verify --print-certs "${APK}"
+                    verify --print-certs "waqd-app-release.apk"
 
             # ---------- Upload ----------
             # 1. Delete any existing APK/AAB on the release (so the new build
@@ -174,10 +176,12 @@ jobs:
                   TAG: ${{ steps.version.outputs.version_name }}
               run: |
                   set +e
+                  # Match the canonical name we upload, plus any historical names
+                  # (default AGP output `app-release.apk`, anything ending in .apk/.aab).
                   ASSETS=$(gh release view "${TAG}" --json assets --jq '.assets[].name' 2>/dev/null)
                   for a in ${ASSETS}; do
                     case "${a}" in
-                      *.apk|*.aab)
+                      waqd-app-release.apk|app-release.apk|*.apk|*.aab)
                         echo "Removing existing artifact: ${a}"
                         gh release delete-asset "${TAG}" "${a}" --yes
                         ;;
