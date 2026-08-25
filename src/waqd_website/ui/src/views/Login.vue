@@ -64,15 +64,15 @@
                   <span class="label-text">{{ t('remember_me_30_days') }}</span>
                 </label>
               </div>
-              <div class="flex items-center justify-end gap-3 mt-4 flex-wrap">
+              <div class="flex flex-col gap-3 mt-4">
                 <button class="btn btn-primary w-full text-base sm:text-lg" @click="login">
                   {{ t('login') }}
                   <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
                 </button>
-                <router-link to="/public/forgot-password" class="link link-hover text-sm">
+                <router-link to="/public/forgot-password" class="link link-hover text-sm text-center">
                   {{ t('forgot_password') }}
                 </router-link>
-                <router-link to="/public/signup" class="link link-hover text-sm">
+                <router-link to="/public/signup" class="btn btn-primary w-full text-base sm:text-lg">
                   {{ t('create_account') }}
                 </router-link>
               </div>
