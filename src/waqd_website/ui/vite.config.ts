@@ -149,6 +149,22 @@ export default defineConfig({
               networkTimeoutSeconds: 3
             }
           },
+          // Keep map tiles in a separate bounded cache. Weather tiles are
+          // short-lived because the upstream forecast changes regularly.
+          {
+            urlPattern: /^https:\/\/(?:openmeteo-data-spatial\.b-cdn\.net|tile\.openstreetmap\.org)\/.*$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-tiles-cache',
+              expiration: {
+                maxEntries: 800,
+                maxAgeSeconds: 60 * 15
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           // Cache images on-demand instead of precaching
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,

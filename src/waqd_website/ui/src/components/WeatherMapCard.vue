@@ -55,7 +55,7 @@
             </select>
           </div>
           <span class="whitespace-nowrap text-sm opacity-80 sm:ml-auto">{{ timeLabel
-          }}</span>
+            }}</span>
         </div>
       </div>
 
@@ -513,9 +513,9 @@ async function startPlayback(): Promise<void> {
 
   const start = timeOffset.value
   const end = Math.min(maxTimeOffset, start + playbackLength.value)
-  // Preload only the first half so playback starts sooner; the second half
-  // loads on demand and may stutter once playback catches up.
-  const preloadEnd = start + Math.floor((end - start) / 2)
+  // Preload only a few frames so playback starts quickly without issuing a
+  // large burst of tile requests. Later frames load on demand.
+  const preloadEnd = Math.min(end, start + 3)
 
   isPreloading.value = true
   preloadCancelled = false
