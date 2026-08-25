@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/optimize-images.js && capacitor-assets generate",
     "build:only": "vite build",
-    "release:android": "vite build && npx cap sync android && (cd android && ./gradlew assembleRelease)",
+    "release:android": "vite build && rm -rf dist/static && npx cap sync android && (cd android && ./gradlew assembleRelease)",
     "optimize-images": "node scripts/optimize-images.js",
     "preview": "vite preview",
     "test:e2e": "playwright test",

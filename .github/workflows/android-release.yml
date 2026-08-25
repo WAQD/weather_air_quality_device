@@ -58,15 +58,6 @@ jobs:
               working-directory: src/waqd_website/ui
               run: npm ci
 
-            - name: Build web assets
-              working-directory: src/waqd_website/ui
-              run: npm run build
-
-            # ---------- Sync Capacitor into Android project ----------
-            - name: Capacitor sync
-              working-directory: src/waqd_website/ui
-              run: npx cap sync android
-
             # ---------- Versioning ----------
             # versionCode must be monotonically increasing per upload key. We use
             # the GitHub Actions run number, which is unique per workflow run
@@ -137,9 +128,15 @@ jobs:
                   EOF
 
             # ---------- Build ----------
+            # `release:android` does: vite build (skipping optimize-images
+            # via the dedicated chain), strip dist/static, cap sync android,
+            # then gradlew assembleRelease. The keystore.properties written
+            # above is consumed by gradle, and the versionCode/versionName
+            # patches applied to app/build.gradle above are used by the
+            # :app:assembleRelease task.
             - name: Assemble signed release APK
-              working-directory: src/waqd_website/ui/android
-              run: ./gradlew --no-daemon :app:assembleRelease
+              working-directory: src/waqd_website/ui
+              run: npm run release:android
 
             # ---------- Locate + verify + rename ----------
             - name: Find built APK
