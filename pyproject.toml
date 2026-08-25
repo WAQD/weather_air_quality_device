@@ -100,12 +100,14 @@ waqd = [
     "MH-Z19==3.1.7; platform_machine=='aarch64'", # MIT License
 ]
 website = [
-    # Web & UI
     "sqlalchemy>=2.0.41",
     "sqlmodel>=0.0.24",
     "pymysql>=1.1.0",
     "psycopg2-binary>=2.9.11",
     "websockets>=15.0.1",
+    "slowapi>=0.1.9",
+    "email-validator>=2.3.0",
+    "redis>=5.0",
 ]
 dev = [
     "rope",          # refactoring

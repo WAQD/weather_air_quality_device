@@ -72,6 +72,9 @@
                 <router-link to="/public/forgot-password" class="link link-hover text-sm">
                   {{ t('forgot_password') }}
                 </router-link>
+                <router-link to="/public/signup" class="link link-hover text-sm">
+                  {{ t('create_account') }}
+                </router-link>
               </div>
             </fieldset>
           </div>

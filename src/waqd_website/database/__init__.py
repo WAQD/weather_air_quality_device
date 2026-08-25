@@ -38,6 +38,11 @@ class User(SQLModel, table=True):
     disabled: Optional[bool] = False
     permissions: List[str] = Field(default_factory=list, sa_column=Column(JSON, default=[]))
     widget_key: Optional[str] = Field(default=None, max_length=256, index=True)
+    # New registrations must verify their email. These fields remain nullable/defaulted
+    # so existing installations and the bootstrap admin remain compatible.
+    email_verified_at: Optional[datetime] = Field(default=None)
+    email_verification_required: bool = Field(default=False)
+    pending_email: Optional[str] = Field(default=None, max_length=255, index=True)
 
     # Relationships
     devices: List["Device"] = Relationship(back_populates="owners", link_model=UserDeviceLink)
@@ -140,13 +145,28 @@ class PasswordResetToken(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class EmailVerificationToken(SQLModel, table=True):
+    """Short-lived, single-use tokens for email ownership verification."""
+
+    __tablename__ = "email_verification_token"  # type: ignore
+
+    token_hash: str = Field(primary_key=True, max_length=64)
+    user_id: int = Field(foreign_key="user.id", index=True)
+    email: str = Field(max_length=255)
+    expires_at: datetime = Field(index=True)
+    used: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 # Create database tables - must be last
+
 
 def create_db_tables():
     try:
         SQLModel.metadata.create_all(engine)
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error("Failed to create database tables: %s", e)
         raise
     _run_migrations()
@@ -155,6 +175,7 @@ def create_db_tables():
 def _run_migrations():
     """Apply schema migrations to existing databases."""
     import logging
+
     log = logging.getLogger(__name__)
 
     inspector = inspect(engine)
@@ -164,15 +185,44 @@ def _run_migrations():
     except SQLAlchemyError:
         return
 
-    if "widget_key" not in columns:
-        log.info("Migration: adding widget_key column to user table")
-        with engine.connect() as conn:
-            conn.execute(text('ALTER TABLE "user" ADD COLUMN widget_key VARCHAR(256)'))
+    datetime_type = "TIMESTAMP" if engine.dialect.name == "postgresql" else "DATETIME"
+    boolean_type = (
+        "BOOLEAN NOT NULL DEFAULT FALSE"
+        if engine.dialect.name == "postgresql"
+        else "BOOLEAN NOT NULL DEFAULT 0"
+    )
+    migrations = {
+        "widget_key": (
+            "VARCHAR(256)",
+            'CREATE INDEX "ix_user_widget_key" ON "user" (widget_key)',
+        ),
+        "email_verified_at": (datetime_type, None),
+        "email_verification_required": (boolean_type, None),
+        "pending_email": (
+            "VARCHAR(255)",
+            'CREATE INDEX "ix_user_pending_email" ON "user" (pending_email)',
+        ),
+    }
+    missing = [name for name in migrations if name not in columns]
+    if not missing:
+        return
+
+    # These are additive and idempotent. SQLModel creates the new token table above;
+    # this migration is only for columns added to the pre-existing user table.
+    with engine.begin() as conn:
+        for name in missing:
+            column_type, index_sql = migrations[name]
+            log.info("Migration: adding %s column to user table", name)
             try:
-                conn.execute(text(
-                    'CREATE INDEX "ix_user_widget_key" ON "user" (widget_key)'
-                ))
-            except Exception:
-                pass  # index may already exist
-            conn.commit()
-        log.info("Migration: widget_key column added successfully")
+                conn.execute(text(f'ALTER TABLE "user" ADD COLUMN {name} {column_type}'))
+            except Exception as exc:
+                # Multiple workers may race during startup. Re-inspection below will
+                # distinguish an already-applied migration from a real failure.
+                if name not in [col["name"] for col in inspect(engine).get_columns("user")]:
+                    raise exc
+            if index_sql:
+                try:
+                    conn.execute(text(index_sql))
+                except Exception:
+                    pass  # index may already exist
+    log.info("User schema migrations completed: %s", ", ".join(missing))

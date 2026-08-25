@@ -1,16 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import UserHome from '../views/UserHome.vue'
-import Login from '../views/Login.vue'
-import About from '../views/About.vue'
-import Admin from '../views/Admin.vue'
-import Account from '../views/Account.vue'
-import Devices from '../views/Devices.vue'
-import Device from '../views/Device.vue'
-import Weather from '../views/Weather.vue'
-import ForgotPassword from '../views/ForgotPassword.vue'
-import ResetPassword from '../views/ResetPassword.vue'
 import { useUser } from '../composables/useUser'
+
+// Keep the initial bundle small: views are downloaded when their route is visited.
+const Home = () => import('../views/Home.vue')
+const UserHome = () => import('../views/UserHome.vue')
+const Login = () => import('../views/Login.vue')
+const About = () => import('../views/About.vue')
+const Admin = () => import('../views/Admin.vue')
+const Account = () => import('../views/Account.vue')
+const Devices = () => import('../views/Devices.vue')
+const Device = () => import('../views/Device.vue')
+const Weather = () => import('../views/Weather.vue')
+const ForgotPassword = () => import('../views/ForgotPassword.vue')
+const ResetPassword = () => import('../views/ResetPassword.vue')
+const Signup = () => import('../views/Signup.vue')
+const VerifyEmail = () => import('../views/VerifyEmail.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,6 +38,16 @@ const router = createRouter({
       path: '/public/login',
       name: 'login',
       component: Login
+    },
+    {
+      path: '/public/signup',
+      name: 'signup',
+      component: Signup
+    },
+    {
+      path: '/public/verify-email',
+      name: 'verify-email',
+      component: VerifyEmail
     },
     {
       path: '/public/forgot-password',

@@ -38,6 +38,7 @@ widget_token_scheme = WidgetTokenAuth()
 
 def get_current_user_by_widget_key(token: str) -> Optional[User]:
     from waqd_website.database.user import get_user_by_widget_key
+
     return get_user_by_widget_key(token)
 
 
@@ -62,8 +63,9 @@ class RequiresLoginException(StarletteHTTPException):
 
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_SHORT_MINUTES = 120  # 2 hours - default, refreshed by frontend keepalive
-TOKEN_EXPIRE_LONG_DAYS = 30       # 30 days - "remember me" mode
+TOKEN_EXPIRE_LONG_DAYS = 30  # 30 days - "remember me" mode
 ADMIN_PERMISSION = "users:admin"
+
 
 class Token(BaseModel):
     access_token: str
@@ -140,11 +142,14 @@ def get_user_from_token(token_data: TokenData):
         return get_user_by_username(token_data.username)
     return None
 
+
 def authenticate_user(username: str, password: str):
     user = get_user_by_username(username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if user.disabled or not verify_password(password, user.hashed_password):
+        return False
+    if user.email_verification_required and user.email_verified_at is None:
         return False
     return user
 

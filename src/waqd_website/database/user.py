@@ -3,9 +3,10 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
+from email_validator import EmailNotValidError, validate_email
 from sqlmodel import Session, select
 
-from waqd_website.database import PasswordResetToken, User, engine
+from waqd_website.database import EmailVerificationToken, PasswordResetToken, User, engine
 from waqd.components.translation import Translation
 from waqd_website.mail.mail import send_email
 
@@ -181,6 +182,111 @@ def update_user_username(old_username: str, new_username: str) -> bool:
 
 
 _RESET_TOKEN_EXPIRY_MINUTES = 30
+_VERIFICATION_TOKEN_EXPIRY_MINUTES = 30
+
+
+def normalize_email(email: str) -> str:
+    try:
+        return validate_email(email.strip(), check_deliverability=False).normalized
+    except EmailNotValidError as exc:
+        raise ValueError("Invalid email address") from exc
+
+
+def register_user(username: str, password: str, email: str) -> tuple[User, str]:
+    """Create an unverified user and return the user plus a raw verification token."""
+    from waqd_website.auth.authentication import get_password_hash
+
+    username = username.strip()
+    email = normalize_email(email)
+    if not username or len(username) > 255:
+        raise ValueError("Invalid username")
+    if len(email) > 255:
+        raise ValueError("Invalid email address")
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters")
+
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=_VERIFICATION_TOKEN_EXPIRY_MINUTES
+    )
+    with Session(engine) as session:
+        if session.exec(select(User).where(User.username == username)).first():
+            raise ValueError("Username or email already registered")
+        if session.exec(select(User).where(User.email == email)).first():
+            raise ValueError("Username or email already registered")
+        user = User(
+            username=username,
+            email=email,
+            hashed_password=get_password_hash(password),
+            email_verification_required=True,
+        )
+        session.add(user)
+        session.flush()
+        session.add(
+            EmailVerificationToken(
+                token_hash=token_hash,
+                user_id=user.id,  # type: ignore[arg-type]
+                email=email,
+                expires_at=expires_at,
+            )
+        )
+        session.commit()
+        session.refresh(user)
+    return user, raw_token
+
+
+def create_email_verification_token(user_id: int, email: str) -> str:
+    """Create a hashed, single-use verification token for an email address."""
+    raw_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=_VERIFICATION_TOKEN_EXPIRY_MINUTES
+    )
+    with Session(engine) as session:
+        old_tokens = session.exec(
+            select(EmailVerificationToken).where(
+                EmailVerificationToken.user_id == user_id,
+                EmailVerificationToken.used == False,  # noqa: E712
+            )
+        ).all()
+        for token in old_tokens:
+            token.used = True
+            session.add(token)
+        session.add(
+            EmailVerificationToken(
+                token_hash=token_hash,
+                user_id=user_id,
+                email=normalize_email(email),
+                expires_at=expires_at,
+            )
+        )
+        session.commit()
+    return raw_token
+
+
+def consume_email_verification_token(raw_token: str) -> bool:
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    with Session(engine) as session:
+        record = session.exec(
+            select(EmailVerificationToken).where(
+                EmailVerificationToken.token_hash == token_hash
+            )
+        ).first()
+        if record is None or record.used:
+            return False
+        if record.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+            return False
+        user = session.exec(select(User).where(User.id == record.user_id)).first()
+        if user is None or normalize_email(user.email or "") != normalize_email(record.email):
+            return False
+        user.email_verified_at = datetime.now(timezone.utc)
+        user.email_verification_required = False
+        record.used = True
+        session.add(user)
+        session.add(record)
+        session.commit()
+    return True
 
 
 def get_user_by_email(email: str) -> Optional[User]:
@@ -205,7 +311,9 @@ def create_password_reset_token(user_id: int) -> str:
         for token in old_tokens:
             token.used = True
             session.add(token)
-        session.add(PasswordResetToken(token_hash=token_hash, user_id=user_id, expires_at=expires_at))
+        session.add(
+            PasswordResetToken(token_hash=token_hash, user_id=user_id, expires_at=expires_at)
+        )
         session.commit()
     return raw_token
 

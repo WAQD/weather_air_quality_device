@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
+import os
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -18,11 +19,15 @@ from waqd_website.auth.authentication import (
     user_exception_check,
 )
 from waqd_website.database.user import (
+    consume_email_verification_token,
     consume_password_reset_token,
+    create_email_verification_token,
     create_password_reset_token,
     get_user_by_email,
+    register_user,
 )
-from waqd_website.mail.mail import send_reset_email
+from waqd_website.mail.mail import send_reset_email, send_verification_email
+from waqd_website.api.rate_limit import limiter
 
 # Refresh threshold for short-lived tokens (refresh in last 30 min of 2h window)
 TOKEN_REFRESH_THRESHOLD_SHORT_MINUTES = 30
@@ -43,14 +48,100 @@ class LoginForm:
         self.grant_type = grant_type
         self.remember_me = remember_me
 
+
+class SignupForm:
+    def __init__(
+        self,
+        username: str = Form(...),
+        email: str = Form(...),
+        password: str = Form(...),
+        password_confirmation: str = Form(...),
+        accept_terms: bool = Form(...),
+    ):
+        self.username = username
+        self.email = email
+        self.password = password
+        self.password_confirmation = password_confirmation
+        self.accept_terms = accept_terms
+
+
 rt = APIRouter()
 
 current_path = Path(__file__).parent.resolve()
 
+
+def public_base_url(request: Request) -> str:
+    configured = os.getenv("WAQD_PUBLIC_URL", "").rstrip("/")
+    if configured:
+        return configured
+    scheme = "https" if is_https(request) else "http"
+    return f"{scheme}://{request.url.netloc}"
+
+
+@rt.post("/signup", response_class=JSONResponse)
+@limiter.limit("5/hour")
+async def signup(form_data: Annotated[SignupForm, Depends()], request: Request):
+    if not form_data.accept_terms:
+        raise HTTPException(
+            status_code=400, detail="Terms and privacy policy must be accepted."
+        )
+    if form_data.password != form_data.password_confirmation:
+        raise HTTPException(status_code=400, detail="Passwords do not match.")
+    try:
+        user, raw_token = register_user(form_data.username, form_data.password, form_data.email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    verification_url = f"{public_base_url(request)}/public/verify-email?token={raw_token}"
+    if not send_verification_email(form_data.email.strip().lower(), verification_url):
+        # Keep the account pending so a later resend can recover from a temporary
+        # SMTP outage, but do not claim that the verification email was sent.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "The account was created, but verification email delivery is "
+                "currently unavailable. Please try again later."
+            ),
+        )
+    return JSONResponse(
+        {"detail": "Account created. Please check your email to verify your account."},
+        status_code=status.HTTP_201_CREATED,
+    )
+
+
+@rt.post("/verify-email", response_class=JSONResponse)
+@limiter.limit("20/hour")
+async def verify_email(request: Request, token: str = Form(...)):
+    if not consume_email_verification_token(token):
+        raise HTTPException(status_code=400, detail="Invalid or expired verification link.")
+    return JSONResponse(
+        {"detail": "Email verified successfully."}, status_code=status.HTTP_200_OK
+    )
+
+
+@rt.post("/resend-verification", response_class=JSONResponse)
+@limiter.limit("3/hour")
+async def resend_verification(request: Request, email: str = Form(...)):
+    normalized_email = email.strip().lower()
+    user = get_user_by_email(normalized_email)
+    if (
+        user
+        and user.id is not None
+        and user.email_verification_required
+        and not user.email_verified_at
+    ):
+        raw_token = create_email_verification_token(user.id, normalized_email)
+        verification_url = f"{public_base_url(request)}/public/verify-email?token={raw_token}"
+        send_verification_email(normalized_email, verification_url)
+    return JSONResponse(
+        {"detail": "If that email requires verification, a verification link has been sent."},
+        status_code=status.HTTP_200_OK,
+    )
+
+
 @rt.post("/token", response_model=Token)
-async def login_for_access_token(
-    form_data: Annotated[LoginForm, Depends()], request: Request
-):
+@limiter.limit("10/minute")
+async def login_for_access_token(form_data: Annotated[LoginForm, Depends()], request: Request):
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -93,7 +184,7 @@ async def keepalive(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
         )
-    
+
     # Refresh token if close to expiry; threshold depends on token type
     if token_data.remember_me:
         refresh_threshold = timedelta(days=TOKEN_REFRESH_THRESHOLD_LONG_DAYS)
@@ -114,7 +205,7 @@ async def keepalive(
         )
         set_access_token_cookie(response, access_token, new_expiry, request)
         return response
-    
+
     # Token is still valid, return success without refreshing
     return JSONResponse({"status": "ok"}, status_code=status.HTTP_200_OK)
 
@@ -156,12 +247,12 @@ async def logout(request: Request):
     response = JSONResponse(
         {"detail": "Logged out successfully"}, status_code=status.HTTP_200_OK
     )
-    
+
     secure = is_https(request)
     # Optional: override for debugging
     if waqd.DEBUG_LEVEL > 0:
         secure = False
-    
+
     # Delete the Authorization cookie
     response.delete_cookie(
         key="Authorization",
@@ -173,6 +264,7 @@ async def logout(request: Request):
 
 
 @rt.post("/request-reset", response_class=JSONResponse)
+@limiter.limit("5/hour")
 async def request_password_reset(request: Request, email: str = Form(...)):
     """Request a password reset email. Always returns 200 to prevent user enumeration."""
     user = get_user_by_email(email)
@@ -183,17 +275,25 @@ async def request_password_reset(request: Request, email: str = Form(...)):
         reset_url = f"{scheme}://{host}/public/reset-password?token={raw_token}"
         send_reset_email(email, reset_url)
     # Always return the same response to prevent email enumeration
-    return JSONResponse({"detail": "If that email is registered, a reset link has been sent."}, status_code=status.HTTP_200_OK)
+    return JSONResponse(
+        {"detail": "If that email is registered, a reset link has been sent."},
+        status_code=status.HTTP_200_OK,
+    )
 
 
 @rt.post("/reset-password", response_class=JSONResponse)
 async def reset_password(token: str = Form(...), new_password: str = Form(...)):
     """Consume a reset token and update the user's password."""
     if len(new_password) < 8:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must be at least 8 characters.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters.",
+        )
     success = consume_password_reset_token(token, new_password)
     if not success:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token.")
-    return JSONResponse({"detail": "Password updated successfully."}, status_code=status.HTTP_200_OK)
-
-
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token."
+        )
+    return JSONResponse(
+        {"detail": "Password updated successfully."}, status_code=status.HTTP_200_OK
+    )

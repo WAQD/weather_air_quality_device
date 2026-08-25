@@ -6,6 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from starlette.responses import FileResponse
 
 from waqd.base.file_logger import Logger
@@ -21,6 +23,7 @@ from .auth.authentication import (
 )
 from .database import create_db_tables
 from .database.user import add_user, get_all_users
+from .api.rate_limit import limiter
 from .service.device_con import (
     get_connected_devices,
     get_device_data,
@@ -47,6 +50,8 @@ web_app = FastAPI(
     description="WAQD website",
     lifespan=lifespan,
 )
+web_app.state.limiter = limiter
+web_app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @web_app.exception_handler(RequiresLoginException)

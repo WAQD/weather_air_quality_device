@@ -55,7 +55,7 @@
             </select>
           </div>
           <span class="whitespace-nowrap text-sm opacity-80 sm:ml-auto">{{ timeLabel
-            }}</span>
+          }}</span>
         </div>
       </div>
 
@@ -301,6 +301,7 @@ let map: MapLibreMap | null = null
 let marker: MapLibreMarker | null = null
 let initPromise: Promise<void> | null = null
 let resizeObserver: ResizeObserver | null = null
+let mapVisibilityObserver: IntersectionObserver | null = null
 let resizeRafId = 0
 
 const osmLinkUrl = computed(() => {
@@ -736,6 +737,8 @@ async function initMap(): Promise<void> {
 }
 
 function destroyMap(): void {
+  mapVisibilityObserver?.disconnect()
+  mapVisibilityObserver = null
   if (resizeObserver) {
     resizeObserver.disconnect()
     resizeObserver = null
@@ -761,10 +764,31 @@ function destroyMap(): void {
   initPromise = null
 }
 
-onMounted(() => {
-  if (currentLocation.value) {
-    void initMap()
+function observeMapContainer(): void {
+  if (!mapContainer.value || map || !currentLocation.value) {
+    return
   }
+  if (typeof IntersectionObserver === 'undefined') {
+    void initMap()
+    return
+  }
+  mapVisibilityObserver?.disconnect()
+  mapVisibilityObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        mapVisibilityObserver?.disconnect()
+        mapVisibilityObserver = null
+        void initMap()
+      }
+    },
+    { rootMargin: '200px' },
+  )
+  mapVisibilityObserver.observe(mapContainer.value)
+}
+
+onMounted(async () => {
+  await nextTick()
+  observeMapContainer()
 })
 
 watch(currentLocation, async (location) => {
@@ -775,7 +799,7 @@ watch(currentLocation, async (location) => {
 
   if (!map) {
     await nextTick()
-    await initMap()
+    observeMapContainer()
   } else {
     recenter()
   }

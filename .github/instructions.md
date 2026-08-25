@@ -8,15 +8,19 @@ Folder structure:
 
 ## Working style
 
-- When a request is ambiguous, commit to the single most likely interpretation,
-  state it in ONE sentence, and act. Do not enumerate or re-derive alternatives
-  unless the chosen path is genuinely blocked.
-- Reach a decision at first pass; if the first answer was correct, implement it
-  and stop. Do not loop back over the same conclusion "to be safe."
-- If you need to verify something (a path, a dependency, a class name), do ONE
-  quick check and move on. No speculative multi-route investigations.
-- Do not ask clarifying questions when a reasonable default exists. Assume it,
-  say what you assumed, and let the user correct if needed.
+- When a request is ambiguous, commit to the single most likely interpretation, state it in ONE sentence, and act. Do not enumerate or re-derive alternatives unless the chosen path is genuinely blocked.
+- Reach a decision at first pass; if the first answer was correct, implement it and stop. Do not loop back over the same conclusion "to be safe."
+- If you need to verify something (a path, a dependency, a class name), do ONE quick check and move on. No speculative multi-route investigations.
+- Do not ask clarifying questions when a reasonable default exists. Assume it, say what you assumed, and let the user correct if needed.
 - Shorter is better: prefer the minimal edit and a 2–3 sentence summary.
-- Unless a `src/waqd_station` path is explicitly named in the request, assume the
-  target is the website UI (`src/waqd_website`). State this assumption briefly.
+- Unless a `src/waqd_station` path is explicitly named in the request, assume the target is the website UI (`src/waqd_website`). State this assumption briefly.
+
+Development environment and package management:
+- This project always uses PDM for Python dependency management.
+- Use the repository-local virtual environment at `.venv`; do not use the system Python or create another environment.
+- Before running Python commands, tests, or PDM operations, activate the fish environment with `source .venv/bin/activate.fish`.
+- Prefer `pdm add` and `pdm install` for dependency changes rather than editing generated lock files manually.
+- Install optional dependency groups with PDM, for example `pdm install -G website -G test`.
+- Run Python tools through the active local environment, for example `python -m pytest`.
+- Frontend commands must be run from `src/waqd_website/ui`, where its `package.json` is located.
+- Do not commit secrets, local databases, `.venv`, build caches, or generated artifacts unless the repository workflow explicitly requires them.
