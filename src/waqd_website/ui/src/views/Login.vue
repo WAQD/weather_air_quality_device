@@ -69,10 +69,12 @@
                   {{ t('login') }}
                   <span v-if="loading" class="loading loading-spinner loading-md ml-4"></span>
                 </button>
-                <router-link to="/public/forgot-password" class="link link-hover text-sm text-center">
+                <router-link to="/public/forgot-password"
+                  class="link link-hover text-sm text-center">
                   {{ t('forgot_password') }}
                 </router-link>
-                <router-link to="/public/signup" class="btn btn-primary w-full text-base sm:text-lg">
+                <router-link v-if="enableSignup" to="/public/signup"
+                  class="btn btn-primary w-full text-base sm:text-lg">
                   {{ t('create_account') }}
                 </router-link>
               </div>
@@ -98,6 +100,7 @@ const visibilityIconUrl = '/static/general_icons/visibility.svg#main'
 const visibilityOffIconUrl = '/static/general_icons/visibility_off.svg#main'
 const cancelIconUrl = '/static/general_icons/cancel.svg#main'
 const warningIconUrl = '/static/general_icons/warning.svg#main'
+const enableSignup = __ENABLE_SIGNUP__
 const username = ref('')
 const password = ref('')
 const loading = ref(false)

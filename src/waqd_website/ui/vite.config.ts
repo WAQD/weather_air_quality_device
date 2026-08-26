@@ -22,6 +22,9 @@ const appVersion = `${pkg.version}+${gitHash}`
 const env = loadEnv('', __dirname, '')
 const waqdBaseUrl = env.VITE_WAQD_BASE_URL || 'https://waqd.de'
 
+// Signup is opt-in via build flag and disabled by default.
+const enableSignup = env.VITE_ENABLE_SIGNUP === 'true'
+
 // Only relax TLS verification for the dev proxy. Node's bundled CA store does not
 // include the newer Let's Encrypt ECDSA roots (ISRG Root X2 / Root YE chain) yet,
 // which breaks the proxy to waqd.de even though the served chain is valid.
@@ -32,6 +35,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
     __WAQD_BASE_URL__: JSON.stringify(waqdBaseUrl),
+    __ENABLE_SIGNUP__: JSON.stringify(enableSignup),
   },
   plugins: [
     vue({
