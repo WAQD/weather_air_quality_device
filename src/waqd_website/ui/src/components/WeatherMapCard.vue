@@ -55,7 +55,7 @@
             </select>
           </div>
           <span class="whitespace-nowrap text-sm opacity-80 sm:ml-auto">{{ timeLabel
-            }}</span>
+          }}</span>
         </div>
       </div>
 
@@ -211,7 +211,11 @@ function legendLabelStyle(label: LegendLabel, index: number, total: number): Rec
 
 const tickLabelStyle = legendLabelStyle
 
-const DATA_BASE_URL = 'https://openmeteo-data-spatial.b-cdn.net/dwd_icon/latest.json'
+// Open-Meteo's public map-data endpoint. The old direct CDN host
+// (openmeteo-data-spatial.b-cdn.net) is no longer publicly reachable and
+// returns HTTP 403 without CORS headers, so all requests must go to the
+// official map-tiles host instead.
+const DATA_BASE_URL = 'https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json'
 
 // Inline OSM raster base map. Open-Meteo's hosted style uses tiles from
 // tiles.open-meteo.com, which does not send CORS headers for third-party
