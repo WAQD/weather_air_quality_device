@@ -126,12 +126,11 @@ jobs:
             -f test/waqd_station/Dockerfile.test .
 
       - name: Run installer tests in container
-        # Install deps and run pytest in a SINGLE docker run so the venv
-        # persists between the install and the test invocation.
+        # Use the repository copied into the image. Mounting the checkout here
+        # can hide pdm.lock/pyproject.toml when the runner checkout differs
+        # from the image build context.
         run: |
           docker run --rm \
-            -v "$PWD":/waqd \
-            -e SUDO_USER=root \
             -e PYTHONPATH=/waqd/src \
             waqd-installer-test \
             bash -c "pdm install -G test && pdm run pytest test/waqd_station/test_installer.py -q --timeout=60"

@@ -33,6 +33,11 @@ RUN apt-get update && \
     && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Run the tests as a normal home-directory user.  The installer code maps the
+# original user to /home/<user>, while root's actual home is /root.
+RUN useradd --create-home --shell /bin/bash waqd && \
+    usermod -aG sudo waqd
+
 # Enable passwordless sudo (the installer uses `sudo` without a TTY prompt)
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
@@ -45,8 +50,13 @@ WORKDIR /waqd
 # Copy the repo in (CI also bind-mounts, but COPY makes the image buildable
 # standalone for local reproduction). The entrypoint runs the installer tests.
 COPY . .
+RUN chown -R waqd:waqd /waqd
 
-ENV PYTHONPATH=/waqd/src
+ENV PYTHONPATH=/waqd/src \
+    HOME=/home/waqd \
+    USER=waqd
+
+USER waqd
 
 # Run only the installer test file; it is Debian-specific and must not run on
 # the bare runner. --timeout=60 guards against hangs in the sudo/subprocess paths.
