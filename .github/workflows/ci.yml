@@ -72,7 +72,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pdm
-          pdm install --frozen-lockfile -G test
+          pdm install --frozen-lockfile -G test -G waqd
 
       - name: Run Python tests
         run: PYTHONPATH=src pdm run pytest test/basics test/waqd_station/components -m "not hardware and not integration" -q --timeout=60
