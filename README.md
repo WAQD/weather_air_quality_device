@@ -2,7 +2,7 @@
 
 # Weather and Air Quality Device - based on Raspberry Pi
 
-![Python tests](https://github.com/goszpeti/WeatherAirQualityDevice/workflows/tests/badge.svg)
+![CI](https://github.com/goszpeti/WeatherAirQualityDevice/workflows/CI/badge.svg)
 
 ## Quick Overview
 

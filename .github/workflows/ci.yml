@@ -1,34 +1,32 @@
-name: Build waqd_website Docker Image
+name: CI
 
 on:
   push:
     branches: [master]
     paths:
-      - "src/waqd_website/**"
-      - "src/waqd/**"
-      - "src/waqd_installer/**"
-      - "src/waqd_assets/**"
-      - "test/**"
-      - "pyproject.toml"
-      - "pdm.lock"
-      - ".github/workflows/website.yml"
+      - "**"
+      - "!/*.md"
+      - "!/doc/**"
+      - "!/script/**"
+      - "!/LICENSE"
+      - "!/TODO"
+      - ".github/workflows/ci.yml"
     tags:
       - "v*"
   pull_request:
     branches: [master]
     paths:
-      - "src/waqd_website/**"
-      - "src/waqd/**"
-      - "src/waqd_installer/**"
-      - "src/waqd_assets/**"
-      - "test/**"
-      - "pyproject.toml"
-      - "pdm.lock"
-      - ".github/workflows/website.yml"
+      - "**"
+      - "!/*.md"
+      - "!/doc/**"
+      - "!/script/**"
+      - "!/LICENSE"
+      - "!/TODO"
+      - ".github/workflows/ci.yml"
   workflow_dispatch:
 
 jobs:
-  test:
+  test-node:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -76,11 +74,11 @@ jobs:
           pip install pdm
           pdm install --frozen-lockfile -G test
 
-      - name: Run basics tests
-        run: PYTHONPATH=src pdm run pytest test/basics -q
+      - name: Run Python tests
+        run: PYTHONPATH=src pdm run pytest test/basics test/waqd_station/components -m "not hardware and not integration" -q --timeout=60
 
   build:
-    needs: [test, test-python]
+    needs: [test-node, test-python]
     runs-on: ubuntu-latest
     outputs:
       version_comment: ${{ steps.set_tag.outputs.version_comment }}

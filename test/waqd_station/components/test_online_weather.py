@@ -54,10 +54,23 @@ def test_open_meteo(base_fixture, mocker):
         assert len(ret) == 7
 
 
-def test_open_topo():
+def test_open_topo(base_fixture, mocker, tmp_path):
+    # Mock the OpenTopoData HTTP fetch so the test is deterministic and offline.
+    # urlretrieve returns (local_path, headers); OpenTopoData opens that path as JSON.
+    altitude_json = tmp_path / "altitude_response.json"
+    altitude_json.write_text(
+        '{"status": "OK", "results": [{"location": {"lat": 48.2085, "lng": 12.3989}, "elevation": 439.5}]}',
+        encoding="utf-8",
+    )
+    mocker.patch(
+        "urllib.request.urlretrieve",
+        return_value=(str(altitude_json), {}),
+    )
+
     op = OpenTopoData()
     alt = op.get_altitude(48.2085, 12.3989)
     assert alt > 439 and alt < 440
+    # cached path: after clearing the elevation, the cached location still matches
     op._altitude_info["elevation"] = 0
     alt = op.get_altitude(48.2085, 12.3989)
     assert alt == 0

@@ -5,7 +5,7 @@
 groups = ["default", "dev", "test", "waqd", "website"]
 strategy = []
 lock_version = "4.5.1"
-content_hash = "sha256:9fd3810dff974d551f3e5d91e60a7617a924781ea986c59ea4496b7d723d722f"
+content_hash = "sha256:d1f75ca7450678b62c1cc94c1254220000fa4f6f7fceebe55788b9784d020200"
 
 [[metadata.targets]]
 requires_python = ">=3.13"
@@ -1812,6 +1812,18 @@ dependencies = [
 files = [
     {file = "pytest-mock-3.14.0.tar.gz", hash = "sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0"},
     {file = "pytest_mock-3.14.0-py3-none-any.whl", hash = "sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f"},
+]
+
+[[package]]
+name = "pytest-timeout"
+version = "2.3.1"
+summary = ""
+dependencies = [
+    "pytest",
+]
+files = [
+    {file = "pytest-timeout-2.3.1.tar.gz", hash = "sha256:12397729125c6ecbdaca01035b9e5239d4db97352320af155b3f5de1ba5165d9"},
+    {file = "pytest_timeout-2.3.1-py3-none-any.whl", hash = "sha256:68188cb703edfc6a18fad98dc25a3c61e9f24d644b0b70f33af545219fc7813e"},
 ]
 
 [[package]]

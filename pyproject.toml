@@ -118,6 +118,7 @@ test = [
     "pytest==8.3.3",
     "pytest-cov==5.0.0",
     "pytest-mock==3.14.0",
+    "pytest-timeout==2.3.1",
     "psutil==6.1.1",
     "pytest-check==2.4.1",
     "freezegun==1.5.1",
@@ -127,7 +128,13 @@ test = [
 [tool.pytest.ini_options]
 minversion = "5.15"
 testpaths = ["test"]
-markers = []
+timeout = 60
+markers = [
+    "hardware: requires real sensors connected to a Raspberry Pi (gated by WAQD_HW_CONNECTED env var)",
+    "network: makes real outbound network calls (HTTP/API); skipped by default in CI, use -m network to run",
+    "integration: full process/OS integration tests (e.g. app boot, reboot); skipped by default",
+    "slow: tests with long sleeps or heavy wait-for-stabilization loops",
+]
 
 # Development configs
 
@@ -153,7 +160,7 @@ select = [
 [tool.coverage.run]
 branch = true
 parallel = true
-source = ["conan_explorer"]
+source = ["waqd", "waqd_station"]
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]

@@ -1,25 +1,40 @@
-
-from waqd.settings import Settings
+from waqd_station.settings import Settings
 from waqd_station.components.updater import OnlineUpdater
 from waqd_station.app.component_reg import ComponentRegistry
 
 RASPI_BASE_IMAGE = "raspi/raspbian_py:1"
 WAQD_IMAGE = "raspi/waqd_install:1"
 
-def test_repo_is_reachable(base_fixture):
+
+def test_repo_is_reachable(base_fixture, mocker):
+    # Inject a fake `github` module so the lazy `from github import Github` in
+    # updater._connect_to_repository resolves offline (PyGithub is not in the
+    # test extras). Github().get_repo(repo) returns a MagicMock repository.
+    fake_repo = mocker.MagicMock(name="github_repo")
+    fake_github_cls = mocker.MagicMock(name="Github")
+    fake_github_cls.return_value.get_repo.return_value = fake_repo
+    mocker.patch.dict(
+        "sys.modules",
+        {"github": mocker.MagicMock(name="github_pkg", Github=fake_github_cls)},
+    )
+
     settings = Settings(base_fixture.testdata_path / "integration")
     comps = ComponentRegistry(settings)
-    online_updater = OnlineUpdater(comps, enabled=True, use_beta_channel=True)
+    # config.ini has auto_updater_enabled=True and updater_use_beta_channel=False
+    online_updater = OnlineUpdater(comps, settings=settings)
+    online_updater._use_beta_channel = True
     online_updater._connect_to_repository()
-    assert online_updater._repository # only check if object exists
+    assert online_updater._repository  # only check if object exists
 
 
 def test_check_should_update(base_fixture):
-    import waqd.components.updater as updater # import the module here, so we can access the loaded global var of WAQD version
+    import waqd_station.components.updater as updater  # access the loaded global WAQD_VERSION
+
     settings = Settings(base_fixture.testdata_path / "integration")
     comps = ComponentRegistry(settings)
 
-    online_updater = OnlineUpdater(comps, enabled=True, use_beta_channel=True)
+    online_updater = OnlineUpdater(comps, settings=settings)
+    online_updater._use_beta_channel = True  # config defaults to False; override for this suite
     # Main versions to Main versions
     updater.WAQD_VERSION = "1.1.0"
     # same version -  no update
