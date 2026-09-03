@@ -14,7 +14,7 @@ def test_tts_parallel(base_fixture, capsys):
 
     tts.wait_for_tts()
     # we can implicitly check, if the Thread has been started by us
-    assert "TTS" in tts._tts_thread.getName()
+    assert "TTS" in tts._tts_thread.name
     # test that no warning was thrown
     captured = capsys.readouterr()
     assert "WARNING" not in captured.out
@@ -23,14 +23,14 @@ def test_tts_parallel(base_fixture, capsys):
 
 def test_on_sound_disabled(base_fixture, capsys):
     settings = Settings(base_fixture.testdata_path / "integration")
-    settings.set(SOUND_ENABLED, "en")
+    settings.set(SOUND_ENABLED, False)
     comps = ComponentRegistry(settings)
 
     tts = TextToSpeach(comps, settings)
     tts.say("Text1", "en")
     tts.wait_for_tts()
-    # we can implicitly check, if the Thread has been started by us
-    assert "TTS" in tts._tts_thread.getName()
+    # Disabled sound deliberately prevents the TTS worker from being created.
+    assert not tts._tts_thread.is_alive()
     # test that no warning was thrown
     captured = capsys.readouterr()
     assert "WARNING" not in captured.out

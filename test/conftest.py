@@ -56,6 +56,20 @@ def base_fixture(request):
     shutil.rmtree(waqd.user_config_dir, ignore_errors=True)
 
     def teardown():
+        # Stop component threads before pytest closes its captured stdout.  A
+        # component can outlive a test because registries are intentionally
+        # lightweight and most tests create them directly.
+        from waqd.base.component_reg import ComponentRegistry
+
+        for registry in list(ComponentRegistry._instances):
+            registry.stop_all()
+
+        logger = waqd.base.file_logger.Logger._instance
+        if logger:
+            for handler in logger.handlers[:]:
+                logger.removeHandler(handler)
+                handler.close()
+
         # reset singletons
         waqd.base.file_logger.Logger._instance = None
         waqd.base.system.RuntimeSystem._instance = None

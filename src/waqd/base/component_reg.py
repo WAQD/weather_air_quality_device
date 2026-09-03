@@ -1,4 +1,5 @@
 import threading
+import weakref
 
 # this allows to use forward declarations to avoid circular imports
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Type, TypeVar, Union
@@ -21,6 +22,8 @@ class ComponentRegistry:
     # Constants for Component names to an alternitave method to access components
 
     comp_init_lock = threading.Lock()  # lock to only instantiate one component at a time
+    # Weak tracking lets test teardown stop registries without keeping them alive.
+    _instances: weakref.WeakSet["ComponentRegistry"] = weakref.WeakSet()
 
     def __init__(self, settings: Settings):
         self._logger = Logger()
@@ -31,6 +34,12 @@ class ComponentRegistry:
             str, "SensorComponent"
         ] = {}  # mapping from components to specific sensor types
         self._stop_thread: threading.Thread
+        self._instances.add(self)
+
+    def stop_all(self):
+        """Stop every component owned by this registry."""
+        for name in list(self._components):
+            self.stop_component(name)
 
     def set_unload_in_progress(self):
         """Signals the components, that they are unloading and should not instantiate new objects."""

@@ -1,23 +1,28 @@
-
 import time
+from types import SimpleNamespace
 from freezegun import freeze_time
 
-from waqd_station.components.power import (BRIGHTNESS, DAY_STANDBY_TIMEOUT,
-                                        MOTION_SENSOR_ENABLED,
-                                        NIGHT_MODE_BEGIN,
-                                        NIGHT_MODE_BRIGHTNESS, NIGHT_MODE_END,
-                                        NIGHT_STANDBY_TIMEOUT,
-                                        NIGHTMODE_WAKEUP_DELTA_BRIGHTNESS,
-                                        STANDBY_BRIGHTNESS, ESaver)
-from waqd.settings import Settings
+from waqd_station.components.power import (
+    BRIGHTNESS,
+    DAY_STANDBY_TIMEOUT,
+    MOTION_SENSOR_ENABLED,
+    NIGHT_MODE_BEGIN,
+    NIGHT_MODE_BRIGHTNESS,
+    NIGHT_MODE_END,
+    NIGHT_STANDBY_TIMEOUT,
+    NIGHTMODE_WAKEUP_DELTA_BRIGHTNESS,
+    STANDBY_BRIGHTNESS,
+    ESaver,
+)
+from waqd_station.settings import Settings
 from waqd_station.app.component_reg import ComponentRegistry
 
 
 def test_no_standby_if_sensor_is_disabled(base_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
     settings.set(MOTION_SENSOR_ENABLED, False)
-    settings.set(NIGHT_MODE_BEGIN, 23)
-    settings.set(NIGHT_MODE_END, 5)
+    settings.set(NIGHT_MODE_BEGIN, "23:00")
+    settings.set(NIGHT_MODE_END, "05:00")
     settings.set(BRIGHTNESS, 70)
 
     energy_saver = None
@@ -38,8 +43,8 @@ def test_no_standby_if_sensor_is_disabled(base_fixture):
 def test_night_mode_startup(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
     settings.set(MOTION_SENSOR_ENABLED, True)
-    settings.set(NIGHT_MODE_BEGIN, 23)
-    settings.set(NIGHT_MODE_END, 5)
+    settings.set(NIGHT_MODE_BEGIN, "23:00")
+    settings.set(NIGHT_MODE_END, "05:00")
     settings.set(BRIGHTNESS, 70)
     # night
     with freeze_time("2019-01-01 01:59:59"):
@@ -71,8 +76,8 @@ def test_night_mode_startup(base_fixture, target_mockup_fixture):
 def test_night_mode_enter(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
     settings.set(MOTION_SENSOR_ENABLED, True)
-    settings.set(NIGHT_MODE_BEGIN, 23)
-    settings.set(NIGHT_MODE_END, 5)
+    settings.set(NIGHT_MODE_BEGIN, "23:00")
+    settings.set(NIGHT_MODE_END, "05:00")
     settings.set(BRIGHTNESS, 70)
 
     energy_saver = None
@@ -105,8 +110,8 @@ def test_night_mode_enter(base_fixture, target_mockup_fixture):
 def test_day_mode_enter(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
     settings.set(MOTION_SENSOR_ENABLED, True)
-    settings.set(NIGHT_MODE_BEGIN, 22)
-    settings.set(NIGHT_MODE_END, 5)
+    settings.set(NIGHT_MODE_BEGIN, "22:00")
+    settings.set(NIGHT_MODE_END, "05:00")
     settings.set(BRIGHTNESS, 70)
 
     energy_saver = None
@@ -139,8 +144,8 @@ def test_wake_up_from_night_mode(base_fixture, target_mockup_fixture):
     settings = Settings(base_fixture.testdata_path / "integration")
 
     settings.set(MOTION_SENSOR_ENABLED, True)
-    settings.set(NIGHT_MODE_BEGIN, 22)
-    settings.set(NIGHT_MODE_END, 5)
+    settings.set(NIGHT_MODE_BEGIN, "22:00")
+    settings.set(NIGHT_MODE_END, "05:00")
     settings.set(BRIGHTNESS, 70)
     settings.set(NIGHT_STANDBY_TIMEOUT, 10)
 
@@ -168,34 +173,49 @@ def test_wake_up_from_night_mode(base_fixture, target_mockup_fixture):
     energy_saver.stop()
 
 
-def test_standby_in_day_mode(base_fixture, target_mockup_fixture):
+def test_standby_in_day_mode(base_fixture, target_mockup_fixture, monkeypatch):
+    # The behavior is time-dependent, but waiting for the production timers
+    # makes this test unnecessarily slow.  Freeze the clock and invoke one
+    # update cycle directly instead.
+    monkeypatch.setattr(ESaver, "INIT_WAIT_TIME", 0)
+    monkeypatch.setattr(ESaver, "UPDATE_TIME", 1000)
+    # This test drives ESaver synchronously; avoid starting a real X11 mouse
+    # listener whose initialization is inherently asynchronous.
+    import pynput.mouse
+
+    monkeypatch.setattr(
+        pynput.mouse,
+        "Listener",
+        lambda **kwargs: SimpleNamespace(start=lambda: None, stop=lambda: None),
+    )
     settings = Settings(base_fixture.testdata_path / "integration")
     settings.set(MOTION_SENSOR_ENABLED, True)
-    settings.set(NIGHT_MODE_BEGIN, 22)
-    settings.set(NIGHT_MODE_END, 5)
+    settings.set(NIGHT_MODE_BEGIN, "22:00")
+    settings.set(NIGHT_MODE_END, "05:00")
     settings.set(BRIGHTNESS, 70)
-    settings.set(DAY_STANDBY_TIMEOUT, 10)
+    settings.set(DAY_STANDBY_TIMEOUT, 0)
 
     energy_saver = None
     comps = ComponentRegistry(settings)
     disp = comps.display
 
+    energy_saver = comps.energy_saver
+    energy_saver.stop()
+
     # day
     with freeze_time("2019-01-01 12:59:59"):
-        energy_saver = comps.energy_saver
-        time.sleep(energy_saver.INIT_WAIT_TIME)
-        time.sleep(energy_saver.UPDATE_TIME + 1)
-        assert energy_saver.night_mode_active == False
+        energy_saver._ticker_event.clear()
+        energy_saver._set_day_night_mode()
+        assert energy_saver.night_mode_active is False
         assert disp.get_brightness() == STANDBY_BRIGHTNESS
 
     # switch to wake
     comps.motion_detection_sensor._motion_detected = 1
     with freeze_time("2019-01-01 13:00:10"):
-        time.sleep(energy_saver.UPDATE_TIME + 2)
+        energy_saver._ticker_event.clear()
+        energy_saver._set_day_night_mode()
         assert disp.get_brightness() == settings.get(BRIGHTNESS)
-        time.sleep(10 - energy_saver.UPDATE_TIME)
         # switch to standby
         comps.motion_detection_sensor._motion_detected = 0
-        time.sleep(energy_saver.UPDATE_TIME * 2)
+        energy_saver._set_day_night_mode()
         assert disp.get_brightness() == STANDBY_BRIGHTNESS
-    energy_saver.stop()

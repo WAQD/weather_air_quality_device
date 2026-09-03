@@ -1,5 +1,4 @@
 import datetime
-import time
 from threading import Timer
 from typing import TYPE_CHECKING
 
@@ -90,6 +89,8 @@ class ESaver(CyclicComponent):
 
     def _set_day_night_mode(self):
         """Runs periodically. Does the actual switch between the modes and sets brightness"""
+        new_state = self._previous_state
+
         # get value from motion sensor - if available
         if self._settings.get_bool(MOTION_SENSOR_ENABLED):
             NIGHT_MODE_BRIGHTNESS = 0
@@ -143,11 +144,11 @@ class ESaver(CyclicComponent):
                 self._comps.display.set_brightness(
                     self._settings.get_int(BRIGHTNESS) - NIGHTMODE_WAKEUP_DELTA_BRIGHTNESS
                 )
-                time.sleep(self._settings.get_int(NIGHT_STANDBY_TIMEOUT))
+                self._ticker_event.wait(self._settings.get_int(NIGHT_STANDBY_TIMEOUT))
             else:
                 self._logger.debug("ESaver: Wake up at day")
                 self._comps.display.set_brightness(self._settings.get_int(BRIGHTNESS))
-                time.sleep(self._settings.get_int(DAY_STANDBY_TIMEOUT))
+                self._ticker_event.wait(self._settings.get_int(DAY_STANDBY_TIMEOUT))
         else:
             if self.night_mode_active and (wake_time <= current_date_time < sleep_time):
                 new_state = "Normal day mode"
