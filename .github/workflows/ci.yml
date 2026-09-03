@@ -115,7 +115,7 @@ jobs:
   # manipulate LXDE autostart files, unattended-upgrades configs, and pipx
   # paths, and shell out via `sudo` — they must not touch the runner host.
   test-installer:
-    runs-on: [self-hosted, Linux, aarch64]
+    runs-on: [self-hosted, Linux, x64]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
