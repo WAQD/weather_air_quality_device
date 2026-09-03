@@ -1,5 +1,9 @@
 name: CI
 
+# Runner infos
+# Runner: waqd-x64-runner (labels: self-hosted, Linux, X64)
+# Runner: waqd-arm64-runner (labels: self-hosted, Linux, ARM64, ARM, aarch64)
+
 on:
   push:
     branches: [master]
@@ -85,10 +89,8 @@ jobs:
   # Installer tests run in an isolated Debian Trixie container because they
   # manipulate LXDE autostart files, unattended-upgrades configs, and pipx
   # paths, and shell out via `sudo` — they must not touch the runner host.
-  # Runs on the self-hosted x64 runner (waqd-x64-runner) which has Docker.
-  # Runner labels: self-hosted, Linux, X64  (see waqd-x64-runner, org WAQD).
   test-installer:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, Linux, aarch64]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -114,7 +116,6 @@ jobs:
   # connected and verified — re-enable by uncommenting this job and running
   # via workflow_dispatch. Gated by WAQD_HW_CONNECTED=1 on top of the
   # @pytest.mark.hardware marker.
-  # Runner: waqd-arm64-runner (labels: self-hosted, Linux, ARM64, ARM, aarch64).
   # test-hardware:
   #   runs-on: [self-hosted, Linux, ARM64]
   #   if: github.event_name == 'workflow_dispatch'

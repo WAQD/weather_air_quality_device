@@ -45,12 +45,20 @@ class ESaver(CyclicComponent):
         self._start_update_loop(update_func=self._set_day_night_mode)
         self._ready = True
 
-        from pynput import mouse
+        self._mouse_listener = None
+        try:
+            from pynput import mouse
 
-        self._mouse_listener = mouse.Listener(
-            on_move=ESaver._on_mouse_move,
-        )
-        self._mouse_listener.start()
+            self._mouse_listener = mouse.Listener(
+                on_move=ESaver._on_mouse_move,
+            )
+            self._mouse_listener.start()
+        except Exception as error:
+            # pynput needs a working X display (or libx11) on Linux; on
+            # headless/CI systems or with an incompatible xvfb setup, Listener
+            # construction/start can raise (e.g. missing '_display_record').
+            # Degrade gracefully instead of crashing registry construction.
+            self._logger.warning("ESaver: mouse listener disabled: %s", str(error))
 
     @property
     def is_awake(self):
@@ -82,7 +90,12 @@ class ESaver(CyclicComponent):
     def stop(self):
         """Stop the mouse listener and the cyclic update thread"""
         if self._mouse_listener:
-            self._mouse_listener.stop()
+            try:
+                self._mouse_listener.stop()
+            except Exception:
+                # pynput listener may not be fully initialized on headless
+                # systems (no X display); ignore teardown errors there.
+                pass
         if self._sleep_timer:
             self._sleep_timer.cancel()
         super().stop()
