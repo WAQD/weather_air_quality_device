@@ -156,7 +156,7 @@ export default defineConfig({
           // Keep map tiles in a separate bounded cache. Weather tiles are
           // short-lived because the upstream forecast changes regularly.
           {
-            urlPattern: /^https:\/\/(?:map-tiles\.open-meteo\.com|tile\.openstreetmap\.org)\/.*$/i,
+            urlPattern: /^https:\/\/(?:openmeteo\.s3\.amazonaws\.com|tile\.openstreetmap\.org)\/.*$/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'map-tiles-cache',

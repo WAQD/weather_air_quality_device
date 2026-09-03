@@ -111,6 +111,7 @@ import { useTranslation } from '../composables/useTranslation'
 type MapLibreGL = typeof import('maplibre-gl')
 type LayerId = 'temperature' | 'precipitation' | 'none'
 type Rgba = [number, number, number, number]
+type WeatherBounds = [number, number, number, number]
 
 interface LegendLabel {
   text: string
@@ -211,11 +212,9 @@ function legendLabelStyle(label: LegendLabel, index: number, total: number): Rec
 
 const tickLabelStyle = legendLabelStyle
 
-// Open-Meteo's public map-data endpoint. The old direct CDN host
-// (openmeteo-data-spatial.b-cdn.net) is no longer publicly reachable and
-// returns HTTP 403 without CORS headers, so all requests must go to the
-// official map-tiles host instead.
-const DATA_BASE_URL = 'https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json'
+// Open-Meteo's public map-data endpoint. The data is hosted on S3 with
+// proper CORS headers (Access-Control-Allow-Origin: *).
+const DATA_BASE_URL = 'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon/latest.json'
 
 // Inline OSM raster base map. Open-Meteo's hosted style uses tiles from
 // tiles.open-meteo.com, which does not send CORS headers for third-party
@@ -307,6 +306,7 @@ let initPromise: Promise<void> | null = null
 let resizeObserver: ResizeObserver | null = null
 let mapVisibilityObserver: IntersectionObserver | null = null
 let resizeRafId = 0
+let updateWeatherBounds: ((viewportBounds: WeatherBounds) => void) | null = null
 
 const osmLinkUrl = computed(() => {
   if (!currentLocation.value) {
@@ -351,9 +351,7 @@ interface FrameBuffer {
   ready: Promise<void> | null
 }
 
-// Double buffering: each weather variable owns two raster sources/layers.
-// The next frame loads into the hidden buffer and is then cross-faded in,
-// so the visible frame is never cleared while new tiles load (no flicker).
+// Double buffering keeps the visible frame in place while the next frame loads.
 const buffers: Record<WeatherVariable, { active: 0 | 1; frames: [FrameBuffer, FrameBuffer] }> = {
   temperature: { active: 0, frames: [{ offset: null, ready: null }, { offset: null, ready: null }] },
   precipitation: { active: 0, frames: [{ offset: null, ready: null }, { offset: null, ready: null }] },
@@ -484,9 +482,7 @@ function togglePlayback(): void {
 }
 
 /**
- * Preload every frame in [start, end] into the hidden buffer so their tiles
- * land in the cache. The visible frame is left untouched (no flicker), and
- * playback then re-loads each frame instantly from cache.
+ * Load the next frame into the hidden buffer before playback starts.
  */
 async function preloadRange(variable: WeatherVariable, start: number, end: number): Promise<void> {
   if (!map) {
@@ -500,7 +496,7 @@ async function preloadRange(variable: WeatherVariable, start: number, end: numbe
     }
     await loadBuffer(variable, hiddenIndex, offset)
   }
-  // Reset the hidden buffer's bookkeeping so playback loads frames cleanly.
+  // Playback should load the frame normally when it reaches it.
   state.frames[hiddenIndex].offset = null
   state.frames[hiddenIndex].ready = null
 }
@@ -517,13 +513,14 @@ async function startPlayback(): Promise<void> {
 
   const start = timeOffset.value
   const end = Math.min(maxTimeOffset, start + playbackLength.value)
-  // Preload only a few frames so playback starts quickly without issuing a
-  // large burst of tile requests. Later frames load on demand.
-  const preloadEnd = Math.min(end, start + 3)
+  // Preload only the next frame so playback starts smoothly without issuing
+  // a large burst of data requests. Later frames load on demand.
+  const preloadStart = Math.min(start + 1, end)
+  const preloadEnd = preloadStart
 
   isPreloading.value = true
   preloadCancelled = false
-  await preloadRange(variable, start, preloadEnd)
+  await preloadRange(variable, preloadStart, preloadEnd)
   isPreloading.value = false
 
   if (preloadCancelled || !map) {
@@ -597,6 +594,20 @@ function setActiveLayer(layer: LayerId): void {
   }
 }
 
+function updateViewportBounds(): void {
+  if (!map || !updateWeatherBounds) {
+    return
+  }
+
+  const bounds = map.getBounds()
+  updateWeatherBounds([
+    bounds.getWest(),
+    bounds.getSouth(),
+    bounds.getEast(),
+    bounds.getNorth(),
+  ])
+}
+
 function recenter(): void {
   if (!map || !currentLocation.value) {
     return
@@ -653,13 +664,12 @@ async function initMap(): Promise<void> {
         import('maplibre-gl'),
         import('maplibre-gl/dist/maplibre-gl.css'),
         import('@openmeteo/weather-map-layer'),
-        import('../utils/weatherMapCache'),
       ])
       const maplibregl = maplibreModule as unknown as MapLibreGL
-      const { getColorScale } = mapLayerModule
-      const { cachedOmProtocol } = mapCacheModule
+      const { getColorScale, updateCurrentBounds } = mapLayerModule
 
-      maplibregl.addProtocol('om', cachedOmProtocol)
+      updateWeatherBounds = updateCurrentBounds
+      maplibregl.addProtocol('om', mapLayerModule.omProtocol)
 
       colorScales.value.temperature = buildLegendScale(getColorScale('temperature_2m', false))
       colorScales.value.precipitation = buildLegendScale(getColorScale('precipitation', false))
@@ -677,6 +687,8 @@ async function initMap(): Promise<void> {
       })
 
       map = instance
+      instance.on('moveend', updateViewportBounds)
+      updateViewportBounds()
       // Debounced resize: re-render at the new container size without
       // re-rendering on every intermediate size during a drag-resize.
       resizeObserver = new ResizeObserver(() => {
@@ -752,10 +764,12 @@ function destroyMap(): void {
     resizeRafId = 0
   }
   if (map) {
+    map.off('moveend', updateViewportBounds)
     map.remove()
     map = null
     marker = null
   }
+  updateWeatherBounds = null
   for (const variable of ['temperature', 'precipitation'] as const) {
     buffers[variable] = {
       active: 0,
