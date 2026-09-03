@@ -1,0 +1,53 @@
+# Isolated Debian Trixie environment for the installer tests.
+#
+# The installer tests (test/waqd_station/test_installer.py) manipulate LXDE
+# autostart files, unattended-upgrades configs, and pipx install paths, and
+# they shell out via `sudo`. Running them directly on a runner would risk
+# impacting the host OS, so they run inside this throwaway container.
+#
+# Platform-agnostic: builds and runs on both x64 and arm64 runners (the
+# installer logic is Debian-specific, not architecture-specific).
+#
+# Usage (from repo root):
+#   docker build -t waqd-installer-test -f test/waqd_station/Dockerfile.test .
+#   docker run --rm -v "$PWD":/waqd waqd-installer-test
+
+FROM debian:trixie-slim
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIPX_HOME=/opt/pipx \
+    PIPX_BIN_DIR=/usr/local/bin
+
+# sudo: the installer shells out via `sudo chown`/`sudo chmod`
+# pipx: install path logic in common.py assumes pipx venv layout
+# python3-venv: pdm needs it; pipx needs it
+# xvfb: not needed here (no GUI/display code in installer tests)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    sudo \
+    pipx \
+    python3 \
+    python3-venv \
+    python3-pip \
+    git \
+    && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Enable passwordless sudo (the installer uses `sudo` without a TTY prompt)
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# Install pdm and the project in editable mode with test deps.
+# PDM is used to keep the dependency set identical to the rest of CI.
+RUN pipx install pdm
+
+WORKDIR /waqd
+
+# Copy the repo in (CI also bind-mounts, but COPY makes the image buildable
+# standalone for local reproduction). The entrypoint runs the installer tests.
+COPY . .
+
+ENV PYTHONPATH=/waqd/src
+
+# Run only the installer test file; it is Debian-specific and must not run on
+# the bare runner. --timeout=60 guards against hangs in the sudo/subprocess paths.
+CMD ["pdm", "run", "pytest", "test/waqd_station/test_installer.py", "-q", "--timeout=60"]

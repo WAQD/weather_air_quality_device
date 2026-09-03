@@ -82,8 +82,64 @@ jobs:
       - name: Run Python tests
         run: xvfb-run -a env PYTHONPATH=src pdm run pytest test/basics test/waqd_station/components -m "not hardware and not integration" -q --timeout=60
 
+  # Installer tests run in an isolated Debian Trixie container because they
+  # manipulate LXDE autostart files, unattended-upgrades configs, and pipx
+  # paths, and shell out via `sudo` — they must not touch the runner host.
+  # Runs on the self-hosted x64 runner (waqd-x64-runner) which has Docker.
+  # Runner labels: self-hosted, Linux, X64  (see waqd-x64-runner, org WAQD).
+  test-installer:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build installer test image
+        run: |
+          docker build -t waqd-installer-test \
+            -f test/waqd_station/Dockerfile.test .
+
+      - name: Run installer tests in container
+        # Install deps and run pytest in a SINGLE docker run so the venv
+        # persists between the install and the test invocation.
+        run: |
+          docker run --rm \
+            -v "$PWD":/waqd \
+            -e SUDO_USER=root \
+            -e PYTHONPATH=/waqd/src \
+            waqd-installer-test \
+            bash -c "pdm install -G test && pdm run pytest test/waqd_station/test_installer.py -q --timeout=60"
+
+  # Hardware tests drive the real sensor drivers on a Raspberry Pi with
+  # physical sensors wired up. DISABLED until the sensors are physically
+  # connected and verified — re-enable by uncommenting this job and running
+  # via workflow_dispatch. Gated by WAQD_HW_CONNECTED=1 on top of the
+  # @pytest.mark.hardware marker.
+  # Runner: waqd-arm64-runner (labels: self-hosted, Linux, ARM64, ARM, aarch64).
+  # test-hardware:
+  #   runs-on: [self-hosted, Linux, ARM64]
+  #   if: github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v7
+  #
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v7
+  #       with:
+  #         python-version: "3.14"
+  #
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install pdm
+  #         pdm install --frozen-lockfile -G test -G waqd
+  #
+  #     - name: Run hardware tests
+  #       env:
+  #         WAQD_HW_CONNECTED: "1"
+  #       run: PYTHONPATH=src pdm run pytest test/waqd_station/hardware -q --timeout=60
+
   build:
-    needs: [test-node, test-python]
+    needs: [test-node, test-python, test-installer]
     runs-on: ubuntu-latest
     outputs:
       version_comment: ${{ steps.set_tag.outputs.version_comment }}
