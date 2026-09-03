@@ -602,4 +602,5 @@ class SR501(SensorComponent):  # pylint: disable=invalid-name
         self._motion_detected -= 1
 
     def stop(self):
-        self._sensor_driver.close()
+        if hasattr(self, "_sensor_driver"):
+            self._sensor_driver.close()
