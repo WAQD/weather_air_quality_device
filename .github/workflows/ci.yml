@@ -58,6 +58,11 @@ jobs:
         with:
           python-version: "3.14"
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb vlc libvlc-dev
+
       - name: Cache PDM dependencies
         uses: actions/cache@v5
         with:
@@ -75,7 +80,7 @@ jobs:
           pdm install --frozen-lockfile -G test -G waqd
 
       - name: Run Python tests
-        run: PYTHONPATH=src pdm run pytest test/basics test/waqd_station/components -m "not hardware and not integration" -q --timeout=60
+        run: xvfb-run -a env PYTHONPATH=src pdm run pytest test/basics test/waqd_station/components -m "not hardware and not integration" -q --timeout=60
 
   build:
     needs: [test-node, test-python]
