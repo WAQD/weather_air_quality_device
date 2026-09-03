@@ -30,6 +30,31 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Decide whether publishing the website image is meaningful for this change.
+  # Test jobs still run for test-only changes; only the image build/publish is
+  # skipped when none of its inputs changed.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Detect Docker image changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            docker:
+              - "src/waqd_website/**"
+              - "src/waqd/**"
+              - "src/waqd_assets/**"
+              - "src/waqd_website/Dockerfile"
+              - "pyproject.toml"
+              - "pdm.lock"
+              - ".dockerignore"
+
   test-node:
     runs-on: ubuntu-latest
     steps:
@@ -140,7 +165,17 @@ jobs:
   #       run: PYTHONPATH=src pdm run pytest test/waqd_station/hardware -q --timeout=60
 
   build:
-    needs: [test-node, test-python, test-installer]
+    needs: [changes, test-node, test-python, test-installer]
+    # Tags and manual runs remain explicit build requests. On normal pushes
+    # and pull requests, publish only when image inputs changed.
+    if: >-
+      always() &&
+      (needs.changes.outputs.docker == 'true' ||
+       startsWith(github.ref, 'refs/tags/') ||
+       github.event_name == 'workflow_dispatch') &&
+      needs.test-node.result == 'success' &&
+      needs.test-python.result == 'success' &&
+      needs.test-installer.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       version_comment: ${{ steps.set_tag.outputs.version_comment }}
