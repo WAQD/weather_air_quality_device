@@ -5,7 +5,7 @@
 # read in flags
 USE_ZENITY=true
 for arg in "$@"; do
-    if [ "$arg" == "--inverted_display" ]; then
+    if [ "$arg" == "--inverted-display" ]; then
         INVERTED_DISPLAY=--inverted_display
     elif [ "$arg" == "--no-gui" ]; then
         USE_ZENITY=false
