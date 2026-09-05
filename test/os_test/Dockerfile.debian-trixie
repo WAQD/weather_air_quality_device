@@ -1,0 +1,94 @@
+# Tier 1 system under test: plain Debian trixie, x64.
+#
+# The installer is Debian-specific, not architecture-specific - only 3 of its
+# ~20 OS modifications need real Pi hardware (raspi-config, /boot/firmware,
+# plymouth initrd). Everything else (LXDE autostart, lightdm, udev, ufw,
+# apt.conf.d, pipx, systemd user units, pcmanfm) is plain Debian, so this image
+# covers the vast majority of the install surface and runs natively on x64.
+#
+# Pi-only tools are replaced with PATH shims that log and succeed, so the
+# installer takes the same code path as on a real device without failing.
+#
+# Build from the repo root:
+#   docker build -t waqd-os-test:trixie -f test/os_test/Dockerfile.debian-trixie .
+
+ARG OS_BASE_IMAGE=debian:trixie-slim
+FROM ${OS_BASE_IMAGE} AS waqd-os-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Base tools the installer shells out to.
+#   sudo            - common.py shells out to `sudo chmod`/`sudo chown`
+#   pipx, venv      - install.py installs waqd via pipx
+#   lightdm/pcmanfm - targets of setup_system.py / desktop.py
+#   ufw, influxdb2  - installed by the setup scripts
+#   curl, procps    - used by probe.py
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    sudo \
+    ca-certificates \
+    curl \
+    procps \
+    python3 \
+    python3-venv \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    linux-libc-dev \
+    gnupg \
+    pipx \
+    lightdm \
+    pcmanfm \
+    xscreensaver \
+    xdotool \
+    wmctrl \
+    feh \
+    zenity \
+    ufw \
+    network-manager \
+    pulseaudio-utils \
+    unattended-upgrades \
+    systemd \
+    dbus \
+    psmisc \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# The installer targets the invoking user's home. On the device that's `pi`.
+RUN useradd --create-home --shell /bin/bash pi && \
+    usermod -aG sudo pi && \
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+# --- PATH shims for Raspberry-Pi-only tooling -------------------------------
+# Each logs the invocation so tests can assert the installer *tried*, then
+# exits 0 so the run continues. `reboot`/`shutdown` are shimmed as a
+# belt-and-braces guard on top of WAQD_SKIP_REBOOT.
+RUN mkdir -p /usr/local/bin && \
+    for t in raspi-config plymouth-set-default-theme reboot shutdown; do \
+    printf '#!/bin/sh\necho "shim: %s $*" >> /var/log/waqd-shims.log\nexit 0\n' "$t" \
+    > "/usr/local/bin/$t"; \
+    chmod +x "/usr/local/bin/$t"; \
+    done && \
+    touch /var/log/waqd-shims.log && chmod 666 /var/log/waqd-shims.log
+# LXDE session dir the installer writes its autostart file into.
+RUN mkdir -p /home/pi/.config/lxsession/rpd-x && \
+    chown -R pi:pi /home/pi
+
+# Keep the expensive operating-system setup in its own stage. Source changes
+# must never invalidate the apt/package layer above.
+
+FROM ${OS_BASE_IMAGE} AS waqd-os-test
+
+# The installer reads the version from pyproject.toml and installs from source.
+WORKDIR /waqd
+COPY . /waqd
+RUN chown -R pi:pi /waqd
+
+ENV HOME=/home/pi \
+    USER=pi \
+    PYTHONPATH=/waqd/src
+
+USER pi
+
+# The test harness overrides the user to root when starting the container and
+# runs this as PID 1 so systemctl/systemctl --user behave like the target OS.
+CMD ["/sbin/init"]

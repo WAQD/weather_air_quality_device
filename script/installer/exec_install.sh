@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive # don't ask questions during install
 # set current directory to script directory
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -27,7 +28,7 @@ function waqd_install() {
 
     echo "# Install needed system libraries... (Step 1/4)"
     # python dependencies
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" python3-venv xscreensaver network-manager pulseaudio-utils  unattended-upgrades
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" python3-venv python3-dev build-essential linux-libc-dev gnupg xscreensaver network-manager pulseaudio-utils  unattended-upgrades
     # install pipx for venv based app creation
     python3 -m pip install --user pipx==1.7.1 pillow --break-system-packages
     python3 -m pipx ensurepath
@@ -46,13 +47,17 @@ function waqd_install() {
     ./setup/set_volume_to_max.sh
 
     # Enable HW access (serial, i2c and spi)
-    
-    sudo raspi-config nonint do_serial_hw 0 # console off, serial on
-    sudo raspi-config nonint do_serial_cons 1
-    sudo raspi-config nonint do_i2c 0
-    sudo raspi-config nonint do_spi 0
-    sudo raspi-config nonint do_squeekboard S3 # disable
-    sudo raspi-config nonint do_wayland W1 # X11
+    # raspi-config only exists on Raspberry Pi OS - skip it elsewhere (e.g. test containers)
+    if command -v raspi-config >/dev/null 2>&1; then
+        sudo raspi-config nonint do_serial_hw 0 # console off, serial on
+        sudo raspi-config nonint do_serial_cons 1
+        sudo raspi-config nonint do_i2c 0
+        sudo raspi-config nonint do_spi 0
+        sudo raspi-config nonint do_squeekboard S3 # disable
+        sudo raspi-config nonint do_wayland W1 # X11
+    else
+        echo "# raspi-config not available - skipping HW access setup"
+    fi
 
     sudo PYTHONPATH=${SRC_DIR} python3 -m waqd_installer --setup_system $INVERTED_DISPLAY
 
@@ -61,7 +66,15 @@ function waqd_install() {
     # needs installed app
     export PYTHONPATH=${SRC_DIR}
     python3 -m waqd_installer --set_wallpaper $INVERTED_DISPLAY
-    
+
     echo "# Waiting for restart..."
-    sudo reboot
+    if [ "${WAQD_SKIP_REBOOT:-0}" = "1" ]; then
+        # Test mode: don't reboot, leave a marker so the test can assert the reboot
+        # would have happened. Also lets the test keep inspecting the container.
+        mkdir -p ~/.waqd
+        date -u +"%Y-%m-%dT%H:%M:%SZ" > ~/.waqd/reboot_requested
+        echo "# WAQD_SKIP_REBOOT=1 - reboot skipped, marker written to ~/.waqd/reboot_requested"
+    else
+        sudo reboot
+    fi
 }

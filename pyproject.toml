@@ -134,6 +134,7 @@ markers = [
     "network: makes real outbound network calls (HTTP/API); skipped by default in CI, use -m network to run",
     "integration: full process/OS integration tests (e.g. app boot, reboot); skipped by default",
     "slow: tests with long sleeps or heavy wait-for-stabilization loops",
+    "os_test: installs into a throwaway OS (container or real RPi image) and verifies the resulting system state; gated by WAQD_OS_TEST env var, needs docker or root+systemd-nspawn",
 ]
 
 # Development configs

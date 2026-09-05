@@ -4,14 +4,19 @@
 
 # read in flags
 USE_ZENITY=true
+INVERTED_DISPLAY=""
 for arg in "$@"; do
     if [ "$arg" == "--inverted-display" ]; then
         INVERTED_DISPLAY=--inverted_display
     elif [ "$arg" == "--no-gui" ]; then
         USE_ZENITY=false
+    elif [ "$arg" == "--no-reboot" ]; then
+        # Test mode: skip the final reboot, write ~/.waqd/reboot_requested instead
+        WAQD_SKIP_REBOOT=1
     fi
 done
 export INVERTED_DISPLAY
+export WAQD_SKIP_REBOOT
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 SRC_DIR=${CURRENT_DIR}/../../src

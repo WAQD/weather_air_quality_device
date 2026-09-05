@@ -134,7 +134,7 @@ def add_line_to_file(lines_to_add: List[str], file_path: Path, unique=True):
         for line_to_add in lines_to_add:
             if not unique:
                 fd.write(f"{line_to_add}\n")
-                break
+                continue
             if line_to_add + "\n" not in entries:
                 fd.write(f"{line_to_add}\n")
 

@@ -63,11 +63,18 @@ def customize_splash_screen(inverted_display: bool):
         if inverted_display:
             rotate_and_overwrite_image(src_image, 180)
         shutil.copy(src_image, "/usr/share/plymouth/themes/pix/splash.png")
-        # remove rainbow screen
-        os.system(
-            "raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt"
-        )
-        os.system("sudo plymouth-set-default-theme --rebuild-initrd pix")
+        # remove rainbow screen - only exists on the Raspberry Pi firmware partition
+        if Path("/boot/firmware/config.txt").exists():
+            os.system(
+                "raspi-config nonint set_config_var disable_splash 1 /boot/firmware/config.txt"
+            )
+        else:
+            logging.info("Not a Raspberry Pi - skipping disable_splash.")
+        # plymouth is not installed on minimal Debian images (e.g. test containers)
+        if shutil.which("plymouth-set-default-theme"):
+            os.system("sudo plymouth-set-default-theme --rebuild-initrd pix")
+        else:
+            logging.info("plymouth not available - skipping theme rebuild.")
     except Exception as e:
         logging.error(str(e))
 
@@ -86,6 +93,9 @@ def do_setup(inverted_dislplay: bool):
 
     # Enable needed hardware access
     enable_hw_access()
+
+    # Keep the OS patched - the device runs unattended
+    configure_unnattended_updates()
 
 
 def configure_unnattended_updates(

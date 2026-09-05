@@ -23,14 +23,16 @@ def install_waqd(waqd_version: str):
     args = f"--force --verbose --system-site-packages --suffix {suffix} {installer_root_dir}[waqd]"
     install_cmd = f'runuser - {USERNAME} -c "python3 -m pipx install {args}"'
     logging.info(install_cmd)
-    os.system(install_cmd)
+    if os.system(install_cmd) != 0:
+        raise RuntimeError(f"Failed to install waqd with pipx: {install_cmd}")
     
     # Remove RPi.GPIO installed by mh_z19 to allow rpi-lgpio from system site-packages to work
     # rpi-lgpio provides RPi.GPIO compatibility but gets shadowed if RPi.GPIO is installed
     waqd_bin_name = get_waqd_bin_name()
     uninstall_cmd = f'runuser - {USERNAME} -c "python3 -m pipx runpip {waqd_bin_name} uninstall -y RPi.GPIO"'
     logging.info(f"Removing conflicting RPi.GPIO package: {uninstall_cmd}")
-    os.system(uninstall_cmd)
+    if os.system(uninstall_cmd) != 0:
+        raise RuntimeError(f"Failed to remove conflicting RPi.GPIO: {uninstall_cmd}")
 
 def register_waqd_autostart(autostart_file: Path, bin_path: Path = LOCAL_BIN_PATH):
     # Create an executable with auto restart for the current user

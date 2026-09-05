@@ -1,7 +1,8 @@
 
-sudo systemctl status --no-pager influxdb
-retVal=$?
-if  [ $retVal -eq 0 ];then
+#!/bin/bash
+set -euo pipefail
+
+if sudo systemctl status --no-pager influxdb >/dev/null 2>&1; then
     echo "InfluxDB already installed, skipping install"
     exit 0
 fi
@@ -9,7 +10,7 @@ fi
 # influxdata-archive_compat.key GPG fingerprint:
 # Ubuntu and Debian
 # Add the InfluxData key to verify downloads and add the repository
-curl --silent --location -O https://repos.influxdata.com/influxdata-archive.key
+curl --fail --silent --show-error --location -O https://repos.influxdata.com/influxdata-archive.key
 gpg --show-keys --with-fingerprint --with-colons ./influxdata-archive.key 2>&1 \
 | grep -q '^fpr:\+24C975CBA61A024EE1B631787C3D57159FC2F927:$' \
 && cat influxdata-archive.key \
@@ -19,5 +20,6 @@ gpg --show-keys --with-fingerprint --with-colons ./influxdata-archive.key 2>&1 \
 | sudo tee /etc/apt/sources.list.d/influxdata.list
 # Install influxdb
 export DEBIAN_FRONTEND=noninteractive
-sudo apt-get update && sudo apt-get install influxdb2 -y
+sudo apt-get update
+sudo apt-get install -y influxdb2
 
