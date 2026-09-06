@@ -1,8 +1,8 @@
 """Shared infrastructure for the OS-level install/update tests.
 
-These tests build a throwaway OS (a Debian container for Tier 1, a real
-Raspberry Pi OS image booted with systemd-nspawn for Tier 2), run the real
-installer inside it, and then verify the resulting OS state with
+These tests build a throwaway OS (a Debian container for Tier 1, an isolated
+QEMU ARM64 VM for Tier 2), run the real installer inside it, and then verify
+the resulting OS state with
 ``probe.py``.
 
 They are slow and need root/docker, so the whole directory is skipped unless
@@ -16,10 +16,11 @@ Run from the repo root with the venv active:
 
 import json
 import os
-import signal
+import shlex
 import selectors
 import shutil
 import subprocess
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -101,6 +102,8 @@ def _run(cmd, check=False, timeout=900, **kwargs):
     )
     output = {"stdout": [], "stderr": []}
     selector = selectors.DefaultSelector()
+    assert proc.stdout is not None
+    assert proc.stderr is not None
     selector.register(proc.stdout, selectors.EVENT_READ, "stdout")
     selector.register(proc.stderr, selectors.EVENT_READ, "stderr")
     deadline = time.monotonic() + timeout
@@ -111,10 +114,11 @@ def _run(cmd, check=False, timeout=900, **kwargs):
             selector.close()
             raise subprocess.TimeoutExpired(cmd, timeout)
         for key, _ in selector.select(remaining):
-            line = key.fileobj.readline()
+            stream_file = key.fileobj
+            line = stream_file.readline()  # type: ignore[union-attr]
             if line == "":
                 selector.unregister(key.fileobj)
-                key.fileobj.close()
+                stream_file.close()  # type: ignore[union-attr]
                 continue
             stream = key.data
             output[stream].append(line)
@@ -131,43 +135,10 @@ def _run(cmd, check=False, timeout=900, **kwargs):
     return returncode, stdout, stderr
 
 
-def _privileged_command(cmd):
-    """Prefix a host command with sudo when pytest is not already root."""
-    return cmd if os.geteuid() == 0 else ["sudo", "-n", *cmd]
-
-
-def _cleanup_stale_nspawn_mounts():
-    """Unmount leftovers from interrupted nspawn runs before starting again."""
-    for mountpoint in sorted(Path("/tmp").glob("waqd-nspawn.*")):
-        if not mountpoint.is_dir():
-            continue
-        # A surviving nspawn process keeps the directory busy even after the
-        # machine registration disappears. Kill only nspawn processes whose
-        # --directory points at this exact temporary root.
-        ps = subprocess.run(
-            ["ps", "-eo", "pid=,args="], capture_output=True, text=True, check=False
-        )
-        for line in ps.stdout.splitlines():
-            fields = line.strip().split(None, 1)
-            if len(fields) == 2 and "systemd-nspawn" in fields[1]:
-                if f"--directory {mountpoint}" in fields[1]:
-                    _run(_privileged_command(["kill", "-TERM", fields[0]]), timeout=30)
-        _run(_privileged_command(["umount", "-R", "-l", str(mountpoint)]), timeout=120)
-        if _run(["mountpoint", "-q", str(mountpoint)])[0] == 0:
-            raise RuntimeError(
-                f"could not unmount stale nspawn rootfs {mountpoint}; "
-                "run with sudo or close processes using that directory"
-            )
-        try:
-            mountpoint.rmdir()
-        except OSError:
-            pass
-
-
 class SystemUnderTest:
     """Abstraction over 'a running OS we can execute commands in'.
 
-    Subclasses implement ``exec`` for docker containers and nspawn machines so
+    Subclasses implement ``exec`` for docker containers and QEMU machines so
     the tests themselves stay identical across tiers.
     """
 
@@ -306,86 +277,91 @@ class ContainerSUT(SystemUnderTest):
         _run([self.runtime, "rm", "-f", self.name])
 
 
-class NspawnSUT(SystemUnderTest):
-    """A real Raspberry Pi OS image booted with systemd-nspawn.
+class QemuSUT(SystemUnderTest):
+    """An isolated Raspberry Pi OS VM controlled only through SSH."""
 
-    ``systemd-nspawn --boot`` gives a genuine PID 1 inside the machine, so a
-    ``reboot`` issued by the installer restarts the container's init rather
-    than the host. This is the only tier that exercises the reboot for real.
-    """
+    def __init__(self, workdir: Path, port: int, key: Path, process):
+        self.workdir = workdir
+        self.port = port
+        self.key = key
+        self.process = process
 
-    def __init__(self, name, root: Path):
-        self.name = name
-        self.root = root
+    def _ssh(self, cmd, user=None):
+        return [
+            "ssh",
+            "-o",
+            "BatchMode=yes",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "-o",
+            "UserKnownHostsFile=/dev/null",
+            "-o",
+            "ConnectTimeout=10",
+            "-i",
+            str(self.key),
+            "-p",
+            str(self.port),
+            f"{user or TARGET_USER}@127.0.0.1",
+            "--",
+            " ".join(shlex.quote(str(part)) for part in cmd),
+        ]
 
     def exec(self, cmd, user=None, check=False, timeout=900):
-        nspawn = ["systemd-nspawn", "-M", self.name, "-D", str(self.root), "--pipe", "-q"]
-        if user:
-            nspawn += ["-u", user]
-        return _run(_privileged_command([*nspawn, *cmd]), check=check, timeout=timeout)
+        if user is None:
+            # SSH is established as pi. Root operations use the prepared
+            # passwordless sudo rule, matching the old container/nspawn
+            # adapters without requiring host privileges.
+            cmd = ["sudo", "-n", *cmd]
+            user = TARGET_USER
+        return _run(self._ssh(cmd, user), check=check, timeout=timeout)
 
     def copy_in(self, src: Path, dest: str):
-        target = self.root / dest.lstrip("/")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(src, target)
+        _run(
+            [
+                "scp",
+                "-q",
+                "-o",
+                "StrictHostKeyChecking=no",
+                "-o",
+                "UserKnownHostsFile=/dev/null",
+                "-i",
+                str(self.key),
+                "-P",
+                str(self.port),
+                str(src),
+                f"{TARGET_USER}@127.0.0.1:{dest}",
+            ],
+            check=True,
+            timeout=120,
+        )
 
     def reboot(self, timeout=180):
-        """Reboot the machine and wait for it to come back."""
-        _run(_privileged_command(["machinectl", "reboot", self.name]), timeout=60)
-        deadline = time.time() + timeout
-        while time.time() < deadline:
-            rc, _, _ = self.exec(["true"], timeout=30)
+        self.exec(["sudo", "-n", "reboot"], user=TARGET_USER, timeout=30)
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            rc, _, _ = self.exec(["true"], timeout=20)
             if rc == 0:
                 return
             time.sleep(2)
-        raise RuntimeError(f"machine {self.name} did not come back after reboot")
+        raise RuntimeError("Raspberry Pi OS QEMU guest did not return after reboot")
 
 
 @pytest.fixture(scope="module")
-def rpios_machine(request):
-    """Automatically fetch, boot, and clean up the RPi OS test machine.
-
-    The fixture owns the complete lifecycle. A developer only needs to run
-    pytest with ``WAQD_OS_TEST=1``; the official image is fetched from the
-    local cache and nspawn is started and stopped automatically.
-    """
-    if os.getenv("WAQD_OS_TEST_MANUAL_NSPAWN", "0") == "1":
-        yield None
-        return
-
-    if os.geteuid() != 0 and not shutil.which("sudo"):
-        pytest.skip("RPi OS tests need root or sudo for nspawn")
-    if os.geteuid() != 0 and _run(["sudo", "-n", "true"])[0] != 0:
-        pytest.skip(
-            "RPi OS tests need an authenticated, noninteractive sudo session; "
-            "run `sudo -v` once before pytest so it can clean up nspawn mounts "
-            "on success and failure"
-        )
-    for tool in ("systemd-nspawn", "losetup", "machinectl"):
+def rpios_machine():
+    """Start an isolated ARM64 QEMU VM and destroy it after the module."""
+    for tool in ("qemu-system-aarch64", "qemu-img", "ssh", "scp"):
         if not shutil.which(tool):
-            pytest.skip(f"{tool} is required for RPi OS tests")
-
-    machine = os.getenv("WAQD_OS_TEST_MACHINE", "waqd-os-test")
-    if _run(["machinectl", "show", machine])[0] == 0:
-        _run(_privileged_command(["machinectl", "poweroff", machine]), timeout=120)
-        deadline = time.monotonic() + 60
-        while time.monotonic() < deadline and _run(["machinectl", "show", machine])[0] == 0:
-            time.sleep(1)
-    _cleanup_stale_nspawn_mounts()
-    # Recent systemd-nspawn versions use nsresourced for namespace resource
-    # setup. It is socket-activated on the host, but starting the socket here
-    # makes the fixture independent of the host's boot-time service state.
-    _run(
-        _privileged_command(["systemctl", "start", "systemd-nsresourced.socket"]),
-        timeout=60,
-    )
+            pytest.skip(f"{tool} is required for the QEMU RPi OS test")
     cache_dir = Path(
         os.getenv("WAQD_RPIOS_CACHE_DIR", str(Path.home() / ".cache" / "waqd-os-test"))
     )
     image_override = os.getenv("WAQD_RPIOS_IMAGE", "").strip()
     fetch_script = REPO_ROOT / "script" / "os_test" / "fetch_rpios_image.sh"
-    nspawn_script = REPO_ROOT / "script" / "os_test" / "run_nspawn.sh"
-    log_path = Path(os.getenv("WAQD_NSPAWN_LOG", f"/tmp/{machine}-nspawn.log"))
+    qemu_script = REPO_ROOT / "script" / "os_test" / "run_qemu.sh"
+    append = os.getenv(
+        "WAQD_QEMU_APPEND",
+        "root=/dev/vda2 rw rootwait console=ttyAMA0,115200 systemd.unit=multi-user.target",
+    )
 
     if image_override:
         image = Path(image_override).expanduser()
@@ -406,112 +382,55 @@ def rpios_machine(request):
         image = Path(fetch.stdout.strip().splitlines()[-1])
     if not image.is_file():
         pytest.fail(f"Raspberry Pi OS image does not exist: {image}")
-    arm_reason = _rpios_can_execute_arm64()
-    if arm_reason:
-        pytest.skip(arm_reason)
+    workdir = Path(tempfile.mkdtemp(prefix="waqd-qemu-"))
+    port = int(os.getenv("WAQD_QEMU_SSH_PORT", "0"))
+    if port == 0:
+        import socket
 
-    if _run(["machinectl", "show", machine])[0] == 0:
-        root = _find_nspawn_root(machine)
-        if root:
-            yield NspawnSUT(machine, root)
-            return
-        pytest.fail(f"machine {machine!r} is running but its root directory is unknown")
-
-    log_file = log_path.open("w", encoding="utf-8")
-    command = [str(nspawn_script), str(image), machine]
-    if os.geteuid() == 0:
-        launch = command
-    else:
-        # The earlier sudo probe may have been performed before image
-        # resolution. Revalidate immediately before spawning the long-lived
-        # privileged process; otherwise sudo can fail inside Popen and only
-        # leave the unhelpful message in the nspawn log.
-        sudo_check = subprocess.run(
-            ["sudo", "-n", "-v"], capture_output=True, text=True, check=False
-        )
-        if sudo_check.returncode != 0:
-            log_file.close()
-            pytest.skip(
-                "sudo credentials are not currently cached for noninteractive "
-                "use; run `sudo -v` immediately before pytest"
-            )
-        launch = ["sudo", "-n", *command]
-    _log(f"NSPAWN launch: {' '.join(launch)} log={log_path}")
+        with socket.socket() as sock:
+            sock.bind(("127.0.0.1", 0))
+            port = sock.getsockname()[1]
+    key_value = os.getenv("WAQD_QEMU_SSH_KEY", "").strip()
+    if not key_value:
+        pytest.skip("WAQD_QEMU_SSH_KEY must point to the private key installed in the guest")
+    key = Path(key_value).expanduser()
+    if not key.is_file():
+        pytest.skip(f"QEMU SSH private key does not exist: {key}")
+    env = os.environ.copy()
+    env.update(
+        WAQD_QEMU_SSH_PORT=str(port),
+        WAQD_QEMU_WORKDIR=str(workdir),
+        WAQD_QEMU_APPEND=append,
+        WAQD_QEMU_SSH_KEY=str(key),
+    )
     process = subprocess.Popen(
-        launch,
+        [str(qemu_script), str(image), str(workdir)],
         cwd=REPO_ROOT,
-        stdout=log_file,
+        env=env,
+        stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
         start_new_session=True,
     )
     try:
-        deadline = time.monotonic() + int(os.getenv("WAQD_NSPAWN_START_TIMEOUT", "180"))
+        deadline = time.monotonic() + int(os.getenv("WAQD_QEMU_START_TIMEOUT", "180"))
+        sut = QemuSUT(workdir, port, key, process)
         while time.monotonic() < deadline:
-            if _run(["machinectl", "show", machine])[0] == 0:
-                root = _find_nspawn_root(machine)
-                if root:
-                    yield NspawnSUT(machine, root)
-                    return
+            rc, _, _ = sut.exec(["true"], timeout=10)
+            if rc == 0:
+                yield sut
+                return
             if process.poll() is not None:
-                log_file.flush()
-                pytest.fail(
-                    f"nspawn exited with {process.returncode}; see {log_path}\n"
-                    f"{log_path.read_text(encoding='utf-8', errors='replace')}"
-                )
+                pytest.fail(f"QEMU exited with {process.returncode}; see {workdir}")
             time.sleep(1)
-        pytest.fail(f"nspawn did not start within {deadline}; see {log_path}")
+        pytest.fail(f"QEMU did not start within {deadline}; see {workdir}")
     finally:
-        log_file.close()
-        if _run(["machinectl", "show", machine])[0] == 0:
-            _run(_privileged_command(["machinectl", "poweroff", machine]), timeout=120)
-            deadline = time.monotonic() + 120
-            while time.monotonic() < deadline:
-                if _run(["machinectl", "show", machine])[0] != 0:
-                    break
-                time.sleep(1)
         if process.poll() is None:
-            os.killpg(process.pid, signal.SIGTERM)
+            process.terminate()
             try:
                 process.wait(timeout=30)
             except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-        if process.returncode not in (None, 0):
-            _log(f"nspawn exited with {process.returncode}; log={log_path}")
-        _cleanup_stale_nspawn_mounts()
-
-
-def _find_nspawn_root(machine):
-    """Return the root directory reported by machinectl."""
-    rc, out, _ = _run(["machinectl", "show", machine, "-p", "RootDirectory"])
-    if rc == 0 and "=" in out:
-        return out.split("=", 1)[1].strip()
-    return ""
-
-
-def _rpios_can_execute_arm64():
-    """Return an actionable reason when ARM64 nspawn cannot run locally."""
-    if os.uname().machine in ("aarch64", "arm64"):
-        return ""
-    if shutil.which("qemu-aarch64-static") is None and shutil.which("qemu-aarch64") is None:
-        return (
-            "the cached Raspberry Pi OS image is ARM64 but this host is "
-            f"{os.uname().machine}; install qemu-user-static/binfmt support "
-            "or run this test on a Raspberry Pi"
-        )
-    registered = any(
-        Path(path).exists()
-        for path in (
-            "/proc/sys/fs/binfmt_misc/qemu-aarch64",
-            "/proc/sys/fs/binfmt_misc/arm64",
-            "/proc/sys/fs/binfmt_misc/ARM64",
-        )
-    )
-    if not registered:
-        return (
-            "qemu-aarch64 is installed, but ARM64 binfmt is not registered; "
-            "enable qemu-user-static/binfmt or run this test on a Raspberry Pi"
-        )
-    return ""
+                process.kill()
+        shutil.rmtree(workdir, ignore_errors=True)
 
 
 @pytest.fixture(scope="session")
@@ -538,10 +457,8 @@ def require_docker(container_cli):
 
 @pytest.fixture(scope="session")
 def require_root_tools():
-    """Tier 2 needs root and systemd-nspawn; skip with a clear reason."""
-    if os.geteuid() != 0:
-        pytest.skip("Tier 2 (real RPi OS image) needs root for losetup/systemd-nspawn")
-    for tool in ("systemd-nspawn", "losetup", "machinectl"):
+    """Require the unprivileged tools used by the QEMU tier."""
+    for tool in ("qemu-system-aarch64", "qemu-img", "ssh", "scp"):
         if not shutil.which(tool):
             pytest.skip(f"{tool} not available")
 

@@ -2,7 +2,7 @@
 # Download the OFFICIAL Raspberry Pi OS image and verify its checksum.
 #
 # No unofficial base image is used anywhere: the real image is downloaded from
-# downloads.raspberrypi.org and later mounted directly (see run_nspawn.sh).
+# downloads.raspberrypi.org and later used as a read-only QEMU base image.
 #
 # Usage:
 #   ./script/os_test/fetch_rpios_image.sh [output_dir]
