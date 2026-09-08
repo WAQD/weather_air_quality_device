@@ -84,13 +84,16 @@ public class MainActivity extends BridgeActivity {
         if (getBridge() == null || getBridge().getWebView() == null) return;
 
         SharedPreferences prefs = getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
-        String gpsCoords = prefs.getString(WidgetContract.PREF_LAST_GPS_COORDS, null);
-        if (gpsCoords != null && !gpsCoords.isEmpty()) {
-            String[] parts = gpsCoords.split(",");
+        // Use the coordinates of the weather currently displayed by the widget.
+        // The preference name is historical; it also contains the selected saved
+        // location when the widget's location arrows are being used.
+        String selectedCoords = prefs.getString(WidgetContract.PREF_LAST_GPS_COORDS, null);
+        if (selectedCoords != null && !selectedCoords.isEmpty()) {
+            String[] parts = selectedCoords.split(",");
             if (parts.length == 2) {
                 try {
-                    String gpsName = prefs.getString(WidgetContract.PREF_LAST_GPS_NAME, "GPS Location");
-                    String encodedName = URLEncoder.encode(gpsName != null ? gpsName : "GPS Location", "UTF-8");
+                    String selectedName = prefs.getString(WidgetContract.PREF_LAST_GPS_NAME, "GPS Location");
+                    String encodedName = URLEncoder.encode(selectedName != null ? selectedName : "GPS Location", "UTF-8");
                     path += (path.contains("?") ? "&" : "?") + "gps_lat=" + parts[0] + "&gps_lon=" + parts[1] + "&gps_name=" + encodedName;
                 } catch (Exception ignored) {}
             }

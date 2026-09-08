@@ -363,4 +363,25 @@
             android:shadowDy="1"
             android:shadowRadius="2" />
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/widget_refresh"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:background="@drawable/widget_refresh_bg"
+        android:contentDescription="@string/widget_refresh"
+        android:padding="7dp"
+        android:src="@drawable/ic_refresh" />
+
+    <ProgressBar
+        android:id="@+id/widget_refresh_progress"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:indeterminate="true"
+        android:visibility="gone" />
 </FrameLayout>

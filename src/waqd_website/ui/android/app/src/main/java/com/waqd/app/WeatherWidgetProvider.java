@@ -43,6 +43,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static final String PERIODIC_WORK_NAME = "waqd_widget_periodic";
     /** Epoch millis of the last successful widget refresh (written by WidgetRefreshWorker). */
     public static final String PREF_LAST_SUCCESS = WidgetContract.PREF_LAST_SUCCESS;
+    /** True while an explicit widget refresh is waiting or running. */
+    public static final String PREF_REFRESHING = "waqd.widget.refreshing";
     /** Persisted selected location index and total count for the location switcher. */
     public static final String PREF_SELECTED_INDEX = WidgetContract.PREF_SELECTED_INDEX;
     public static final String PREF_LOCATION_COUNT = WidgetContract.PREF_LOCATION_COUNT;
@@ -50,13 +52,14 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     public static final String PREF_LOCATION_MODE = WidgetContract.PREF_LOCATION_MODE;
     private static final String ACTION_LOCATION_PREV = "com.waqd.app.action.LOCATION_PREV";
     private static final String ACTION_LOCATION_NEXT = "com.waqd.app.action.LOCATION_NEXT";
+    private static final String ACTION_REFRESH = "com.waqd.app.action.REFRESH";
     /** Widgets at least this tall (dp) get the large (forecast) layout. */
     private static final int LAYOUT_LARGE_MIN_HEIGHT_DP = 220;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+            updateAppWidget(context, appWidgetManager, appWidgetId, true);
         }
     }
 
@@ -75,7 +78,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
-        updateAppWidget(context, appWidgetManager, appWidgetId);
+        updateAppWidget(context, appWidgetManager, appWidgetId, true);
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
@@ -87,6 +90,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             changeLocation(context, true);
         } else if (ACTION_LOCATION_NEXT.equals(action)) {
             changeLocation(context, false);
+        } else if (ACTION_REFRESH.equals(action)) {
+            setRefreshing(context, true);
+            refreshNow(context);
         }
     }
 
@@ -132,13 +138,29 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         enqueueImmediateRefresh(context);
     }
 
+    /** Shows immediate feedback before WorkManager starts the refresh. */
+    private static void setRefreshing(Context context, boolean refreshing) {
+        context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putBoolean(PREF_REFRESHING, refreshing).apply();
+        updateAllWidgets(context, false);
+    }
+
     /** Updates the RemoteViews of all placed widgets immediately with current local preferences without a network call. */
     public static void updateAllWidgets(Context context) {
+        updateAllWidgets(context, true);
+    }
+
+    /** Redraws widgets without starting another refresh request. */
+    public static void updateAllWidgetsWithoutRefresh(Context context) {
+        updateAllWidgets(context, false);
+    }
+
+    private static void updateAllWidgets(Context context, boolean requestRefresh) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         ComponentName provider = new ComponentName(context, WeatherWidgetProvider.class);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(provider);
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+            updateAppWidget(context, appWidgetManager, appWidgetId, requestRefresh);
         }
     }
 
@@ -178,13 +200,17 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager, final int appWidgetId) {
+    private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager,
+                                        final int appWidgetId, boolean requestRefresh) {
         SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
 
         WidgetData data = parseWidgetData(prefs);
 
-        // If the stored weather is stale, kick off a refresh (rate-limited internally)
-        requestImmediateRefresh(context);
+        // If the stored weather is stale, kick off a refresh (rate-limited internally).
+        // Feedback-only redraws must not enqueue another worker.
+        if (requestRefresh) {
+            requestImmediateRefresh(context);
+        }
 
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
@@ -194,6 +220,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         final RemoteViews views = new RemoteViews(context.getPackageName(), layoutId);
         bindTexts(views, data);
         bindTapTargets(context, views);
+        bindRefreshState(views, prefs);
         bindLocationSwitcher(context, views, prefs);
         bindWarningBanner(context, views, prefs);
 
@@ -243,6 +270,13 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_daily_temp, data.dailyTempStr);
     }
 
+    private static void bindRefreshState(RemoteViews views, SharedPreferences prefs) {
+        boolean refreshing = prefs.getBoolean(PREF_REFRESHING, false);
+        views.setViewVisibility(R.id.widget_refresh, refreshing ? android.view.View.GONE : android.view.View.VISIBLE);
+        views.setViewVisibility(R.id.widget_refresh_progress,
+                refreshing ? android.view.View.VISIBLE : android.view.View.GONE);
+    }
+
     /** Tap targets: main area opens the app's weather page, clock icon opens the clock app. */
     private static void bindTapTargets(Context context, RemoteViews views) {
         Intent intent = new Intent(context, MainActivity.class);
@@ -255,6 +289,12 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent clockPendingIntent = PendingIntent.getActivity(context, 1, clockIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.clock_section, clockPendingIntent);
+
+        Intent refreshIntent = new Intent(context, WeatherWidgetProvider.class);
+        refreshIntent.setAction(ACTION_REFRESH);
+        PendingIntent refreshPendingIntent = PendingIntent.getBroadcast(context, 5, refreshIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        views.setOnClickPendingIntent(R.id.widget_refresh, refreshPendingIntent);
     }
 
     /** Location switcher arrows and GPS label. */
