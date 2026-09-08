@@ -14,10 +14,11 @@ import androidx.work.WorkerParameters;
 
 import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
-import com.google.android.gms.tasks.CancellationTokenSource;
-import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,13 +28,15 @@ import java.net.UnknownHostException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WidgetRefreshWorker extends Worker {
 
     private static final String TAG = "WidgetRefreshWorker";
-    private static final int GPS_TIMEOUT_SECONDS = 30;
+    private static final int GPS_TIMEOUT_SECONDS = 60;
+    private static final int BALANCED_TIMEOUT_SECONDS = 30;
     private String lastLocationFailure = "No current location fix was returned.";
 
     public WidgetRefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -247,7 +250,8 @@ public class WidgetRefreshWorker extends Worker {
 
         // A fresh balanced-power request is a useful fallback indoors, but is
         // still not allowed to return an old cached fix.
-        Location networkFix = tryGetFreshLocation(context, Priority.PRIORITY_BALANCED_POWER_ACCURACY, 10);
+        Location networkFix = tryGetFreshLocation(context, Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            BALANCED_TIMEOUT_SECONDS);
         if (networkFix != null) {
             Log.d(TAG, "Using fresh balanced-power location: " + networkFix.getLatitude() + ", " + networkFix.getLongitude());
             return new double[]{networkFix.getLatitude(), networkFix.getLongitude()};
@@ -278,65 +282,64 @@ public class WidgetRefreshWorker extends Worker {
 
     private Location tryGetFreshLocation(Context context, int priority, int timeoutSeconds) {
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(context);
-        CurrentLocationRequest request = new CurrentLocationRequest.Builder()
-                .setPriority(priority)
-                // Zero means the result must be current; do not satisfy this
-                // widget request from Google's cached location.
-                .setMaxUpdateAgeMillis(0)
+        LocationRequest request = new LocationRequest.Builder(priority, 5_000L)
+                .setMinUpdateIntervalMillis(2_000L)
+                .setMaxUpdateDelayMillis(5_000L)
                 .build();
-        CancellationTokenSource cancellation = new CancellationTokenSource();
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<Location> result = new AtomicReference<>();
-        AtomicReference<Exception> failure = new AtomicReference<>();
+        AtomicReference<String> failure = new AtomicReference<>();
+        LocationCallback callback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                Location latest = locationResult.getLastLocation();
+                if (latest != null && isFresh(latest, timeoutSeconds)) {
+                    result.set(latest);
+                    latch.countDown();
+                }
+            }
+        };
 
         try {
-            Task<Location> task = client.getCurrentLocation(request, cancellation.getToken());
-            task.addOnSuccessListener(location -> {
-                if (location != null) result.set(location);
-                latch.countDown();
-            });
-            task.addOnFailureListener(error -> {
-                failure.set(error);
-                latch.countDown();
-            });
-        } catch (SecurityException e) {
-            Log.w(TAG, "Fused location permission rejected: " + e.getMessage());
-            return null;
-        } catch (Exception e) {
-            Log.w(TAG, "Fused location request failed: " + e.getMessage());
-            return null;
-        }
-
-        try {
+            client.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper());
             if (!latch.await(timeoutSeconds, TimeUnit.SECONDS)) {
-                cancellation.cancel();
+                failure.set("Location update session timed out after " + timeoutSeconds + " seconds.");
                 lastLocationFailure = "Location provider timed out after " + timeoutSeconds + " seconds.";
                 Log.w(TAG, "Fused location timed out after " + timeoutSeconds + "s");
                 return null;
             }
         } catch (InterruptedException e) {
-            cancellation.cancel();
             Thread.currentThread().interrupt();
             return null;
+        } catch (SecurityException e) {
+            failure.set("Location permission rejected: " + e.getMessage());
+            Log.w(TAG, failure.get());
+            return null;
+        } catch (Exception e) {
+            failure.set("Location update request failed: " + e.getMessage());
+            Log.w(TAG, failure.get());
+            return null;
+        } finally {
+            client.removeLocationUpdates(callback);
         }
 
         Location location = result.get();
         if (location == null) {
-            lastLocationFailure = "Location provider returned no current fix"
-                + (failure.get() == null ? "." : ": " + failure.get().getMessage() + ".");
-            Log.w(TAG, "Fused location returned no current fix"
-                    + (failure.get() == null ? "" : ": " + failure.get().getMessage()));
+            lastLocationFailure = failure.get() == null
+                    ? "Location provider returned no current fix."
+                    : failure.get();
+            Log.w(TAG, lastLocationFailure);
             return null;
         }
 
         long ageMs = System.currentTimeMillis() - location.getTime();
-        if (ageMs > timeoutSeconds * 1000L) {
-            Log.w(TAG, "Fused location fix too old (" + (ageMs / 1000) + "s)");
-            return null;
-        }
         Log.d(TAG, "Fresh fused location obtained: " + location.getLatitude() + ", "
                 + location.getLongitude() + " (age " + (ageMs / 1000) + "s)");
         return location;
+    }
+
+    private boolean isFresh(Location location, int timeoutSeconds) {
+        return System.currentTimeMillis() - location.getTime() <= timeoutSeconds * 1000L;
     }
 
     private static final class RefreshException extends RuntimeException {
