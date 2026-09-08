@@ -285,21 +285,22 @@ const backgroundPermissionGranted = ref(true)
 //   refresh succeeded (it can't succeed in the background anymore).
 const effectiveWidgetStatus = computed<WidgetStatus | null>(() => {
   const s = widgetStatus.value
-  if (!backgroundPermissionGranted.value) {
-    if (!s || s.ok || s.code === 'no_permission') {
-      return { ts: s?.ts, ok: false, code: 'no_permission', message: s?.message }
+  // The worker status is authoritative for the last refresh. Do not turn a
+  // successful refresh or a GPS timeout into a permission error merely because
+  // the separate native background-permission probe is temporarily stale.
+  if (!s) {
+    return backgroundPermissionGranted.value ? null : {
+      ok: false,
+      code: 'no_permission',
+      message: 'Background location permission is not available.'
     }
-    return s
-  }
-  if (!s || s.ok) return s
-  if (s.code === 'no_permission') {
-    return { ...s, ok: true }
   }
   return s
 })
 
 const showBackgroundPermissionWarning = computed(() =>
-  !backgroundPermissionGranted.value && (!effectiveWidgetStatus.value || effectiveWidgetStatus.value.ok)
+  !backgroundPermissionGranted.value &&
+  (!widgetStatus.value || widgetStatus.value.code === 'no_permission')
 )
 
 const widgetStatusText = computed(() => {
@@ -318,12 +319,16 @@ const widgetStatusText = computed(() => {
     case 'no_permission':
       return "The widget needs 'Allow all the time' location access to refresh in the background."
     case 'no_gps':
-      return 'The widget could not get your location. Turn on location services.'
+      return s.message || 'The widget could not get a current location fix.'
     case 'no_key':
     case 'no_base_url':
       return 'Log in to the app to enable the widget.'
     case 'http':
       return 'The widget server had an error. It will retry automatically.'
+    case 'dns':
+      return s.message || 'The widget could not resolve the configured server hostname.'
+    case 'network':
+      return s.message || 'The widget network request failed.'
     default:
       return s.message || 'The widget could not refresh. It will retry automatically.'
   }

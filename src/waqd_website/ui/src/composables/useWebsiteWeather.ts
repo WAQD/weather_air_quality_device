@@ -537,7 +537,6 @@ function setCurrentLocation(location: WeatherLocationPayload | null): void {
 async function setWidgetStyle(style: WidgetStyle): Promise<void> {
   widgetStyle.value = style
   await Preferences.set({ key: WIDGET_STYLE_KEY, value: style })
-  // Widget is GPS-only; style is applied by the native worker, not by writing home data here
 }
 
 async function setLocationMode(mode: WidgetLocationMode): Promise<void> {

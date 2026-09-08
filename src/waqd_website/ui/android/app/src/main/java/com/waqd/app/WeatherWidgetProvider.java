@@ -45,6 +45,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     public static final String PREF_LAST_SUCCESS = WidgetContract.PREF_LAST_SUCCESS;
     /** True while an explicit widget refresh is waiting or running. */
     public static final String PREF_REFRESHING = "waqd.widget.refreshing";
+    /** ID of the refresh request that owns the spinner state. */
+    public static final String PREF_REFRESH_WORK_ID = "waqd.widget.refreshWorkId";
     /** Persisted selected location index and total count for the location switcher. */
     public static final String PREF_SELECTED_INDEX = WidgetContract.PREF_SELECTED_INDEX;
     public static final String PREF_LOCATION_COUNT = WidgetContract.PREF_LOCATION_COUNT;
@@ -59,7 +61,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, true);
+            updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
 
@@ -78,7 +80,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
-        updateAppWidget(context, appWidgetManager, appWidgetId, true);
+        updateAppWidget(context, appWidgetManager, appWidgetId);
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
@@ -91,8 +93,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         } else if (ACTION_LOCATION_NEXT.equals(action)) {
             changeLocation(context, false);
         } else if (ACTION_REFRESH.equals(action)) {
-            setRefreshing(context, true);
-            refreshNow(context);
+            refreshNowReplacing(context);
         }
     }
 
@@ -104,7 +105,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         int index = prefs.getInt(PREF_SELECTED_INDEX, 0);
         index = prev ? (index - 1 + count) % count : (index + 1) % count;
         prefs.edit().putInt(PREF_SELECTED_INDEX, index).apply();
-        refreshNow(context);
+        // Location switching is an explicit action. Replace an older queued
+        // refresh so the newly selected location is fetched immediately.
+        refreshNowReplacing(context);
     }
 
     private static void schedulePeriodicWork(Context context) {
@@ -121,8 +124,23 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
-                .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.REPLACE, request);
+            // Do not replace a running refresh when lifecycle callbacks or
+            // repeated taps arrive close together.
+            .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.KEEP, request);
     }
+
+            private static void refreshNowReplacing(Context context) {
+            OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(WidgetRefreshWorker.class)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
+                .build();
+            context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(PREF_REFRESH_WORK_ID, request.getId().toString())
+                .apply();
+            setRefreshing(context, true);
+            WorkManager.getInstance(context)
+                .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.REPLACE, request);
+            }
 
     /** Refresh the widget now, but never more often than every 5 minutes per success. */
     public static void requestImmediateRefresh(Context context) {
@@ -142,25 +160,16 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static void setRefreshing(Context context, boolean refreshing) {
         context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
                 .edit().putBoolean(PREF_REFRESHING, refreshing).apply();
-        updateAllWidgets(context, false);
+        updateAllWidgets(context);
     }
 
-    /** Updates the RemoteViews of all placed widgets immediately with current local preferences without a network call. */
+    /** Redraws all placed widgets from local preferences without scheduling work. */
     public static void updateAllWidgets(Context context) {
-        updateAllWidgets(context, true);
-    }
-
-    /** Redraws widgets without starting another refresh request. */
-    public static void updateAllWidgetsWithoutRefresh(Context context) {
-        updateAllWidgets(context, false);
-    }
-
-    private static void updateAllWidgets(Context context, boolean requestRefresh) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         ComponentName provider = new ComponentName(context, WeatherWidgetProvider.class);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(provider);
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, requestRefresh);
+            updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
 
@@ -171,25 +180,25 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     private static String getWidgetWarning(Context context, SharedPreferences prefs) {
         boolean bgGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
-        if (!bgGranted) {
-            return context.getString(R.string.widget_warn_no_permission);
-        }
-
         String statusRaw = prefs.getString(WidgetContract.PREF_STATUS, null);
-        if (statusRaw == null) return null;
+        if (statusRaw == null) {
+            return bgGranted ? null : context.getString(R.string.widget_warn_no_permission);
+        }
         try {
             JSONObject status = new JSONObject(statusRaw);
             if (status.optBoolean("ok", false)) return null;
             switch (status.optString("code", "error")) {
                 case "no_permission":
-                    // Unreachable in practice: bgGranted is checked above, so a stored
-                    // no_permission status is stale and should not warn.
-                    return null;
+                    return bgGranted ? null : context.getString(R.string.widget_warn_no_permission);
                 case "no_gps":
-                    return context.getString(R.string.widget_warn_no_gps);
+                    return status.optString("message", context.getString(R.string.widget_warn_no_gps));
                 case "no_key":
                 case "no_base_url":
                     return context.getString(R.string.widget_warn_no_key);
+                case "dns":
+                    return status.optString("message", "DNS lookup failed for the widget server.");
+                case "network":
+                    return status.optString("message", "The widget network request failed.");
                 case "http":
                     return context.getString(R.string.widget_warn_http);
                 default:
@@ -201,16 +210,10 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     }
 
     private static void updateAppWidget(final Context context, final AppWidgetManager appWidgetManager,
-                                        final int appWidgetId, boolean requestRefresh) {
+                                        final int appWidgetId) {
         SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
 
         WidgetData data = parseWidgetData(prefs);
-
-        // If the stored weather is stale, kick off a refresh (rate-limited internally).
-        // Feedback-only redraws must not enqueue another worker.
-        if (requestRefresh) {
-            requestImmediateRefresh(context);
-        }
 
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
@@ -259,6 +262,12 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        // Style is a local UI preference. Read it directly instead of waiting for
+        // the next network refresh to rewrite the cached weather payload.
+        String preferredStyle = prefs.getString(WidgetContract.PREF_WIDGET_STYLE, null);
+        if ("simple".equals(preferredStyle) || "forecast".equals(preferredStyle)) {
+            data.widgetStyle = preferredStyle;
         }
         return data;
     }

@@ -79,6 +79,8 @@ dependencies {
     implementation 'com.caverock:androidsvg:1.4'
     // WorkManager for native widget refresh tasks (WidgetRefreshWorker)
     implementation "androidx.work:work-runtime:2.9.0"
+    // Use Google's fused provider for reliable background location fixes on Pixel devices.
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
 }
 
 apply from: 'capacitor.build.gradle'

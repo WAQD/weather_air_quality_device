@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 /**
  * Single source of truth for the SharedPreferences-based contract between the
@@ -11,6 +12,9 @@ import java.net.URL;
  * WidgetRefreshWorker. All keys live in the "CapacitorStorage" prefs file.
  */
 public final class WidgetContract {
+
+    private static final int HTTP_ATTEMPTS = 3;
+    private static final long RETRY_DELAY_MS = 750L;
 
     private WidgetContract() {}
 
@@ -20,6 +24,7 @@ public final class WidgetContract {
     public static final String PREF_WIDGET_KEY = "waqd.widget.key";
     public static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
     public static final String PREF_LOCALE = "waqd.locale";
+    public static final String PREF_WIDGET_STYLE = "waqd.website.widgetStyle";
 
     // Shared between worker and provider.
     public static final String PREF_LAST_SUCCESS = "waqd.widget.lastSuccessTs";
@@ -35,6 +40,25 @@ public final class WidgetContract {
 
     /** Simple authenticated GET returning the response body; throws on non-200. */
     public static String httpGet(String url, String widgetKey) throws Exception {
+        UnknownHostException lastDnsFailure = null;
+        for (int attempt = 1; attempt <= HTTP_ATTEMPTS; attempt++) {
+            try {
+                return httpGetOnce(url, widgetKey);
+            } catch (UnknownHostException e) {
+                lastDnsFailure = e;
+                if (attempt == HTTP_ATTEMPTS) throw e;
+                try {
+                    Thread.sleep(RETRY_DELAY_MS * attempt);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
+            }
+        }
+        throw lastDnsFailure;
+    }
+
+    private static String httpGetOnce(String url, String widgetKey) throws Exception {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         try {
             conn.setRequestMethod("GET");
