@@ -4,7 +4,7 @@
     <div id="weather_grid"
       class="flex flex-col xl:grid gap-3 sm:gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
       <div class="contents xl:block xl:space-y-3 xl:sm:space-y-6">
-        <CurrentWeatherCard />
+        <CurrentWeatherCard :start-collapsed="isForecastDeepLink" />
       </div>
       <div class="contents xl:block xl:space-y-3 xl:sm:space-y-6">
         <LocationBanner />
@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CurrentWeatherCard from '../components/CurrentWeatherCard.vue'
 import ForecastPanel from '../components/ForecastPanel.vue'
@@ -55,24 +55,16 @@ function parseDayQuery(day: unknown): number | null {
 
 const widgetForecastDay = ref(parseDayQuery(route.query.day) ?? 0)
 
+// True when this page was reached from the Android widget's forecast deep link
+// (a valid ?day= param). On stacked layouts the current weather card collapses
+// into a compact bar so the forecast is visible with little/no scrolling, which
+// also avoids the previous scroll-overshoot caused by repeatedly scrolling to the
+// forecast while the forecast content below was still rendering.
+const isForecastDeepLink = ref(false)
+
 function clearWidgetQueryParams() {
   const { day: _day, gps_lat: _gpsLat, gps_lon: _gpsLon, gps_name: _gpsName, ...rest } = route.query
   router.replace({ path: route.path, query: rest })
-}
-
-async function scrollToForecast() {
-  await nextTick()
-  let attempts = 0
-  const scrollInterval = setInterval(() => {
-    const el = document.getElementById('forecast_container')
-    if (el && el.getBoundingClientRect().height > 0) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      clearInterval(scrollInterval)
-    } else if (attempts >= 30) {
-      clearInterval(scrollInterval)
-    }
-    attempts++
-  }, 100)
 }
 
 watch(routeQuery, async (query) => {
@@ -115,7 +107,7 @@ watch(() => route.fullPath, async (newPath, oldPath) => {
       const parsedDay = parseDayQuery(route.query.day)
       if (parsedDay !== null) {
         widgetForecastDay.value = parsedDay
-        await scrollToForecast()
+        isForecastDeepLink.value = true
       }
       clearWidgetQueryParams()
     }
@@ -146,7 +138,7 @@ onMounted(async () => {
     const parsedDay = parseDayQuery(route.query.day)
     if (parsedDay !== null) {
       widgetForecastDay.value = parsedDay
-      await scrollToForecast()
+      isForecastDeepLink.value = true
     }
     clearWidgetQueryParams()
   }

@@ -2,13 +2,60 @@
   <div id="current_weather_card"
     class="order-2 xl:order-none card bg-base-100 shadow-xl overflow-hidden"
     :style="weatherHeroStyle">
-    <div class="card-body p-3 sm:p-6 backdrop-blur-md" :class="weatherTintClass">
+    <!-- Compact collapsed summary: used only for widget/forecast deep links on stacked
+         (mobile/tablet) layouts so the forecast below needs little or no scrolling.
+         Tapping expands back to the full card. -->
+    <button v-if="showCompact" id="current_weather_compact" type="button"
+      class="card-body w-full cursor-pointer p-3 sm:p-4 text-left backdrop-blur-md focus:outline-none"
+      :class="weatherTintClass" aria-expanded="false" @click="expanded = true">
+      <div class="flex items-center gap-3">
+        <template v-if="currentWeather">
+          <img v-if="currentWeather.icon" :src="`/static/weather_icons/${currentWeather.icon}.svg`"
+            :alt="currentWeather.main"
+            class="h-10 w-10 shrink-0 brightness-0 invert-0 weather-icon" />
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold opacity-80">{{ currentLocation ?
+              formatLocationLabel(currentLocation) : t('no_location') }}</p>
+            <p class="text-2xl font-bold leading-tight">
+              {{ currentWeather.temp.toFixed(1) }}°C
+              <span class="text-sm font-normal opacity-70">{{
+                translateWeatherCondition(currentWeather) }}</span>
+            </p>
+          </div>
+        </template>
+        <template v-else-if="isLoadingWeather">
+          <span class="loading loading-spinner loading-sm shrink-0"></span>
+          <p class="min-w-0 flex-1 truncate text-sm opacity-80">{{ currentLocation ?
+            formatLocationLabel(currentLocation) : t('no_location') }}</p>
+        </template>
+        <template v-else>
+          <p class="min-w-0 flex-1 text-sm opacity-70">{{ t('home_weather_needs_location')
+            }}</p>
+        </template>
+        <svg class="h-6 w-6 shrink-0 text-base-content/50" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          aria-hidden="true">
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+    </button>
+
+    <!-- Expanded full card (also the normal view when not collapsed) -->
+    <div v-else class="card-body p-3 sm:p-6 backdrop-blur-md" :class="weatherTintClass">
       <div class="flex items-start justify-between gap-3">
         <div>
           <p class="text-xs font-semibold uppercase tracking-[0.22em] opacity-60">
             {{ t('current_weather') }}</p>
           <h1 class="mt-2 text-2xl sm:text-3xl font-bold">{{ t('home_weather') }}</h1>
         </div>
+        <button v-if="collapseEnabled" id="current_weather_collapse" type="button"
+          class="btn btn-ghost btn-sm btn-circle shrink-0" :aria-label="t('home_weather')"
+          @click="expanded = false">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 15l-6-6-6 6" />
+          </svg>
+        </button>
       </div>
 
       <div v-if="isLoadingWeather" class="mt-5">
@@ -97,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useTranslation } from '../composables/useTranslation'
 import { useWeather } from '../composables/useWeather'
 import { useWebsiteWeather, type WeatherLocationPayload } from '../composables/useWebsiteWeather'
@@ -105,6 +152,34 @@ import { formatLocationLabel } from '../utils/weather'
 import WeatherMetric from './WeatherMetric.vue'
 
 const WEATHER_VIEW_KEY = 'website-weather-view'
+
+// When true, on stacked (mobile/tablet) layouts the card starts collapsed into a
+// compact summary bar so the forecast below is reachable with little/no scrolling.
+// The user can expand it back. This is only set for widget/forecast deep links.
+const props = withDefaults(defineProps<{ startCollapsed?: boolean }>(), {
+  startCollapsed: false
+})
+const expanded = ref(false)
+const isDesktop = ref(false)
+
+let desktopMedia: MediaQueryList | null = null
+function onDesktopChange(e: MediaQueryListEvent): void {
+  isDesktop.value = e.matches
+}
+
+// The xl breakpoint (1280px) is where the Weather view switches to its 2-column grid
+// showing current weather + forecast side by side, so collapsing is unnecessary.
+const collapseEnabled = computed(() => props.startCollapsed && !isDesktop.value)
+const showCompact = computed(() => collapseEnabled.value && !expanded.value)
+
+onMounted(() => {
+  desktopMedia = window.matchMedia('(min-width: 1280px)')
+  isDesktop.value = desktopMedia.matches
+  desktopMedia.addEventListener('change', onDesktopChange)
+})
+onUnmounted(() => {
+  desktopMedia?.removeEventListener('change', onDesktopChange)
+})
 
 const { t, locale } = useTranslation()
 const { getWeatherBackground } = useWeather()

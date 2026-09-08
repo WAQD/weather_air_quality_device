@@ -26,7 +26,7 @@ async function isInViewport(page: Page, selector: string): Promise<boolean> {
   }, selector);
 }
 
-test.describe('Weather Page - Deep Link Scrolling (mobile)', () => {
+test.describe('Weather Page - Widget Forecast Deep Link', () => {
 
   test.use({ viewport: MOBILE_VIEWPORT });
 
@@ -34,18 +34,22 @@ test.describe('Weather Page - Deep Link Scrolling (mobile)', () => {
     await loginAsAdmin(page);
   });
 
-  test('forecast_container scrolls into view and selects today with ?day=0', async ({ page }) => {
+  test('?day=0 collapses current weather, shows forecast near top and selects today', async ({ page }) => {
     await page.goto('/rest/weather?day=0');
     await page.waitForLoadState('networkidle');
 
     const forecastContainer = page.locator('#forecast_container');
     await expect(forecastContainer).toBeAttached({ timeout: 10000 });
 
-    await page.waitForTimeout(4000);
+    // Widget/forecast deep link → current weather collapses into a compact bar
+    const compact = page.locator('#current_weather_compact');
+    await expect(compact).toBeVisible({ timeout: 10000 });
 
+    // The forecast is near the top because the tall current-weather card is gone,
+    // so no scrolling is needed (this used to require an aggressive smooth scroll).
     expect(
       await isInViewport(page, '#forecast_container'),
-      'forecast_container should be scrolled into view',
+      'forecast_container should be visible near the top with collapsed current weather',
     ).toBe(true);
 
     // day=0 = today → first button must be selected
@@ -54,7 +58,7 @@ test.describe('Weather Page - Deep Link Scrolling (mobile)', () => {
     await expect(dayButtons.nth(0)).toHaveClass(/ring-2/, { timeout: 5000 });
   });
 
-  test('forecast_container scrolls into view and selects day 1 (tomorrow) with ?day=1', async ({ page }) => {
+  test('?day=1 collapses current weather and selects tomorrow', async ({ page }) => {
     // day=1 → index 1 in the forecast array (0 = today, 1 = tomorrow)
     await page.goto('/rest/weather?day=1');
     await page.waitForLoadState('networkidle');
@@ -62,12 +66,12 @@ test.describe('Weather Page - Deep Link Scrolling (mobile)', () => {
     const forecastContainer = page.locator('#forecast_container');
     await expect(forecastContainer).toBeAttached({ timeout: 10000 });
 
-    await page.waitForTimeout(4000);
+    const compact = page.locator('#current_weather_compact');
+    await expect(compact).toBeVisible({ timeout: 10000 });
 
-    // Scroll assertion
     expect(
       await isInViewport(page, '#forecast_container'),
-      'forecast_container should be scrolled into view when day param provided',
+      'forecast_container should be visible with collapsed current weather',
     ).toBe(true);
 
     // Day-selection assertion: the second day button (index 1 = tomorrow) must carry
@@ -77,11 +81,26 @@ test.describe('Weather Page - Deep Link Scrolling (mobile)', () => {
     await expect(dayButtons.nth(1)).toHaveClass(/ring-2/, { timeout: 5000 });
   });
 
-  test('page stays at top without scroll query params', async ({ page }) => {
+  test('tapping the collapsed current-weather bar expands the full card', async ({ page }) => {
+    await page.goto('/rest/weather?day=0');
+    await page.waitForLoadState('networkidle');
+
+    const compact = page.locator('#current_weather_compact');
+    await expect(compact).toBeVisible({ timeout: 10000 });
+
+    // Expand back to the full card (which offers a collapse button again)
+    await compact.click();
+    await expect(page.locator('#current_weather_collapse')).toBeVisible();
+    await expect(page.locator('#current_weather_card button.btn-primary, #current_weather_card button.btn-outline'))
+      .toBeVisible();
+  });
+
+  test('normal view (no query params) keeps the full current-weather card and stays at top', async ({ page }) => {
     await page.goto('/rest/weather');
     await page.waitForLoadState('networkidle');
-    // Brief pause to catch any rogue auto-scroll
-    await page.waitForTimeout(1000);
+
+    // Not a widget deep link → current weather must NOT be collapsed
+    await expect(page.locator('#current_weather_compact')).toHaveCount(0);
 
     const scrollY = await page.evaluate(() => window.scrollY);
     expect(scrollY, 'page should not auto-scroll without query params').toBeLessThan(50);
