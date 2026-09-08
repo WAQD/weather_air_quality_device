@@ -1,5 +1,9 @@
 package com.waqd.app;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -39,11 +43,11 @@ public final class WidgetContract {
     public static final String PREF_LAST_GPS_NAME = "waqd.widget.lastGpsName";
 
     /** Simple authenticated GET returning the response body; throws on non-200. */
-    public static String httpGet(String url, String widgetKey) throws Exception {
+    public static String httpGet(Context context, String url, String widgetKey) throws Exception {
         UnknownHostException lastDnsFailure = null;
         for (int attempt = 1; attempt <= HTTP_ATTEMPTS; attempt++) {
             try {
-                return httpGetOnce(url, widgetKey);
+                return httpGetOnce(context, url, widgetKey);
             } catch (UnknownHostException e) {
                 lastDnsFailure = e;
                 if (attempt == HTTP_ATTEMPTS) throw e;
@@ -58,8 +62,18 @@ public final class WidgetContract {
         throw lastDnsFailure;
     }
 
-    private static String httpGetOnce(String url, String widgetKey) throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+    private static String httpGetOnce(Context context, String url, String widgetKey) throws Exception {
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        Network activeNetwork = connectivityManager == null
+                ? null
+                : connectivityManager.getActiveNetwork();
+        if (activeNetwork == null) {
+            throw new UnknownHostException("No active network");
+        }
+
+        HttpURLConnection conn =
+                (HttpURLConnection) activeNetwork.openConnection(new URL(url));
         try {
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "WidgetToken " + widgetKey);

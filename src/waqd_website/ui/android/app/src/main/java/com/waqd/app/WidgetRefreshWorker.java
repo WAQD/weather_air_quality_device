@@ -165,7 +165,7 @@ public class WidgetRefreshWorker extends Worker {
 
         String body;
         try {
-            body = WidgetContract.httpGet(apiUrl, widgetKey);
+            body = WidgetContract.httpGet(context, apiUrl, widgetKey);
         } catch (UnknownHostException e) {
             throw dnsFailure(baseUrl, e);
         } catch (WidgetContract.HttpException e) {
@@ -215,7 +215,7 @@ public class WidgetRefreshWorker extends Worker {
     private JSONArray fetchSavedLocations(String baseUrl, String widgetKey) throws Exception {
         String url = baseUrl + "/api/public/widget/locations";
         try {
-            String body = WidgetContract.httpGet(url, widgetKey);
+            String body = WidgetContract.httpGet(getApplicationContext(), url, widgetKey);
             return new JSONObject(body).getJSONArray("locations");
         } catch (WidgetContract.HttpException e) {
             throw new RefreshException("Locations API returned HTTP " + e.statusCode, false, "http");
