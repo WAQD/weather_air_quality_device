@@ -71,6 +71,7 @@ public class WidgetRefreshWorker extends Worker {
             if (getId().toString().equals(currentWorkId)) {
                 prefs.edit()
                         .putBoolean(WeatherWidgetProvider.PREF_REFRESHING, false)
+                    .remove(WidgetContract.PREF_REFRESH_STARTED)
                         .remove(WeatherWidgetProvider.PREF_REFRESH_WORK_ID)
                         .apply();
                 WeatherWidgetProvider.updateAllWidgets(appContext);
@@ -107,6 +108,7 @@ public class WidgetRefreshWorker extends Worker {
     }
 
     private void doRefresh(Context context) throws Exception {
+        lastLocationFailure = "No current location fix was returned.";
         SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
         String widgetKey = prefs.getString(WidgetContract.PREF_WIDGET_KEY, null);
         String baseUrl = prefs.getString(WidgetContract.PREF_BASE_URL, null);
@@ -125,6 +127,8 @@ public class WidgetRefreshWorker extends Worker {
             savedLocations = fetchSavedLocations(baseUrl, widgetKey);
         } catch (UnknownHostException e) {
             throw dnsFailure(baseUrl, e);
+        } catch (RefreshException e) {
+            throw e;
         } catch (Exception e) {
             throw new RefreshException(
                     "Saved locations request failed: " + e.getMessage(),
@@ -226,6 +230,7 @@ public class WidgetRefreshWorker extends Worker {
     }
 
     private double[] tryGetCoordinates(Context context) throws RefreshException {
+        lastLocationFailure = "No current location fix was returned.";
         boolean hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
         boolean hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)

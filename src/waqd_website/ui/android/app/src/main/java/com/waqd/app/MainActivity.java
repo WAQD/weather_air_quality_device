@@ -55,6 +55,16 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
+    public void onDestroy() {
+        SharedPreferences prefs = getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
+        if (prefListener != null) {
+            prefs.unregisterOnSharedPreferenceChangeListener(prefListener);
+            prefListener = null;
+        }
+        super.onDestroy();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         // Re-render the widget right away: if the user just granted the location

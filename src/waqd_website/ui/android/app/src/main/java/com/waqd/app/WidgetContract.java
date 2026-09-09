@@ -36,6 +36,7 @@ public final class WidgetContract {
     public static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
     public static final String PREF_LOCALE = "waqd.locale";
     public static final String PREF_WIDGET_STYLE = "waqd.website.widgetStyle";
+    public static final String PREF_REFRESH_STARTED = "waqd.widget.refreshStarted";
 
     // Shared between worker and provider.
     public static final String PREF_LAST_SUCCESS = "waqd.widget.lastSuccessTs";
@@ -70,10 +71,7 @@ public final class WidgetContract {
     }
 
     private static String httpGetOnce(Context context, String url, String widgetKey) throws Exception {
-        Network activeNetwork = awaitValidatedNetwork(context);
-
-        HttpURLConnection conn =
-                (HttpURLConnection) activeNetwork.openConnection(new URL(url));
+        HttpURLConnection conn = openConnection(context, url);
         try {
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "WidgetToken " + widgetKey);
@@ -93,6 +91,11 @@ public final class WidgetContract {
         } finally {
             conn.disconnect();
         }
+    }
+
+    public static HttpURLConnection openConnection(Context context, String url) throws Exception {
+        Network activeNetwork = awaitValidatedNetwork(context);
+        return (HttpURLConnection) activeNetwork.openConnection(new URL(url));
     }
 
     /**

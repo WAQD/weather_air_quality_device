@@ -20,6 +20,7 @@ import com.caverock.androidsvg.SVG;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -41,8 +42,8 @@ import androidx.work.WorkManager;
 public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private static final String BASE_URL = BuildConfig.WAQD_BASE_URL;
     private static final String PERIODIC_WORK_NAME = "waqd_widget_periodic";
+    private static final String IMMEDIATE_WORK_NAME = "waqd_widget_immediate";
     /** Epoch millis of the last successful widget refresh (written by WidgetRefreshWorker). */
     public static final String PREF_LAST_SUCCESS = WidgetContract.PREF_LAST_SUCCESS;
     /** True while an explicit widget refresh is waiting or running. */
@@ -77,7 +78,14 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         super.onDisabled(context);
-        WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_WORK_NAME);
+        WorkManager workManager = WorkManager.getInstance(context);
+        workManager.cancelUniqueWork(PERIODIC_WORK_NAME);
+        workManager.cancelUniqueWork(IMMEDIATE_WORK_NAME);
+        context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_REFRESHING, false)
+            .remove(PREF_REFRESH_WORK_ID)
+            .apply();
     }
 
     @Override
@@ -120,7 +128,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, periodic);
+                .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, periodic);
     }
 
     private static void enqueueImmediateRefresh(Context context) {
@@ -130,9 +138,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
-            // Do not replace a running refresh when lifecycle callbacks or
-            // repeated taps arrive close together.
-            .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.KEEP, request);
+            .enqueueUniqueWork(IMMEDIATE_WORK_NAME, ExistingWorkPolicy.KEEP, request);
     }
 
             private static void refreshNowReplacing(Context context) {
@@ -144,10 +150,11 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putString(PREF_REFRESH_WORK_ID, request.getId().toString())
+                .putLong(WidgetContract.PREF_REFRESH_STARTED, System.currentTimeMillis())
                 .apply();
             setRefreshing(context, true);
             WorkManager.getInstance(context)
-                .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.REPLACE, request);
+                .enqueueUniqueWork(IMMEDIATE_WORK_NAME, ExistingWorkPolicy.REPLACE, request);
             }
 
     private static Constraints networkConstraints() {
@@ -295,6 +302,11 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     private static void bindRefreshState(RemoteViews views, SharedPreferences prefs) {
         boolean refreshing = prefs.getBoolean(PREF_REFRESHING, false);
+        long started = prefs.getLong(WidgetContract.PREF_REFRESH_STARTED, 0L);
+        if (refreshing && (started == 0L || System.currentTimeMillis() - started > 10 * 60_000L)) {
+            refreshing = false;
+            prefs.edit().putBoolean(PREF_REFRESHING, false).remove(PREF_REFRESH_WORK_ID).apply();
+        }
         views.setViewVisibility(R.id.widget_refresh, refreshing ? android.view.View.GONE : android.view.View.VISIBLE);
         views.setViewVisibility(R.id.widget_refresh_progress,
                 refreshing ? android.view.View.VISIBLE : android.view.View.GONE);
@@ -476,29 +488,34 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         }
 
         if (bitmap == null) {
-            String finalIconUrl = BASE_URL + "/static/weather_icons/google/v0/light/" + mappedIconName + ".svg";
-            URL url = new URL(finalIconUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
+            SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
+            String baseUrl = prefs.getString(WidgetContract.PREF_BASE_URL, BuildConfig.WAQD_BASE_URL);
+            String finalIconUrl = baseUrl + "/static/weather_icons/google/v0/light/" + mappedIconName + ".svg";
+            HttpURLConnection connection = null;
+            try {
+                connection = WidgetContract.openConnection(context, finalIconUrl);
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setDoInput(true);
+                connection.connect();
+                try (InputStream input = connection.getInputStream()) {
+                    SVG svg = SVG.getFromInputStream(input);
+                    if (svg != null) {
+                        float width = (svg.getDocumentWidth() != -1) ? svg.getDocumentWidth() : 192f;
+                        float height = (svg.getDocumentHeight() != -1) ? svg.getDocumentHeight() : 192f;
 
-            SVG svg = SVG.getFromInputStream(input);
-            if (svg != null) {
-                float width = (svg.getDocumentWidth() != -1) ? svg.getDocumentWidth() : 192f;
-                float height = (svg.getDocumentHeight() != -1) ? svg.getDocumentHeight() : 192f;
+                        bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
+                        Canvas canvas = new Canvas(bitmap);
+                        svg.renderToCanvas(canvas);
 
-                bitmap = Bitmap.createBitmap((int) width, (int) height, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(bitmap);
-                svg.renderToCanvas(canvas);
-
-                try (FileOutputStream out = new FileOutputStream(cacheFile)) {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                        try (FileOutputStream out = new FileOutputStream(cacheFile)) {
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                        }
+                    }
                 }
+            } finally {
+                if (connection != null) connection.disconnect();
             }
-            input.close();
         }
         return bitmap;
     }
