@@ -35,8 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class WidgetRefreshWorker extends Worker {
 
     private static final String TAG = "WidgetRefreshWorker";
-    private static final int GPS_TIMEOUT_SECONDS = 60;
-    private static final int BALANCED_TIMEOUT_SECONDS = 30;
+    private static final int COARSE_TIMEOUT_SECONDS = 20;
     private String lastLocationFailure = "No current location fix was returned.";
 
     public WidgetRefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -244,29 +243,23 @@ public class WidgetRefreshWorker extends Worker {
             throw new RefreshException("The widget needs 'Allow all the time' location access to refresh in the background.", false, "no_permission");
         }
 
-        // Always request a current fix. Never use getLastKnownLocation() here:
-        // the widget can remain visible for hours while the phone is idle, and a
-        // successful refresh with an old cached position is worse than a retry.
-        Location fresh = tryGetFreshLocation(context, Priority.PRIORITY_HIGH_ACCURACY,
-                GPS_TIMEOUT_SECONDS);
+        // Weather does not require precise GNSS. Use a fresh balanced-power fix
+        // first; it can use Wi-Fi/cell positioning and avoids long cold GPS waits.
+        Location fresh = tryGetFreshLocation(context, Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                COARSE_TIMEOUT_SECONDS);
         if (fresh != null) {
             return new double[]{fresh.getLatitude(), fresh.getLongitude()};
         }
 
-        // A fresh balanced-power request is a useful fallback indoors, but is
-        // still not allowed to return an old cached fix.
-        Location networkFix = tryGetFreshLocation(context, Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-            BALANCED_TIMEOUT_SECONDS);
-        if (networkFix != null) {
-            Log.d(TAG, "Using fresh balanced-power location: " + networkFix.getLatitude() + ", " + networkFix.getLongitude());
-            return new double[]{networkFix.getLatitude(), networkFix.getLongitude()};
-        }
+        /* Always request a current fix. Never use getLastKnownLocation() here:
+        // the widget can remain visible for hours while the phone is idle, and a
+        // successful refresh with an old cached position is worse than a retry. */
 
         // A failed fresh fix is not proof that permission is missing. Permission
         // failures are reported only by the explicit checks above; otherwise this
         // is a temporary location/provider failure and should be retried.
-        lastLocationFailure = "No current location fix was returned. " + lastLocationFailure
-            + " Check that Location is enabled and try again.";
+        lastLocationFailure = "No current coarse location fix was returned after "
+            + COARSE_TIMEOUT_SECONDS + " seconds. Check that Location is enabled and try again.";
         Log.w(TAG, lastLocationFailure);
         return null;
     }
