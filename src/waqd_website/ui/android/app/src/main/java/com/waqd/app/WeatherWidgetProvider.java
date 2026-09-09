@@ -30,8 +30,10 @@ import java.io.FileOutputStream;
 
 import androidx.core.content.ContextCompat;
 import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -111,8 +113,10 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     }
 
     private static void schedulePeriodicWork(Context context) {
+        Constraints networkConstraints = networkConstraints();
         PeriodicWorkRequest periodic = new PeriodicWorkRequest.Builder(
                 WidgetRefreshWorker.class, 15, TimeUnit.MINUTES)
+            .setConstraints(networkConstraints)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
@@ -120,7 +124,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     }
 
     private static void enqueueImmediateRefresh(Context context) {
+        Constraints networkConstraints = networkConstraints();
         OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(WidgetRefreshWorker.class)
+            .setConstraints(networkConstraints)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
@@ -130,7 +136,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     }
 
             private static void refreshNowReplacing(Context context) {
+                Constraints networkConstraints = networkConstraints();
             OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(WidgetRefreshWorker.class)
+                    .setConstraints(networkConstraints)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
             context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
@@ -141,6 +149,12 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             WorkManager.getInstance(context)
                 .enqueueUniqueWork("waqd_widget_immediate", ExistingWorkPolicy.REPLACE, request);
             }
+
+    private static Constraints networkConstraints() {
+        return new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+    }
 
     /** Refresh the widget now, but never more often than every 5 minutes per success. */
     public static void requestImmediateRefresh(Context context) {
