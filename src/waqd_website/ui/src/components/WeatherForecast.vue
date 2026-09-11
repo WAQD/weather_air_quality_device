@@ -25,9 +25,11 @@
                 <img v-if="day.icon" :src="`/static/weather_icons/${day.icon}.svg`" :alt="day.main"
                   class="h-8 w-8 sm:h-12 sm:w-12 lg:h-14 lg:w-14 mx-auto mb-0.5 sm:mb-2 weather-icon" />
 
-                <!-- Weather condition -->
-                <p class="text-sm opacity-70 mb-0.5 sm:mb-2 line-clamp-2">{{
-                  translateWeatherCondition(day) }}</p>
+                <!-- Weather condition (capped width so long strings wrap to max 2 lines instead of widening the card) -->
+                <p
+                  class="text-sm opacity-70 mb-0.5 sm:mb-2 line-clamp-2 wrap-break-word mx-auto max-w-26 sm:max-w-34">
+                  {{ translateWeatherCondition(day) }}
+                </p>
 
                 <!-- Day temperature -->
                 <div
@@ -67,7 +69,15 @@
                     class="text-sm sm:text-base flex items-center justify-center gap-1">
                     <img :src="showersIconUrl" alt="Showers"
                       class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
-                    {{ day.precipitation.toFixed(1) }}mm
+                    {{ t('precipitation_sum') }}: {{ day.precipitation.toFixed(1) }}mm
+                  </p>
+                </div>
+                <!-- UV index (daily maximum) -->
+                <div v-if="day.uv_index_max !== undefined" class="mt-0.5 sm:mt-1">
+                  <p class="text-sm sm:text-base flex items-center justify-center gap-1">
+                    <img :src="uvIndexIconUrl" :alt="t('uv_index')"
+                      class="h-5 w-5 sm:h-8 sm:w-8 weather-icon" />
+                    {{ t('uv_index_short') }} {{ day.uv_index_max.toFixed(0) }}
                   </p>
                 </div>
                 <!-- Daily wind display (moved from details) -->
@@ -121,7 +131,12 @@
             <span v-if="selectedDay.precipitation !== undefined" class="flex items-center gap-1">
               <img :src="showersIconUrl" :alt="t('weather_rain')"
                 class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
-              {{ selectedDay.precipitation.toFixed(1) }}mm
+              {{ t('precipitation_sum') }}: {{ selectedDay.precipitation.toFixed(1) }}mm
+            </span>
+            <span v-if="selectedDay.uv_index_max !== undefined" class="flex items-center gap-1">
+              <img :src="uvIndexIconUrl" :alt="t('uv_index')"
+                class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
+              {{ t('uv_index') }}: {{ selectedDay.uv_index_max.toFixed(0) }}
             </span>
           </div>
         </div>
@@ -144,7 +159,10 @@
               <img v-if="hour.icon" :src="`/static/weather_icons/${hour.icon}.svg`" :alt="hour.main"
                 class="h-6 w-6 sm:h-10 sm:w-10 mx-auto mb-0.5 weather-icon" />
               <p class="font-bold text-sm sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
-              <p class="text-sm opacity-70 line-clamp-2">{{ translateWeatherCondition(hour) }}</p>
+              <p
+                class="text-sm opacity-70 line-clamp-2 wrap-break-word mx-auto max-w-15 sm:max-w-21">
+                {{ translateWeatherCondition(hour) }}
+              </p>
 
               <div
                 v-if="hour.precipitation_probability !== undefined || hour.precipitation !== undefined"
@@ -178,6 +196,15 @@
                   </p>
                 </div>
               </div>
+
+              <!-- UV index (hourly) -->
+              <div v-if="hour.uv_index !== undefined" class="mt-1 sm:mt-2">
+                <p class="text-sm sm:text-base flex items-center justify-center gap-1">
+                  <img :src="uvIndexIconUrl" :alt="t('uv_index')"
+                    class="h-5 w-5 sm:h-6 sm:w-6 weather-icon" />
+                  {{ t('uv_index_short') }} {{ hour.uv_index.toFixed(0) }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -207,6 +234,7 @@ const daySunnyIconUrl = '/static/weather_icons/wi-day-sunny.svg'
 const nightClearIconUrl = '/static/weather_icons/wi-night-clear.svg'
 const sunriseIconUrl = '/static/weather_icons/wi-sunrise.svg#Layer_1'
 const sunsetIconUrl = '/static/weather_icons/wi-sunset.svg#Layer_1'
+const uvIndexIconUrl = '/static/general_icons/brightness.svg#main'
 
 interface Props {
   title?: string

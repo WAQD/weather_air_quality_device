@@ -59,6 +59,7 @@ class Weather:
     altitude: float  # elevation of location in meters, deprecated, use from location instead
     precipitation: float  # mm, optional
     precipitation_probability: float = 0.0  # percent, optional for hourly
+    uv_index: float = 0.0  # UV index (unitless), optional
 
     def __post_init__(self):
         if self.main:  # only set fetch_time if it is non-empty initiallized
@@ -101,6 +102,7 @@ class DailyWeather(Weather):
     temp_night_min: float = field(init=False)
     temp_night_max: float = field(init=False)
     precipitation_probability_max: float = field(init=False, default=0.0)
+    uv_index_max: float = field(init=False, default=0.0)
 
 
 class BeaufortScale(Enum):

@@ -18,6 +18,7 @@ export interface WeatherData {
   altitude?: number
   precipitation_probability?: number
   precipitation?: number
+  uv_index?: number
 }
 
 export interface ForecastData {
@@ -42,6 +43,7 @@ export interface ForecastData {
   altitude?: number
   precipitation_probability_max?: number
   precipitation?: number
+  uv_index_max?: number
 }
 
 export interface HourlyWeatherData {
@@ -62,6 +64,7 @@ export interface HourlyWeatherData {
   altitude?: number
   precipitation_probability?: number
   precipitation?: number
+  uv_index?: number
 }
 
 // Global weather data store (shared across all components)
@@ -151,7 +154,7 @@ export function useWeather() {
     // Get the mapped background name
     const mapping = weatherMapping[main]
     const bgName = mapping ? mapping[isDaytime ? 'day' : 'night'] : 'clouds'
-    
+
     // Construct background image URL
     const bgUrl = `/static/weather_bgrs/bg_${timePrefix}_${bgName}.jpg`
 
@@ -181,7 +184,7 @@ export function useWeather() {
       date.setHours(hours, minutes, seconds, 0)
       return date
     }
-    
+
     const sunrise = parseTimeString(weather.sunrise)
     const sunset = parseTimeString(weather.sunset)
 
