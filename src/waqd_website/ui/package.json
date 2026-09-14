@@ -57,10 +57,7 @@
   },
   "overrides": {
     "serialize-javascript": "^7.0.4",
-    "tar": "^7.5.21"
-  },
-  "allowScripts": {
-    "sharp@0.32.6": true,
-    "sharp@0.33.5": true
+    "tar": "^7.5.21",
+    "sharp": "^0.35.4"
   }
 }
