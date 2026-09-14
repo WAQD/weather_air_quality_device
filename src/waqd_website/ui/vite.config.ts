@@ -156,17 +156,27 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         sourcemap: false,
         runtimeCaching: [
-          // Never cache auth/session-related endpoints. Caching 401/redirects here
-          // can make it look like the cookie/session "disappeared" in PWA mode.
+          // Workbox matches `urlPattern` against the request's *full* URL
+          // (https://host/api/...), so these patterns must not be anchored with
+          // `^/`: such a pattern silently never matches. Left unanchored, a
+          // RegExp is only applied to same-origin requests, which is what we want.
+          //
+          // API responses are deliberately never runtime-cached:
+          //  - Nearly all of them are per-user or session state living at *stable*
+          //    URLs (/api/user/weather, /api/user/devices, /api/user/me, ...).
+          //    Their content changes when the user changes it, so a cached copy
+          //    goes stale - and after a logout/login it could even belong to the
+          //    previous account. Caching them made the home weather card show the
+          //    previous location after "Set home".
+          //  - The remainder (login/signup/logout/keepalive) must never be
+          //    replayed from a cache; doing so makes it look like the cookie or
+          //    session "disappeared" in PWA mode.
+          // Workbox never caches non-GET requests, so covering GET is enough to
+          // keep the caches clean.
           {
-            urlPattern: /^\/api\/(public\/token|public\/logout|public\/keepalive|user\/me)\b/i,
+            urlPattern: /\/api\//i,
             handler: 'NetworkOnly',
             method: 'GET',
-          },
-          {
-            urlPattern: /^\/api\/(public\/token|public\/logout|public\/keepalive|user\/me)\b/i,
-            handler: 'NetworkOnly',
-            method: 'POST',
           },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -180,23 +190,6 @@ export default defineConfig({
               cacheableResponse: {
                 statuses: [0, 200]
               }
-            }
-          },
-          {
-            urlPattern: /^\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              cacheableResponse: {
-                // Avoid caching 401/403/5xx which can incorrectly persist "logged out"
-                // states while the cookie is still valid.
-                statuses: [200],
-              },
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5 // 5 minutes
-              },
-              networkTimeoutSeconds: 10
             }
           },
           // Cache locale files with NetworkFirst for updates
@@ -248,6 +241,8 @@ export default defineConfig({
           }
         ],
         navigateFallback: '/index.html',
+        // Unlike the `urlPattern`s above, this denylist is matched against the
+        // pathname (+ search) only, so anchoring with `^\/` is correct here.
         navigateFallbackDenylist: [/^\/api/, /^\/ws/]
       },
       devOptions: {
