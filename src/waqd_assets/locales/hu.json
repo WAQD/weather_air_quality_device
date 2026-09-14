@@ -216,6 +216,9 @@
   "location_results": "Hely eredmények",
   "location_set_hint": "Kérjük, állítsa be ezt az értéket, hogy minden helyspecifikus funkció működjön!",
   "login": "Bejelentkezés",
+  "login_error_backend_unreachable": "A(z) {url} backend szerver nem érhető el ({status} hiba). Ellenőrizze, hogy fut-e és a cím helyes-e.",
+  "login_error_unexpected": "A bejelentkezés váratlan hiba miatt nem sikerült. Kérjük, próbálja újra.",
+  "login_error_unreachable": "A(z) {url} backend szerver nem érhető el. Ellenőrizze, hogy fut-e és elérhető-e.",
   "login_failed": "Sikertelen bejelentkezés! Hibás felhasználónév vagy jelszó",
   "login_now": "Jelentkezzen be!",
   "login_web_access": "WAQD webes elérés távoli bejelentkezéshez és adatok megtekintéséhez.",
@@ -448,6 +451,7 @@
   "welcome_email_body": "Helló {username},\n\nA WAQD-fiókja sikeresen létrejött. Most már bejelentkezhet a fiókjába és kezelheti az időjárás- és levegőminőség-érzékelőit.\n\nKérdései esetén látogasson meg weboldalunkat vagy lépjen kapcsolatba a támogatással.\n\nÜdvözlettel,\nA WAQD csapat",
   "welcome_email_subject": "Üdvözöljük a WAQD-ben - A fiókja létrejött",
   "wind": "Szél",
+  "wind_gusts": "Széllökések",
   "yes": "Igen",
   "your_pairing_code": "Az Ön párosítási kódja:"
 }

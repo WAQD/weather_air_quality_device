@@ -216,6 +216,9 @@
   "location_results": "Standortergebnisse",
   "location_set_hint": "Bitte diesen Wert setzen, damit alle standortspezifischen Funktionen funktionieren!",
   "login": "Anmelden",
+  "login_error_backend_unreachable": "Der Backend-Server unter {url} ist nicht erreichbar (Fehler {status}). Prüfe, ob er läuft und die Adresse korrekt ist.",
+  "login_error_unexpected": "Anmeldung aufgrund eines unerwarteten Fehlers fehlgeschlagen. Bitte erneut versuchen.",
+  "login_error_unreachable": "Der Backend-Server unter {url} ist nicht erreichbar. Prüfe, ob er läuft und erreichbar ist.",
   "login_failed": "Anmeldung fehlgeschlagen! Falscher Benutzername oder Passwort",
   "login_now": "Jetzt anmelden!",
   "login_web_access": "WAQD-Webzugang für Fernanmeldung zur Überwachung aller Daten.",
@@ -448,6 +451,7 @@
   "welcome_email_body": "Hallo {username},\n\nIhr WAQD-Konto wurde erfolgreich erstellt. Sie können sich jetzt in Ihr Konto einloggen und Ihre Wetter- und Luftqualitätsgeräte verwalten.\n\nBei Fragen besuchen Sie bitte unsere Website oder kontaktieren Sie den Support.\n\nMit freundlichen Grüßen,\nDas WAQD-Team",
   "welcome_email_subject": "Willkommen bei WAQD - Ihr Konto wurde erstellt",
   "wind": "Wind",
+  "wind_gusts": "Windböen",
   "yes": "Ja",
   "your_pairing_code": "Ihr Kopplungscode:"
 }

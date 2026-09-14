@@ -19,6 +19,7 @@ export interface WeatherData {
   precipitation_probability?: number
   precipitation?: number
   uv_index?: number
+  wind_gusts?: number
 }
 
 export interface ForecastData {
@@ -44,6 +45,7 @@ export interface ForecastData {
   precipitation_probability_max?: number
   precipitation?: number
   uv_index_max?: number
+  wind_gusts_max?: number
 }
 
 export interface HourlyWeatherData {
@@ -64,6 +66,7 @@ export interface HourlyWeatherData {
   altitude?: number
   precipitation_probability?: number
   precipitation?: number
+  wind_gusts?: number
   uv_index?: number
 }
 

@@ -127,7 +127,7 @@ class OpenMeteo(WeatherProvider):
             self.API_FORECAST_CMD
             + "&daily=precipitation_probability_max,weathercode,temperature_2m_max,"
             + "temperature_2m_min,sunrise,sunset,precipitation_sum,"
-            + "windspeed_10m_max,winddirection_10m_dominant,uv_index_max"
+            + "windspeed_10m_max,winddirection_10m_dominant,uv_index_max,wind_gusts_10m_max"
             + "&current=relative_humidity_2m,temperature_2m,precipitation,weather_code,"
             "pressure_msl,cloud_cover,surface_pressure,wind_speed_10m,winddirection_10m,is_day"
             "&windspeed_unit=ms&timezone=auto",
@@ -174,6 +174,7 @@ class OpenMeteo(WeatherProvider):
                 "precipitation_probability_max", [0]
             )[i]
             daily_weather.uv_index_max = self._get_number(daily, "uv_index_max", i)
+            daily_weather.wind_gusts_max = self._get_number(daily, "wind_gusts_10m_max", i)
             self._seven_day_forecast.append(daily_weather)
 
         if not self._seven_day_forecast:
@@ -216,7 +217,8 @@ class OpenMeteo(WeatherProvider):
             self.API_FORECAST_CMD
             + "&hourly=precipitation_probability,temperature_2m,relativehumidity_2m,"
             + "precipitation,cloudcover,weathercode,pressure_msl,surface_pressure,"
-            + "windspeed_10m,winddirection_10m,is_day,uv_index&windspeed_unit=ms&timezone=auto",
+            + "windspeed_10m,winddirection_10m,is_day,uv_index,wind_gusts_10m"
+            + "&windspeed_unit=ms&timezone=auto",
             latitude=self._latitude,
             longitude=self._longitude,
         )
@@ -264,6 +266,7 @@ class OpenMeteo(WeatherProvider):
                 hourly.get("precipitation", [])[i],
                 hourly.get("precipitation_probability", [])[i],
                 uv_index=self._get_number(hourly, "uv_index", i),
+                wind_gusts=self._get_number(hourly, "wind_gusts_10m", i),
             )
             hourly_forecast[day_idx].append(weather_point)
 

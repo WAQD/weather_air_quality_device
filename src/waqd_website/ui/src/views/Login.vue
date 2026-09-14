@@ -2,9 +2,9 @@
   <div class="overflow-x-hidden">
     <!-- Toast Container -->
     <div class="toast toast-bottom toast-end z-50">
-      <div v-if="showLoginFailedToast" class="alert alert-error">
-        <span>{{ t('login_failed') }}</span>
-        <button class="btn btn-square btn-error" @click="showLoginFailedToast = false">
+      <div v-if="loginErrorMessage" class="alert alert-error max-w-sm">
+        <span>{{ loginErrorMessage }}</span>
+        <button class="btn btn-square btn-error" @click="loginErrorMessage = ''">
           <svg viewBox="0 0 24 24" class="h-4">
             <use :href="cancelIconUrl" fill="black" />
           </svg>
@@ -105,15 +105,15 @@ const username = ref('')
 const password = ref('')
 const loading = ref(false)
 const passwordVisible = ref(false)
-const showLoginFailedToast = ref(false)
+const loginErrorMessage = ref('')
 const rememberMe = ref(false)
 
-// Auto-hide toast after 5 seconds
-watch(showLoginFailedToast, (newValue) => {
+// Auto-hide the toast after a while
+watch(loginErrorMessage, (newValue) => {
   if (newValue) {
     setTimeout(() => {
-      showLoginFailedToast.value = false
-    }, 5000)
+      loginErrorMessage.value = ''
+    }, 8000)
   }
 })
 
@@ -121,41 +121,60 @@ function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value
 }
 
-function login() {
+async function login(): Promise<void> {
   loading.value = true
+  loginErrorMessage.value = ''
 
-  fetch('/api/public/token', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      grant_type: 'password',
-      username: username.value,
-      password: password.value,
-      remember_me: rememberMe.value ? 'true' : 'false',
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        showLoginFailedToast.value = true
-        throw new Error('Login failed! Wrong username or password.')
+  let response: Response
+  try {
+    response = await fetch('/api/public/token', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        grant_type: 'password',
+        username: username.value,
+        password: password.value,
+        remember_me: rememberMe.value ? 'true' : 'false',
+      }),
+    })
+  } catch (networkError) {
+    // fetch() itself rejected: the request never reached any server.
+    console.error('Login request failed (backend unreachable):', networkError)
+    loginErrorMessage.value = t('login_error_unreachable', { url: __WAQD_BASE_URL__ })
+    loading.value = false
+    return
+  }
+
+  try {
+    if (!response.ok) {
+      if (response.status >= 500) {
+        // A 5xx here typically comes from the Vite dev proxy when the backend is
+        // down — NOT from bad credentials. Report it as such instead of misleading
+        // the user with a "wrong username or password" message.
+        console.error(`Login failed: backend returned ${response.status}`)
+        loginErrorMessage.value = t('login_error_backend_unreachable', {
+          status: response.status,
+          url: __WAQD_BASE_URL__,
+        })
+      } else {
+        loginErrorMessage.value = t('login_failed')
       }
+      return
+    }
 
-      return response.json()
-    })
-    .then(async (data) => {
-      console.log('Success:', data)
-      await fetchUserInfo()
-      router.push('/home')
-    })
-    .catch((error) => {
-      console.error('Error:', error)
-    })
-    .finally(() => {
-      loading.value = false
-    })
+    const data = await response.json()
+    console.log('Success:', data)
+    await fetchUserInfo()
+    router.push('/home')
+  } catch (error) {
+    console.error('Unexpected login error:', error)
+    loginErrorMessage.value = t('login_error_unexpected')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

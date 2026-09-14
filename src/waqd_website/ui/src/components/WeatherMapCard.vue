@@ -216,6 +216,10 @@ const tickLabelStyle = legendLabelStyle
 // proper CORS headers (Access-Control-Allow-Origin: *).
 const DATA_BASE_URL = 'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon/latest.json'
 
+// Default view is deliberately wide (roughly country/region scale) so the
+// surrounding weather patterns are visible, not just the local area.
+const DEFAULT_ZOOM = 5
+
 // Inline OSM raster base map. Open-Meteo's hosted style uses tiles from
 // tiles.open-meteo.com, which does not send CORS headers for third-party
 // production origins, so we use OSM tiles (CORS `*`) instead.
@@ -315,7 +319,7 @@ const osmLinkUrl = computed(() => {
 
   const lat = currentLocation.value.latitude
   const lon = currentLocation.value.longitude
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=8/${lat}/${lon}`
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=${DEFAULT_ZOOM}/${lat}/${lon}`
 })
 
 function timeStepFor(offset: number): string {
@@ -614,7 +618,7 @@ function recenter(): void {
   }
 
   const { latitude, longitude } = currentLocation.value
-  map.flyTo({ center: [longitude, latitude], zoom: 8 })
+  map.flyTo({ center: [longitude, latitude], zoom: DEFAULT_ZOOM })
   marker?.setLngLat([longitude, latitude])
 }
 
@@ -660,8 +664,9 @@ async function initMap(): Promise<void> {
   initPromise = (async () => {
     isLoading.value = true
     try {
-      const [maplibreModule, , mapLayerModule, mapCacheModule] = await Promise.all([
+      const [maplibreModule, , mapLayerModule] = await Promise.all([
         import('maplibre-gl'),
+        // Side-effect import: registers the maplibre-gl stylesheet.
         import('maplibre-gl/dist/maplibre-gl.css'),
         import('@openmeteo/weather-map-layer'),
       ])
@@ -679,7 +684,7 @@ async function initMap(): Promise<void> {
         container: mapContainer.value as HTMLElement,
         style: BASE_STYLE,
         center: [longitude, latitude],
-        zoom: 8,
+        zoom: DEFAULT_ZOOM,
         attributionControl: false,
         // We handle resizing ourselves (debounced) so a drag-resize doesn't
         // spam re-renders and tile requests while frames are buffering.

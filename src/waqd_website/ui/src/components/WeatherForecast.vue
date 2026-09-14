@@ -7,7 +7,7 @@
       <div v-if="forecastData && forecastData.length > 0" class="mb-2 sm:mb-6">
         <h3 class="font-semibold text-sm sm:text-base mb-1.5 sm:mb-4">{{
           t('weekly_weather_forecast')
-        }}</h3>
+          }}</h3>
         <div ref="forecastScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-1.5 sm:gap-3 lg:gap-4 pt-1 pb-2 min-w-max">
             <button v-for="(day, index) in displayedForecastData" :key="index" type="button"
@@ -81,15 +81,23 @@
                   </p>
                 </div>
                 <!-- Daily wind display (moved from details) -->
-                <div v-if="day.wind_speed !== undefined || day.wind_deg !== undefined"
+                <div
+                  v-if="day.wind_speed !== undefined || day.wind_deg !== undefined || day.wind_gusts_max !== undefined"
                   class="mt-1 sm:mt-3 space-y-1">
-                  <p class="text-sm sm:text-base flex items-center justify-center gap-1">
+                  <p v-if="day.wind_speed !== undefined || day.wind_deg !== undefined"
+                    class="text-sm sm:text-base flex items-center justify-center gap-1">
                     <svg v-if="day.wind_deg !== undefined"
                       class="h-5 w-5 sm:h-8 sm:w-8 weather-icon" aria-hidden="true"
                       :style="{ transform: `rotate(${((day.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
                     {{ formatWind(day.wind_speed, day.wind_deg) }}
+                  </p>
+                  <p v-if="day.wind_gusts_max !== undefined"
+                    class="text-sm sm:text-base flex items-center justify-center gap-1">
+                    <img :src="windGustsIconUrl" :alt="t('wind_gusts')"
+                      class="h-5 w-5 sm:h-8 sm:w-8 weather-icon" />
+                    {{ formatWind(day.wind_gusts_max, undefined) }}
                   </p>
                 </div>
               </div>
@@ -104,7 +112,7 @@
             :alt="selectedDay.main" class="h-10 w-10 sm:h-14 sm:w-14 weather-icon" />
           <div class="min-w-0">
             <p class="font-bold text-sm sm:text-base">{{ formatForecastDate(selectedDay.date_time)
-            }}</p>
+              }}</p>
             <p class="text-xs sm:text-sm opacity-70">{{ translateWeatherCondition(selectedDay) }}
             </p>
           </div>
@@ -127,6 +135,11 @@
                 <use :href="windDegIconUrl" fill="currentColor" />
               </svg>
               {{ formatWind(selectedDay.wind_speed, selectedDay.wind_deg) }}
+            </span>
+            <span v-if="selectedDay.wind_gusts_max !== undefined" class="flex items-center gap-1">
+              <img :src="windGustsIconUrl" :alt="t('wind_gusts')"
+                class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
+              {{ formatWind(selectedDay.wind_gusts_max, undefined) }}
             </span>
             <span v-if="selectedDay.precipitation !== undefined" class="flex items-center gap-1">
               <img :src="showersIconUrl" :alt="t('weather_rain')"
@@ -185,14 +198,22 @@
                     class="h-6 w-6 sm:h-10 sm:w-10 weather-icon" />
                   {{ hour.precipitation.toFixed(1) }}mm
                 </p>
-                <div v-if="hour.wind_speed !== undefined || hour.wind_deg !== undefined">
-                  <p class="text-sm sm:text-base flex items-center justify-center gap-1">
+                <div
+                  v-if="hour.wind_speed !== undefined || hour.wind_deg !== undefined || hour.wind_gusts !== undefined">
+                  <p v-if="hour.wind_speed !== undefined || hour.wind_deg !== undefined"
+                    class="text-sm sm:text-base flex items-center justify-center gap-1">
                     <svg v-if="hour.wind_deg !== undefined"
                       class="h-5 w-5 sm:h-6 sm:w-6 weather-icon" aria-hidden="true"
                       :style="{ transform: `rotate(${((hour.wind_deg ?? 0) + 180) % 360}deg)`, transformOrigin: 'center' }">
                       <use :href="windDegIconUrl" fill="currentColor" />
                     </svg>
                     {{ formatWind(hour.wind_speed, hour.wind_deg) }}
+                  </p>
+                  <p v-if="hour.wind_gusts !== undefined"
+                    class="text-sm sm:text-base flex items-center justify-center gap-1">
+                    <img :src="windGustsIconUrl" :alt="t('wind_gusts')"
+                      class="h-5 w-5 sm:h-6 sm:w-6 weather-icon" />
+                    {{ formatWind(hour.wind_gusts, undefined) }}
                   </p>
                 </div>
               </div>
@@ -235,6 +256,7 @@ const nightClearIconUrl = '/static/weather_icons/wi-night-clear.svg'
 const sunriseIconUrl = '/static/weather_icons/wi-sunrise.svg#Layer_1'
 const sunsetIconUrl = '/static/weather_icons/wi-sunset.svg#Layer_1'
 const uvIndexIconUrl = '/static/general_icons/brightness.svg#main'
+const windGustsIconUrl = '/static/weather_icons/wi-strong-wind.svg'
 
 interface Props {
   title?: string

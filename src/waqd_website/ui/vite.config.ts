@@ -19,8 +19,36 @@ if (!gitHash) {
 }
 const appVersion = `${pkg.version}+${gitHash}`
 
-const env = loadEnv('', __dirname, '')
-const waqdBaseUrl = env.VITE_WAQD_BASE_URL || 'https://waqd.de'
+// Load env from both the repo root and the UI folder. The UI folder wins so a
+// UI-local .env can still override the repo-root one.
+const repoRoot = resolve(__dirname, '../../..')
+
+// Vite's loadEnv lets real process env vars override .env files. A stale shell/IDE
+// variable (e.g. VITE_WAQD_BASE_URL exported in the desktop session) would then
+// silently win over the project's .env. For this dev config the project .env should
+// be authoritative, so read it without the process-env override.
+const shellBaseUrl = process.env.VITE_WAQD_BASE_URL
+delete process.env.VITE_WAQD_BASE_URL
+const env = {
+  ...loadEnv('', repoRoot, ''),
+  ...loadEnv('', __dirname, ''),
+}
+if (shellBaseUrl !== undefined) {
+  process.env.VITE_WAQD_BASE_URL = shellBaseUrl
+}
+
+const DEFAULT_WAQD_BASE_URL = 'https://waqd.de'
+const fileBaseUrl = (env.VITE_WAQD_BASE_URL || '').trim()
+const rawWaqdBaseUrl = fileBaseUrl || (shellBaseUrl || '').trim()
+// Tolerate the common "http:/host" / "https:/host" typo (missing slash), which
+// otherwise makes the dev proxy and Capacitor fail with confusing errors.
+let waqdBaseUrl = rawWaqdBaseUrl.replace(/\/+$/, '').replace(/^(https?):\/+/i, '$1://')
+
+const baseUrlSource = fileBaseUrl
+  ? 'project .env'
+  : shellBaseUrl
+    ? 'environment variable'
+    : 'default'
 
 // Signup is opt-in via build flag and disabled by default.
 const enableSignup = env.VITE_ENABLE_SIGNUP === 'true'
@@ -30,6 +58,40 @@ const enableSignup = env.VITE_ENABLE_SIGNUP === 'true'
 // which breaks the proxy to waqd.de even though the served chain is valid.
 // This block only affects `vite dev`; builds never use server.proxy.
 const isDev = process.env.NODE_ENV !== 'production'
+
+const envSources = `${repoRoot}/.env  ->  ${__dirname}/.env`
+
+if (!waqdBaseUrl) {
+  waqdBaseUrl = DEFAULT_WAQD_BASE_URL
+  console.warn(
+    `\n[waqd] VITE_WAQD_BASE_URL is not set. API/WS proxy target defaults to ${DEFAULT_WAQD_BASE_URL}.` +
+    `\n[waqd] Set it in ${__dirname}/.env (or the repo-root .env) to point at your backend.\n`
+  )
+} else if (!/^https?:\/\/[^/]/i.test(waqdBaseUrl)) {
+  console.warn(
+    `\n[waqd] VITE_WAQD_BASE_URL="${rawWaqdBaseUrl}" does not look like a valid http(s) URL.` +
+    `\n[waqd] Requests will likely fail. Expected e.g. http://192.168.1.10:8000\n`
+  )
+} else if (waqdBaseUrl !== rawWaqdBaseUrl) {
+  console.warn(
+    `\n[waqd] VITE_WAQD_BASE_URL="${rawWaqdBaseUrl}" was normalized to "${waqdBaseUrl}" (fixed missing slash).\n`
+  )
+}
+
+if (fileBaseUrl && shellBaseUrl && fileBaseUrl !== shellBaseUrl) {
+  console.warn(
+    `\n[waqd] Environment variable VITE_WAQD_BASE_URL="${shellBaseUrl}" is set in your shell/IDE.` +
+    `\n[waqd] The project .env value "${fileBaseUrl}" takes precedence for the dev proxy.` +
+    `\n[waqd] To use the environment value instead, unset it (or update the .env file).\n`
+  )
+}
+
+// Startup banner so it is always obvious which backend and mode you are running against.
+console.log(
+  `\n[waqd] ${isDev ? 'Vite dev server (development)' : 'Production build'}` +
+  `\n[waqd] API/WS proxy target : ${waqdBaseUrl}  [source: ${baseUrlSource}]` +
+  `\n[waqd] env files           : ${envSources}\n`
+)
 
 export default defineConfig({
   define: {
