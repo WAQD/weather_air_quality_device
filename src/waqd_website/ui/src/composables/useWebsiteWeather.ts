@@ -66,6 +66,15 @@ const successMessage = ref('')
 let activeSearchController: AbortController | null = null
 let searchRequestSequence = 0
 
+// The weather payloads for the home location and for previewed locations all
+// write into the same shared state. Responses can arrive out of order (e.g. a
+// slow refresh for the previous home location resolving after the user already
+// saved a new one), so every request gets an id and only the newest request is
+// allowed to write state.
+let weatherRequestSequence = 0
+let loadingWeatherRequestId = 0
+let refreshingWeatherRequestId = 0
+
 export function getLocationKey(location: WeatherLocationPayload): string {
   return `${location.latitude.toFixed(4)}:${location.longitude.toFixed(4)}`
 }
@@ -147,6 +156,9 @@ function cancelSearch(): void {
 }
 
 function resetState(): void {
+  // Invalidate any weather request that is still in flight so its response
+  // cannot repopulate the state that is being reset (e.g. on logout).
+  weatherRequestSequence += 1
   savedLocation.value = null
   homeLocation.value = null
   currentLocation.value = null
@@ -341,10 +353,14 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
 }
 
 async function loadWeather(force = false, silent = false): Promise<void> {
+  const requestId = ++weatherRequestSequence
+
   if (silent) {
     isRefreshingWeather.value = true
+    refreshingWeatherRequestId = requestId
   } else {
     isLoadingWeather.value = true
+    loadingWeatherRequestId = requestId
   }
   clearError()
 
@@ -365,6 +381,14 @@ async function loadWeather(force = false, silent = false): Promise<void> {
     }
 
     const payload = await response.json() as WebsiteWeatherResponse
+
+    // A newer request started while this one was in flight (e.g. the user saved
+    // another home location in the meantime). Its response is authoritative, so
+    // this one must not resurrect the previous location's weather.
+    if (requestId !== weatherRequestSequence) {
+      return
+    }
+
     savedLocation.value = payload.location
     if (payload.location) {
       homeLocation.value = payload.location
@@ -381,15 +405,23 @@ async function loadWeather(force = false, silent = false): Promise<void> {
 
     // Widget is GPS-only now; don't write home data to widget
   } catch (error) {
+    if (requestId !== weatherRequestSequence) {
+      return
+    }
     if (!silent) {
       resetWeatherData()
     }
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'
   } finally {
-    if (silent) {
-      isRefreshingWeather.value = false
-    } else {
+    // Only the newest request owning a flag may clear it, otherwise a request
+    // that got superseded could hide the spinner of the request that replaced it.
+    if (loadingWeatherRequestId === requestId) {
       isLoadingWeather.value = false
+      loadingWeatherRequestId = 0
+    }
+    if (refreshingWeatherRequestId === requestId) {
+      isRefreshingWeather.value = false
+      refreshingWeatherRequestId = 0
     }
   }
 }
@@ -514,6 +546,9 @@ async function deleteLocation(): Promise<boolean> {
       throw new Error(await extractErrorMessage(response, 'Failed to delete location'))
     }
 
+    // Supersede in-flight weather requests so a late response cannot restore the
+    // home location that was just deleted.
+    weatherRequestSequence += 1
     savedLocation.value = null
     homeLocation.value = null
     if (currentLocation.value) {
@@ -546,9 +581,20 @@ async function setLocationMode(mode: WidgetLocationMode): Promise<void> {
 
 async function setHomeLocation(location: WeatherLocationPayload): Promise<WeatherLocationPayload | null> {
   const result = await saveLocation(location, true)
-  if (result) {
-    setCurrentLocation(result)
+  if (!result) {
+    return null
   }
+
+  setCurrentLocation(result)
+
+  // Re-read the canonical home data: the endpoint returns the location stored on
+  // the server together with its weather. Without this the shared weather state
+  // keeps showing whichever location was previewed last, so the "Today at your
+  // location" card on the home page did not change after setting a new home.
+  // This also supersedes any weather request that is still in flight, so a late
+  // response for the previous home can no longer overwrite the new one.
+  await loadWeather(false)
+
   return result
 }
 
@@ -577,6 +623,8 @@ async function removeSavedLocation(location: WeatherLocationPayload): Promise<bo
 }
 
 async function loadWeatherForLocation(location: WeatherLocationPayload | null, force = false, silent = false): Promise<void> {
+  const requestId = ++weatherRequestSequence
+
   if (!location) {
     resetWeatherData()
     return
@@ -586,8 +634,10 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
 
   if (silent) {
     isRefreshingWeather.value = true
+    refreshingWeatherRequestId = requestId
   } else {
     isLoadingWeather.value = true
+    loadingWeatherRequestId = requestId
   }
   clearError()
 
@@ -617,6 +667,12 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     }
 
     const payload = await response.json() as WebsiteWeatherResponse
+
+    // See loadWeather(): a superseded response must not overwrite newer state.
+    if (requestId !== weatherRequestSequence) {
+      return
+    }
+
     if (payload.location) {
       currentLocation.value = payload.location
     }
@@ -626,15 +682,21 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
   } catch (error) {
+    if (requestId !== weatherRequestSequence) {
+      return
+    }
     if (!silent) {
       resetWeatherData()
     }
     errorMessage.value = error instanceof Error ? error.message : 'Failed to load weather'
   } finally {
-    if (silent) {
-      isRefreshingWeather.value = false
-    } else {
+    if (loadingWeatherRequestId === requestId) {
       isLoadingWeather.value = false
+      loadingWeatherRequestId = 0
+    }
+    if (refreshingWeatherRequestId === requestId) {
+      isRefreshingWeather.value = false
+      refreshingWeatherRequestId = 0
     }
   }
 }

@@ -4,7 +4,7 @@
       <div class="flex items-start justify-between gap-3">
         <div>
           <h2 class="card-title text-base sm:text-lg">{{ t('home_weather_saved_location')
-          }}</h2>
+            }}</h2>
           <p class="mt-1 text-sm opacity-70">{{ t('home_weather_search_help') }}</p>
         </div>
       </div>
@@ -87,7 +87,6 @@ const {
   clearError,
   setHomeLocation,
   setCurrentLocation,
-  loadWeather,
   loadWeatherForLocation,
   resolveDeviceLocation,
   removeSavedLocation: removeSavedLocationEntry,
@@ -140,13 +139,13 @@ onMounted(() => {
 async function setAsHome(location: WeatherLocationPayload): Promise<void> {
   clearSuccess()
   clearError()
+  // setHomeLocation() already re-reads the home location's weather, so the
+  // "Today at your location" card shows the new location right away.
   const saved = await setHomeLocation(location)
   if (!saved) {
     return
   }
 
-  // Refresh the weather shown on the home card for the new home location.
-  await loadWeather(false)
   successMessage.value = t('saved_as_home')
 }
 
