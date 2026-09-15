@@ -63,6 +63,14 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        // onEnabled() is only called when the first widget is placed. Re-establish
+        // the periodic request on every system widget update as well; this covers
+        // app upgrades, launcher restores, and OEMs that recreate widget state.
+        schedulePeriodicWork(context);
+        // updatePeriodMillis is only a best-effort launcher callback, but it is a
+        // useful second path when WorkManager is deferred. This check is local
+        // and cheap; it only queues network work when the cached data is stale.
+        requestImmediateRefresh(context);
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
@@ -120,7 +128,13 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         refreshNowReplacing(context);
     }
 
-    private static void schedulePeriodicWork(Context context) {
+    /** Recreates the periodic request when Android restores the widget/app state. */
+    public static void schedulePeriodicWork(Context context) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName provider = new ComponentName(context, WeatherWidgetProvider.class);
+        if (appWidgetManager.getAppWidgetIds(provider).length == 0) {
+            return;
+        }
         Constraints networkConstraints = networkConstraints();
         PeriodicWorkRequest periodic = new PeriodicWorkRequest.Builder(
                 WidgetRefreshWorker.class, 15, TimeUnit.MINUTES)
@@ -128,7 +142,11 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 .setBackoffCriteria(BackoffPolicy.LINEAR, 2, TimeUnit.MINUTES)
                 .build();
         WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, periodic);
+            // Do not reset the periodic timer every time the launcher sends
+            // APPWIDGET_UPDATE. WorkManager is still free to delay this when
+            // the device is idle, but retaining the request avoids repeatedly
+            // postponing its next eligible run.
+            .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, periodic);
     }
 
     private static void enqueueImmediateRefresh(Context context) {
@@ -167,7 +185,11 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     public static void requestImmediateRefresh(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(WidgetContract.PREFS_NAME, Context.MODE_PRIVATE);
         long lastSuccess = prefs.getLong(PREF_LAST_SUCCESS, 0);
-        if (System.currentTimeMillis() - lastSuccess > 5 * 60_000L) {
+        long refreshStarted = prefs.getLong(WidgetContract.PREF_REFRESH_STARTED, 0L);
+        boolean refreshInFlight = prefs.getBoolean(PREF_REFRESHING, false)
+                && refreshStarted > 0L
+                && System.currentTimeMillis() - refreshStarted < 10 * 60_000L;
+        if (!refreshInFlight && System.currentTimeMillis() - lastSuccess > 5 * 60_000L) {
             enqueueImmediateRefresh(context);
         }
     }

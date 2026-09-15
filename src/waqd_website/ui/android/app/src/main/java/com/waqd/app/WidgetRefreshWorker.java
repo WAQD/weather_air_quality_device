@@ -251,9 +251,28 @@ public class WidgetRefreshWorker extends Worker {
             return new double[]{fresh.getLatitude(), fresh.getLongitude()};
         }
 
-        /* Always request a current fix. Never use getLastKnownLocation() here:
-        // the widget can remain visible for hours while the phone is idle, and a
-        // successful refresh with an old cached position is worse than a retry. */
+        // A widget refresh is still useful when Android refuses to produce a new
+        // background fix. Reuse the coordinates from the last successful widget
+        // render so the backend can return its cached/full forecast. This is also
+        // what makes automatic updates work while the device is idle: the forecast
+        // can advance even when the phone has not moved and GPS is unavailable.
+        String cachedCoords = context.getSharedPreferences(
+                WidgetContract.PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(WidgetContract.PREF_LAST_GPS_COORDS, null);
+        if (cachedCoords != null && !cachedCoords.isEmpty()) {
+            String[] parts = cachedCoords.split(",");
+            if (parts.length == 2) {
+                try {
+                    double cachedLat = Double.parseDouble(parts[0]);
+                    double cachedLon = Double.parseDouble(parts[1]);
+                    lastLocationFailure = "Using the last known widget location; no new fix was available.";
+                    Log.w(TAG, lastLocationFailure);
+                    return new double[]{cachedLat, cachedLon};
+                } catch (NumberFormatException ignored) {
+                    // Treat malformed persisted coordinates as unavailable.
+                }
+            }
+        }
 
         // A failed fresh fix is not proof that permission is missing. Permission
         // failures are reported only by the explicit checks above; otherwise this

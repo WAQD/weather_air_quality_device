@@ -35,6 +35,16 @@
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
         </receiver>
+
+        <!-- Re-establish WorkManager scheduling after boot, upgrade, or unlock.
+             The receiver performs no network or location work. -->
+        <receiver android:name=".WidgetRecoveryReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.USER_PRESENT" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
