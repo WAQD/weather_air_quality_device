@@ -166,8 +166,8 @@
         <div ref="hourlyScroller" class="overflow-x-auto w-full max-w-full -mx-2 px-2">
           <div class="flex gap-1.5 sm:gap-2 pt-1 pb-2 min-w-max">
             <div v-for="(hour, index) in mergedHourlyData" :key="index"
-              class="hourly-card flex-shrink-0 card bg-base-200 p-1.5 sm:p-3 min-w-[74px] sm:min-w-[110px] text-center"
-              :data-hour="getHourFromDateString(hour.date_time)">
+              class="hourly-card flex-shrink-0 card bg-base-200 p-1.5 sm:p-3 min-w-[74px] sm:min-w-[110px] text-center transition-colors duration-300"
+              :style="hourlyCardStyle(hour)" :data-hour="getHourFromDateString(hour.date_time)">
               <p class="text mb-0.5">{{ formatHourlyTime(hour.date_time) }}</p>
               <img v-if="hour.icon" :src="`/static/weather_icons/${hour.icon}.svg`" :alt="hour.main"
                 class="h-6 w-6 sm:h-10 sm:w-10 mx-auto mb-0.5 weather-icon" />
@@ -429,6 +429,81 @@ function getHourFromDateString(dateString: string): number {
   }
 
   return parseTimeString(dateString).getHours()
+}
+
+function parseDateTime(dateString: string): Date | null {
+  const parsed = new Date(dateString)
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed
+  }
+
+  const parts = dateString.split(':').map(Number)
+  if (parts.length < 2 || parts.some((part) => Number.isNaN(part))) {
+    return null
+  }
+
+  const date = new Date()
+  date.setHours(parts[0] || 0, parts[1] || 0, parts[2] || 0, 0)
+  return date
+}
+
+// Sunrise/sunset can be serialized with the date on which the forecast was
+// fetched, while the hourly point may belong to a later forecast day. Keep
+// the boundary's local time, but put it on the same date as the hourly point.
+function alignBoundaryToHour(boundary: Date, hour: Date): Date {
+  const aligned = new Date(hour)
+  aligned.setHours(boundary.getHours(), boundary.getMinutes(), boundary.getSeconds(), 0)
+  return aligned
+}
+
+function mixRgb(start: [number, number, number], end: [number, number, number], amount: number): string {
+  const clampedAmount = Math.min(1, Math.max(0, amount))
+  const channels = start.map((channel, index) =>
+    Math.round(channel + ((end[index] ?? channel) - channel) * clampedAmount)
+  )
+  return `rgb(${channels.join(', ')})`
+}
+
+// A restrained colour wash makes the hourly strip read like a timeline:
+// blue at night, warm at sunrise/sunset, and pale yellow around midday.
+function hourlyCardStyle(hour: HourlyWeatherData): Record<string, string> {
+  const timestamp = parseDateTime(hour.date_time)
+  const sunriseValue = parseDateTime(hour.sunrise)
+  const sunsetValue = parseDateTime(hour.sunset)
+  if (!timestamp || !sunriseValue || !sunsetValue) {
+    return {}
+  }
+
+  const sunrise = alignBoundaryToHour(sunriseValue, timestamp)
+  const sunset = alignBoundaryToHour(sunsetValue, timestamp)
+  if (sunset <= sunrise) {
+    return {}
+  }
+
+  const nightColor: [number, number, number] = [30, 58, 138]
+  const sunriseColor: [number, number, number] = [251, 146, 60]
+  const middayColor: [number, number, number] = [253, 224, 71]
+  const sunsetColor: [number, number, number] = [245, 158, 11]
+  const timestampMs = timestamp.getTime()
+  const sunriseMs = sunrise.getTime()
+  const sunsetMs = sunset.getTime()
+
+  if (timestampMs < sunriseMs || timestampMs > sunsetMs) {
+    return {
+      backgroundColor: 'color-mix(in srgb, rgb(30 58 138) 18%, var(--color-base-200))',
+      borderColor: 'color-mix(in srgb, rgb(30 58 138) 35%, var(--color-base-300))'
+    }
+  }
+
+  const daylightProgress = (timestampMs - sunriseMs) / (sunsetMs - sunriseMs)
+  const daylightColor = daylightProgress < 0.5
+    ? mixRgb(sunriseColor, middayColor, daylightProgress * 2)
+    : mixRgb(middayColor, sunsetColor, (daylightProgress - 0.5) * 2)
+
+  return {
+    backgroundColor: `color-mix(in srgb, ${daylightColor} 18%, var(--color-base-200))`,
+    borderColor: `color-mix(in srgb, ${daylightColor} 35%, var(--color-base-300))`
+  }
 }
 
 function formatWind(speed: number | undefined, deg: number | undefined): string {
