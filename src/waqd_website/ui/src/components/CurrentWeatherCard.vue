@@ -21,6 +21,9 @@
               <span class="text-sm font-normal opacity-70">{{
                 translateWeatherCondition(currentWeather) }}</span>
             </p>
+            <p v-if="currentWeather.apparent_temperature !== undefined" class="text-xs opacity-70">
+              {{ t('feels_like') }}: {{ currentWeather.apparent_temperature.toFixed(1) }}°C
+            </p>
           </div>
         </template>
         <template v-else-if="isLoadingWeather">
@@ -30,7 +33,7 @@
         </template>
         <template v-else>
           <p class="min-w-0 flex-1 text-sm opacity-70">{{ t('home_weather_needs_location')
-            }}</p>
+          }}</p>
         </template>
         <svg class="h-6 w-6 shrink-0 text-base-content/50" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -75,6 +78,10 @@
             <p class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1) }}°C</p>
             <p class="text-sm sm:text-base opacity-75">{{
               translateWeatherCondition(currentWeather) }}</p>
+            <p v-if="currentWeather.apparent_temperature !== undefined"
+              class="text-sm sm:text-base opacity-75">
+              {{ t('feels_like') }}: {{ currentWeather.apparent_temperature.toFixed(1) }}°C
+            </p>
           </div>
         </div>
 

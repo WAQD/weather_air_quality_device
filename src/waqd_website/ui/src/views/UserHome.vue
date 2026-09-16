@@ -62,9 +62,13 @@
                   :alt="currentWeather.main" class="h-16 w-16 brightness-0 invert-0 weather-icon" />
                 <div>
                   <h3 class="text-4xl font-bold">{{ currentWeather.temp.toFixed(1)
-                  }}°C</h3>
+                    }}°C</h3>
                   <p class="text-base opacity-80">{{
                     translateWeatherCondition(currentWeather) }}</p>
+                  <p v-if="currentWeather.apparent_temperature !== undefined"
+                    class="text-sm sm:text-base opacity-75">
+                    {{ t('feels_like') }}: {{ currentWeather.apparent_temperature.toFixed(1) }}°C
+                  </p>
                 </div>
               </div>
 
@@ -203,6 +207,21 @@
                 </div>
               </div>
               <div>
+                <p class="text-sm opacity-70 mb-2">{{ t('temperature_mode') }}</p>
+                <div class="join">
+                  <button class="btn btn-sm join-item"
+                    :class="widgetTemperatureMode === 'real' ? 'btn-neutral' : 'btn-ghost'"
+                    @click="setWidgetTemperatureMode('real')">
+                    {{ t('temperature_real') }}
+                  </button>
+                  <button class="btn btn-sm join-item"
+                    :class="widgetTemperatureMode === 'feels_like' ? 'btn-neutral' : 'btn-ghost'"
+                    @click="setWidgetTemperatureMode('feels_like')">
+                    {{ t('temperature_feels_like') }}
+                  </button>
+                </div>
+              </div>
+              <div>
                 <p class="text-sm opacity-70 mb-2">Location</p>
                 <div class="join">
                   <button class="btn btn-sm join-item"
@@ -258,10 +277,12 @@ const {
   cached,
   isLoadingWeather,
   widgetStyle,
+  widgetTemperatureMode,
   locationMode,
   loadSavedLocation,
   loadWeather,
   setWidgetStyle,
+  setWidgetTemperatureMode,
   setLocationMode
 } = useWebsiteWeather()
 

@@ -19,12 +19,17 @@ class WidgetForecastDay(BaseModel):
     icon: str
     temp_min: int
     temp_max: int
+    apparent_temperature_min: int
+    apparent_temperature_max: int
 
 
 class WidgetWeatherResponse(BaseModel):
     temp: int
+    apparent_temperature: int
     temp_min: int
     temp_max: int
+    apparent_temperature_min: int
+    apparent_temperature_max: int
     main: str
     icon: str
     locationName: str
@@ -137,6 +142,8 @@ async def get_widget_weather(
                 icon=day.get("icon", ""),
                 temp_min=round(day.get("temp_min", 0)),
                 temp_max=round(day.get("temp_max", 0)),
+                apparent_temperature_min=round(day.get("apparent_temperature_min", 0)),
+                apparent_temperature_max=round(day.get("apparent_temperature_max", 0)),
             )
         )
 
@@ -156,6 +163,7 @@ async def get_widget_weather(
 
     return WidgetWeatherResponse(
         temp=round(current.get("temp", 0)),
+        apparent_temperature=round(current.get("apparent_temperature", current.get("temp", 0))),
         temp_min=round(
             today_fc.get("temp_min", current.get("temp", 0))
             if today_fc
@@ -165,6 +173,20 @@ async def get_widget_weather(
             today_fc.get("temp_max", current.get("temp", 0))
             if today_fc
             else current.get("temp", 0)
+        ),
+        apparent_temperature_min=round(
+            today_fc.get(
+                "apparent_temperature_min", today_fc.get("temp_min", current.get("temp", 0))
+            )
+            if today_fc
+            else current.get("apparent_temperature", current.get("temp", 0))
+        ),
+        apparent_temperature_max=round(
+            today_fc.get(
+                "apparent_temperature_max", today_fc.get("temp_max", current.get("temp", 0))
+            )
+            if today_fc
+            else current.get("apparent_temperature", current.get("temp", 0))
         ),
         main=condition,
         icon=current.get("icon", ""),

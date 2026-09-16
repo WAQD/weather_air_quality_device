@@ -36,12 +36,15 @@ interface WebsiteWeatherResponse {
 
 const SAVED_LOCATIONS_KEY = 'waqd.website.savedLocations'
 const WIDGET_STYLE_KEY = 'waqd.website.widgetStyle'
+const WIDGET_TEMPERATURE_MODE_KEY = 'waqd.website.widgetTemperatureMode'
 const WIDGET_LOCATION_MODE_KEY = 'waqd.widget.locationMode'
 
 export type WidgetStyle = 'simple' | 'forecast'
+export type WidgetTemperatureMode = 'real' | 'feels_like'
 export type WidgetLocationMode = 'gps' | 'selectable'
 
 const widgetStyle = ref<WidgetStyle>('simple')
+const widgetTemperatureMode = ref<WidgetTemperatureMode>('real')
 const locationMode = ref<WidgetLocationMode>('selectable')
 const savedLocation = ref<WeatherLocationPayload | null>(null)
 const savedLocations = ref<WeatherLocationPayload[]>([])
@@ -288,13 +291,18 @@ async function loadSavedLocation(): Promise<WeatherLocationPayload | null> {
   clearError()
 
   try {
-    const [styleRes, modeRes] = await Promise.all([
+    const [styleRes, temperatureRes, modeRes] = await Promise.all([
       Preferences.get({ key: WIDGET_STYLE_KEY }),
+      Preferences.get({ key: WIDGET_TEMPERATURE_MODE_KEY }),
       Preferences.get({ key: WIDGET_LOCATION_MODE_KEY })
     ])
 
     if (styleRes.value === 'simple' || styleRes.value === 'forecast') {
       widgetStyle.value = styleRes.value as WidgetStyle
+    }
+
+    if (temperatureRes.value === 'real' || temperatureRes.value === 'feels_like') {
+      widgetTemperatureMode.value = temperatureRes.value as WidgetTemperatureMode
     }
 
     if (modeRes.value === 'gps' || modeRes.value === 'selectable') {
@@ -574,6 +582,11 @@ async function setWidgetStyle(style: WidgetStyle): Promise<void> {
   await Preferences.set({ key: WIDGET_STYLE_KEY, value: style })
 }
 
+async function setWidgetTemperatureMode(mode: WidgetTemperatureMode): Promise<void> {
+  widgetTemperatureMode.value = mode
+  await Preferences.set({ key: WIDGET_TEMPERATURE_MODE_KEY, value: mode })
+}
+
 async function setLocationMode(mode: WidgetLocationMode): Promise<void> {
   locationMode.value = mode
   await Preferences.set({ key: WIDGET_LOCATION_MODE_KEY, value: mode })
@@ -733,6 +746,7 @@ export function useWebsiteWeather() {
     hasWeather,
     isBusy,
     widgetStyle,
+    widgetTemperatureMode,
     locationMode,
     clearError,
     clearSuccess,
@@ -749,6 +763,7 @@ export function useWebsiteWeather() {
     removeSavedLocation,
     setHomeLocation,
     setWidgetStyle,
+    setWidgetTemperatureMode,
     setLocationMode,
     setCurrentLocation,
     loadWeatherForLocation,

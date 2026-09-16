@@ -35,7 +35,8 @@ public class MainActivity extends BridgeActivity {
                     || WidgetContract.PREF_BASE_URL.equals(key)) {
                 WeatherWidgetProvider.refreshNow(this);
             } else if (WidgetContract.PREF_LOCATION_MODE.equals(key)
-                    || WidgetContract.PREF_WIDGET_STYLE.equals(key)) {
+                    || WidgetContract.PREF_WIDGET_STYLE.equals(key)
+                    || WidgetContract.PREF_WIDGET_TEMPERATURE_MODE.equals(key)) {
                 WeatherWidgetProvider.updateAllWidgets(this);
             }
         };

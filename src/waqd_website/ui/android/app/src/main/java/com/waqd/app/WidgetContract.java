@@ -36,6 +36,7 @@ public final class WidgetContract {
     public static final String PREF_BASE_URL = "waqd.background.apiBaseUrl";
     public static final String PREF_LOCALE = "waqd.locale";
     public static final String PREF_WIDGET_STYLE = "waqd.website.widgetStyle";
+    public static final String PREF_WIDGET_TEMPERATURE_MODE = "waqd.website.widgetTemperatureMode";
     public static final String PREF_REFRESH_STARTED = "waqd.widget.refreshStarted";
 
     // Shared between worker and provider.

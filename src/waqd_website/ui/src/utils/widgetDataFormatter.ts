@@ -8,12 +8,17 @@ export interface WidgetForecastDay {
   icon: string
   temp_min: number
   temp_max: number
+  apparent_temperature_min: number
+  apparent_temperature_max: number
 }
 
 export interface WidgetWeatherPayload {
   temp: number
+  apparent_temperature: number
   temp_min: number
   temp_max: number
+  apparent_temperature_min: number
+  apparent_temperature_max: number
   main: string
   icon: string
   locationName: string
@@ -24,6 +29,7 @@ export interface WidgetWeatherPayload {
 
 export interface RawWeatherData {
   temp: number
+  apparent_temperature?: number
   wid?: number
   main?: string
   icon?: string
@@ -34,6 +40,8 @@ export interface RawForecastDay {
   icon: string
   temp_min: number
   temp_max: number
+  apparent_temperature_min?: number
+  apparent_temperature_max?: number
 }
 
 export interface RawLocation {
@@ -70,6 +78,8 @@ export function formatWidgetPayload(
       icon: day.icon,
       temp_min: Math.round(day.temp_min),
       temp_max: Math.round(day.temp_max),
+      apparent_temperature_min: Math.round(day.apparent_temperature_min ?? day.temp_min),
+      apparent_temperature_max: Math.round(day.apparent_temperature_max ?? day.temp_max),
     }
   })
 
@@ -89,8 +99,15 @@ export function formatWidgetPayload(
 
   return {
     temp: Math.round(weather.temp),
+    apparent_temperature: Math.round(weather.apparent_temperature ?? weather.temp),
     temp_min: todayForecast?.temp_min != null ? Math.round(todayForecast.temp_min) : Math.round(weather.temp),
     temp_max: todayForecast?.temp_max != null ? Math.round(todayForecast.temp_max) : Math.round(weather.temp),
+    apparent_temperature_min: todayForecast?.apparent_temperature_min != null
+      ? Math.round(todayForecast.apparent_temperature_min)
+      : Math.round(todayForecast?.temp_min ?? weather.temp),
+    apparent_temperature_max: todayForecast?.apparent_temperature_max != null
+      ? Math.round(todayForecast.apparent_temperature_max)
+      : Math.round(todayForecast?.temp_max ?? weather.temp),
     main,
     icon: weather.icon ?? '',
     locationName: location?.name ?? 'Unknown Location',

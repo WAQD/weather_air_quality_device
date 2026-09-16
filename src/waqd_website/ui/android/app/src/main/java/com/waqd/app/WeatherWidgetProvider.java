@@ -280,10 +280,14 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
     /** Parses the cached widget weather JSON; missing fields fall back to placeholders. */
     private static WidgetData parseWidgetData(SharedPreferences prefs) {
         WidgetData data = new WidgetData();
+        data.feelsLike = "feels_like".equals(
+                prefs.getString(WidgetContract.PREF_WIDGET_TEMPERATURE_MODE, "real"));
         try {
             JSONObject json = new JSONObject(prefs.getString(WidgetContract.PREF_WEATHER_DATA, "{}"));
             if (json.has("temp")) {
-                data.tempStr = Math.round(json.getDouble("temp")) + "°";
+                double temp = json.getDouble("temp");
+                double feelsLike = json.optDouble("apparent_temperature", temp);
+                data.tempStr = Math.round(data.feelsLike ? feelsLike : temp) + "°";
             }
             if (json.has("locationName")) {
                 data.locationStr = json.getString("locationName");
@@ -295,7 +299,13 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 data.iconName = json.getString("icon");
             }
             if (json.has("temp_min") && json.has("temp_max")) {
-                data.dailyTempStr = Math.round(json.getDouble("temp_max")) + "° / " + Math.round(json.getDouble("temp_min")) + "°";
+                double min = json.getDouble("temp_min");
+                double max = json.getDouble("temp_max");
+                if (data.feelsLike) {
+                    min = json.optDouble("apparent_temperature_min", min);
+                    max = json.optDouble("apparent_temperature_max", max);
+                }
+                data.dailyTempStr = Math.round(max) + "° / " + Math.round(min) + "°";
             }
             if (json.has("widget_style")) {
                 data.widgetStyle = json.getString("widget_style");
@@ -417,8 +427,10 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             for (int i = 0; i < 3; i++) {
                 JSONObject dayObj = data.forecastArr.getJSONObject(i);
                 String fDay = dayObj.getString("day");
-                String fTempMin = String.valueOf(dayObj.getInt("temp_min"));
-                String fTempMax = String.valueOf(dayObj.getInt("temp_max"));
+                String minKey = data.feelsLike ? "apparent_temperature_min" : "temp_min";
+                String maxKey = data.feelsLike ? "apparent_temperature_max" : "temp_max";
+                String fTempMin = String.valueOf(dayObj.optInt(minKey, dayObj.optInt("temp_min")));
+                String fTempMax = String.valueOf(dayObj.optInt(maxKey, dayObj.optInt("temp_max")));
                 String fTempStr = fTempMax + "°\n" + fTempMin + "°";
 
                 int dayId = context.getResources().getIdentifier("forecast_day_" + (i+1), "id", context.getPackageName());
@@ -497,6 +509,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         String dailyTempStr = "--° / --°";
         String iconName = "";
         String widgetStyle = "simple";
+        boolean feelsLike = false;
         JSONArray forecastArr = null;
     }
 

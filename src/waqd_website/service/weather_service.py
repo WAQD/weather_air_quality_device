@@ -203,6 +203,8 @@ class WebsiteWeatherService:
         payload["precipitation_probability_max"] = weather.precipitation_probability_max
         payload["uv_index_max"] = weather.uv_index_max
         payload["wind_gusts_max"] = weather.wind_gusts_max
+        payload["apparent_temperature_max"] = weather.apparent_temperature_max
+        payload["apparent_temperature_min"] = weather.apparent_temperature_min
         return payload
 
     @staticmethod

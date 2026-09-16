@@ -61,6 +61,7 @@ class Weather:
     precipitation_probability: float = 0.0  # percent, optional for hourly
     uv_index: float = 0.0  # UV index (unitless), optional
     wind_gusts: float = 0.0  # m/s, wind gust speed, optional
+    apparent_temperature: float = 0.0  # degC, "feels like" temperature, optional
 
     def __post_init__(self):
         if self.main:  # only set fetch_time if it is non-empty initiallized
@@ -105,6 +106,8 @@ class DailyWeather(Weather):
     precipitation_probability_max: float = field(init=False, default=0.0)
     uv_index_max: float = field(init=False, default=0.0)
     wind_gusts_max: float = field(init=False, default=0.0)
+    apparent_temperature_max: float = field(init=False, default=0.0)
+    apparent_temperature_min: float = field(init=False, default=0.0)
 
 
 class BeaufortScale(Enum):

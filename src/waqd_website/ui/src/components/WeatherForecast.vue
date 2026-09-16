@@ -37,7 +37,10 @@
                   <img :src="daySunnyIconUrl" :alt="t('day')"
                     class="h-4 w-4 sm:h-5 sm:w-5 weather-icon" />
                   <span class="font-bold text-sm sm:text-base">{{ day.temp_min.toFixed(0) }}° / {{
-                    day.temp_max.toFixed(0) }}°</span>
+                    day.temp_max.toFixed(0) }}°<span
+                      v-if="day.apparent_temperature_max !== undefined"
+                      class="font-normal opacity-70"> ({{ day.apparent_temperature_min.toFixed(0) }}° / {{
+                      day.apparent_temperature_max.toFixed(0) }}°)</span></span>
                 </div>
 
                 <!-- Night temperature -->
@@ -171,7 +174,10 @@
               <p class="text mb-0.5">{{ formatHourlyTime(hour.date_time) }}</p>
               <img v-if="hour.icon" :src="`/static/weather_icons/${hour.icon}.svg`" :alt="hour.main"
                 class="h-6 w-6 sm:h-10 sm:w-10 mx-auto mb-0.5 weather-icon" />
-              <p class="font-bold text-sm sm:text-lg">{{ hour.temp.toFixed(1) }}°</p>
+              <p class="font-bold text-sm sm:text-lg">{{ hour.temp.toFixed(1) }}°<span
+                  v-if="hour.apparent_temperature !== undefined"
+                  class="font-normal text-sm opacity-70"> ({{ hour.apparent_temperature.toFixed(1)
+                  }}°)</span></p>
               <p
                 class="text-sm opacity-70 line-clamp-2 wrap-break-word mx-auto max-w-15 sm:max-w-21">
                 {{ translateWeatherCondition(hour) }}

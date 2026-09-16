@@ -182,11 +182,17 @@ public class WidgetRefreshWorker extends Worker {
         JSONObject apiPayload = new JSONObject(body);
         JSONObject widgetData = new JSONObject();
         widgetData.put("temp", apiPayload.getDouble("temp"));
+        widgetData.put("apparent_temperature", apiPayload.optDouble(
+            "apparent_temperature", apiPayload.getDouble("temp")));
         widgetData.put("locationName", apiPayload.getString("locationName"));
         widgetData.put("main", apiPayload.getString("main"));
         widgetData.put("icon", apiPayload.getString("icon"));
         widgetData.put("temp_min", apiPayload.getDouble("temp_min"));
         widgetData.put("temp_max", apiPayload.getDouble("temp_max"));
+        widgetData.put("apparent_temperature_min", apiPayload.optDouble(
+            "apparent_temperature_min", apiPayload.getDouble("temp_min")));
+        widgetData.put("apparent_temperature_max", apiPayload.optDouble(
+            "apparent_temperature_max", apiPayload.getDouble("temp_max")));
         widgetData.put("updateTime", apiPayload.getLong("updateTime"));
         widgetData.put("widget_style", apiPayload.getString("widget_style"));
         widgetData.put("forecast_3_days", apiPayload.getJSONArray("forecast_3_days"));

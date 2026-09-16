@@ -20,6 +20,7 @@ export interface WeatherData {
   precipitation?: number
   uv_index?: number
   wind_gusts?: number
+  apparent_temperature?: number
 }
 
 export interface ForecastData {
@@ -46,6 +47,8 @@ export interface ForecastData {
   precipitation?: number
   uv_index_max?: number
   wind_gusts_max?: number
+  apparent_temperature_max?: number
+  apparent_temperature_min?: number
 }
 
 export interface HourlyWeatherData {
@@ -68,6 +71,7 @@ export interface HourlyWeatherData {
   precipitation?: number
   wind_gusts?: number
   uv_index?: number
+  apparent_temperature?: number
 }
 
 // Global weather data store (shared across all components)

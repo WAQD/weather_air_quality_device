@@ -44,6 +44,8 @@ describe('formatWidgetPayload', () => {
       icon: '02d',
       temp_min: 16,
       temp_max: 26,
+      apparent_temperature_min: 16,
+      apparent_temperature_max: 26,
     })
     // slice(1, 4) → index 3 in the original array is the last forecast day
     expect(out.forecast_3_days[2].icon).toBe('01d')
