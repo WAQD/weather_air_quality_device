@@ -31,6 +31,7 @@ interface WebsiteWeatherResponse {
   forecast: ForecastData[]
   hourly_daytime: HourlyWeatherData[][]
   hourly_nighttime: HourlyWeatherData[][]
+  weather_model?: string
   cached: boolean
 }
 
@@ -64,6 +65,7 @@ const isRefreshingWeather = ref(false)
 const isSearching = ref(false)
 const isSavingLocation = ref(false)
 const cached = ref(false)
+const weatherModel = ref('best_match')
 const errorMessage = ref('')
 const successMessage = ref('')
 let activeSearchController: AbortController | null = null
@@ -135,6 +137,7 @@ function resetWeatherData(): void {
   hourlyDaytimeData.value = []
   hourlyNighttimeData.value = []
   cached.value = false
+  weatherModel.value = 'best_match'
 }
 
 function clearError(): void {
@@ -410,6 +413,7 @@ async function loadWeather(force = false, silent = false): Promise<void> {
     hourlyDaytimeData.value = payload.hourly_daytime ?? []
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
+    weatherModel.value = payload.weather_model ?? 'best_match'
 
     // Widget is GPS-only now; don't write home data to widget
   } catch (error) {
@@ -694,6 +698,7 @@ async function loadWeatherForLocation(location: WeatherLocationPayload | null, f
     hourlyDaytimeData.value = payload.hourly_daytime ?? []
     hourlyNighttimeData.value = payload.hourly_nighttime ?? []
     cached.value = Boolean(payload.cached)
+    weatherModel.value = payload.weather_model ?? 'best_match'
   } catch (error) {
     if (requestId !== weatherRequestSequence) {
       return
@@ -733,6 +738,7 @@ export function useWebsiteWeather() {
     searchResults,
     deviceLocation,
     cached,
+    weatherModel,
     errorMessage,
     successMessage,
     isLoadingDeviceLocation,

@@ -210,6 +210,8 @@
   "last_seen": "Zuletzt gesehen",
   "last_update": "Letzte Aktualisierung",
   "last_updated": "Zuletzt aktualisiert",
+  "weather_model": "Wettermodell",
+  "weather_model_best_match": "Beste Übereinstimmung",
   "light": "Hell",
   "loading": "Lädt...",
   "location": "Standort",

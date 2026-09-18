@@ -210,6 +210,8 @@
   "last_seen": "Utoljára látva",
   "last_update": "Utolsó frissítés",
   "last_updated": "Utolsó frissítés",
+  "weather_model": "Időjárási modell",
+  "weather_model_best_match": "Legjobb egyezés",
   "light": "Világos",
   "loading": "Betöltés...",
   "location": "Hely",

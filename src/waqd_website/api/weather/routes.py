@@ -37,6 +37,7 @@ class WebsiteWeatherResponse(BaseModel):
     forecast: list[dict[str, Any]]
     hourly_daytime: list[list[dict[str, Any]]]
     hourly_nighttime: list[list[dict[str, Any]]]
+    weather_model: str = "best_match"
     cached: bool = False
 
 
@@ -160,6 +161,7 @@ async def get_weather(
         forecast=payload.get("forecast", []),
         hourly_daytime=payload.get("hourly_daytime", []),
         hourly_nighttime=payload.get("hourly_nighttime", []),
+        weather_model=payload.get("weather_model", "best_match"),
         cached=bool(payload.get("cached", False)),
     )
 
@@ -210,5 +212,6 @@ async def get_weather_preview(
         forecast=payload.get("forecast", []),
         hourly_daytime=payload.get("hourly_daytime", []),
         hourly_nighttime=payload.get("hourly_nighttime", []),
+        weather_model=payload.get("weather_model", "best_match"),
         cached=cached,
     )

@@ -20,6 +20,20 @@ class OpenMeteo(WeatherProvider):
     API_GEOCODING_CMD = (
         "https://geocoding-api.open-meteo.com/v1/search?name={query}&language={lang}"
     )
+    # Open-Meteo defaults to `best_match`. Country-specific overrides live here
+    # so adding another regional preference does not require changing the provider.
+    WEATHER_MODEL_BY_COUNTRY: Dict[str, str] = {
+        "HR": "ecmwf_ifs",
+    }
+
+    @classmethod
+    def weather_model_for_country(cls, country_code: str) -> Optional[str]:
+        return cls.WEATHER_MODEL_BY_COUNTRY.get(country_code.strip().upper())
+
+    @staticmethod
+    def weather_model_name(model: Optional[str]) -> str:
+        """Return the model identifier used by Open-Meteo, or its default."""
+        return model or "best_match"
 
     def __init__(
         self,
@@ -28,10 +42,12 @@ class OpenMeteo(WeatherProvider):
         geocoding_fetch_rate_seconds: int = 30,
         daily_fetch_rate_seconds: int = 1 * 60,
         hourly_fetch_rate_seconds: int = 1 * 60,
+        model: Optional[str] = None,
     ):
         super().__init__()
         self._longitude = longitude
         self._latitude = latitude
+        self._model = model
         self._current_weather: Optional[Weather] = None
         self._seven_day_forecast: List[DailyWeather] = []
         self._hourly_forecast: List[List[Weather]] = [[] for _ in range(7)]
@@ -123,6 +139,7 @@ class OpenMeteo(WeatherProvider):
                 self._fetch_hourly_weather()
 
     def _fetch_daily_weather(self):
+        model_query = f"&models={self._model}" if self._model else ""
         response = self._call_api(
             self.API_FORECAST_CMD
             + "&daily=precipitation_probability_max,weathercode,temperature_2m_max,"
@@ -132,7 +149,7 @@ class OpenMeteo(WeatherProvider):
             + "&current=relative_humidity_2m,temperature_2m,precipitation,weather_code,"
             "pressure_msl,cloud_cover,surface_pressure,wind_speed_10m,winddirection_10m,is_day,"
             "apparent_temperature"
-            "&windspeed_unit=ms&timezone=auto",
+            "&windspeed_unit=ms&timezone=auto" + model_query,
             latitude=self._latitude,
             longitude=self._longitude,
         )
@@ -222,12 +239,15 @@ class OpenMeteo(WeatherProvider):
         if not self._seven_day_forecast:
             return
 
+        model_query = f"&models={self._model}" if self._model else ""
         response = self._call_api(
             self.API_FORECAST_CMD
             + "&hourly=precipitation_probability,temperature_2m,relativehumidity_2m,"
             + "precipitation,cloudcover,weathercode,pressure_msl,surface_pressure,"
-            + "windspeed_10m,winddirection_10m,is_day,uv_index,wind_gusts_10m,apparent_temperature"
-            + "&windspeed_unit=ms&timezone=auto",
+            + "windspeed_10m,winddirection_10m,is_day,uv_index,wind_gusts_10m,"
+            + "apparent_temperature"
+            + "&windspeed_unit=ms&timezone=auto"
+            + model_query,
             latitude=self._latitude,
             longitude=self._longitude,
         )

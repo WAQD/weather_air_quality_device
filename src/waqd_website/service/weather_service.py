@@ -86,6 +86,7 @@ class WebsiteWeatherService:
                 "forecast": [],
                 "hourly_daytime": [],
                 "hourly_nighttime": [],
+                "weather_model": "best_match",
                 "cached": False,
             }
 
@@ -97,7 +98,7 @@ class WebsiteWeatherService:
     def get_weather_for_location(
         self, location: Location, force: bool = False
     ) -> tuple[dict[str, Any], bool]:
-        cache_key = self._normalize_location_key(location)
+        cache_key = self._weather_cache_key(location)
         now = datetime.now(timezone.utc)
 
         if not force:
@@ -126,6 +127,9 @@ class WebsiteWeatherService:
                 "forecast": [self._serialize_daily_weather(day) for day in forecast],
                 "hourly_daytime": [],
                 "hourly_nighttime": [],
+                "weather_model": OpenMeteo.weather_model_name(
+                    OpenMeteo.weather_model_for_country(location.country_code)
+                ),
             }
 
             for day_points in hourly_forecast:
@@ -157,11 +161,17 @@ class WebsiteWeatherService:
 
     def _get_provider(self, location: Location) -> OpenMeteo:
         cache_key = self._normalize_location_key(location)
+        model = OpenMeteo.weather_model_for_country(location.country_code)
+        provider_cache_key = f"{cache_key}:{model or 'best_match'}"
         with self._lock:
-            provider = self._provider_cache.get(cache_key)
+            provider = self._provider_cache.get(provider_cache_key)
             if provider is None:
-                provider = OpenMeteo(longitude=location.longitude, latitude=location.latitude)
-                self._provider_cache[cache_key] = provider
+                provider = OpenMeteo(
+                    longitude=location.longitude,
+                    latitude=location.latitude,
+                    model=model,
+                )
+                self._provider_cache[provider_cache_key] = provider
             return provider
 
     def _get_fetch_lock(self, cache_key: str) -> Lock:
@@ -173,9 +183,16 @@ class WebsiteWeatherService:
             return existing_lock
 
     def _invalidate_weather_cache(self, location: Location):
-        cache_key = self._normalize_location_key(location)
+        location_key = self._normalize_location_key(location)
         with self._lock:
-            self._weather_cache.pop(cache_key, None)
+            for cache_key in list(self._weather_cache):
+                if cache_key.startswith(f"{location_key}:"):
+                    self._weather_cache.pop(cache_key, None)
+
+    @classmethod
+    def _weather_cache_key(cls, location: Location) -> str:
+        model = OpenMeteo.weather_model_for_country(location.country_code) or "best_match"
+        return f"{cls._normalize_location_key(location)}:{model}"
 
     @staticmethod
     def _normalize_location_key(location: Location) -> str:

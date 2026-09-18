@@ -60,7 +60,7 @@
       </div>
 
       <div class="relative">
-        <div ref="mapContainer" class="h-[400px] w-full"></div>
+        <div ref="mapContainer" class="h-100 w-full"></div>
         <div v-if="isLoading"
           class="absolute inset-0 flex items-center justify-center bg-base-200/60">
           <span class="loading loading-spinner loading-lg"></span>
@@ -214,7 +214,10 @@ const tickLabelStyle = legendLabelStyle
 
 // Open-Meteo's public map-data endpoint. The data is hosted on S3 with
 // proper CORS headers (Access-Control-Allow-Origin: *).
-const DATA_BASE_URL = 'https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon/latest.json'
+const DATA_BASE_URL = 'https://openmeteo.s3.amazonaws.com/data_spatial'
+const MAP_MODEL_BY_COUNTRY: Record<string, string> = {
+  HR: 'ecmwf_ifs',
+}
 
 // Default view is deliberately wide (roughly country/region scale) so the
 // surrounding weather patterns are visible, not just the local area.
@@ -241,6 +244,11 @@ const BASE_STYLE: StyleSpecification = {
 
 const { currentLocation, isLoadingWeather } = useWebsiteWeather()
 const { t } = useTranslation()
+
+const weatherModel = computed(() =>
+  MAP_MODEL_BY_COUNTRY[currentLocation.value?.country_code?.trim().toUpperCase() ?? '']
+  ?? 'dwd_icon',
+)
 
 const mapContainer = ref<HTMLElement | null>(null)
 const activeLayer = ref<LayerId>('temperature')
@@ -331,7 +339,7 @@ function timeStepFor(offset: number): string {
 }
 
 function layerSourceUrl(variable: string, offset: number): string {
-  return `om://${DATA_BASE_URL}?time_step=${timeStepFor(offset)}&variable=${variable}&tile_size=256`
+  return `om://${DATA_BASE_URL}/${weatherModel.value}/latest.json?time_step=${timeStepFor(offset)}&variable=${variable}&tile_size=256`
 }
 
 function stepTime(delta: number): void {
@@ -826,6 +834,15 @@ watch(currentLocation, async (location) => {
   } else {
     recenter()
   }
+})
+
+watch(weatherModel, async () => {
+  if (!map || !currentLocation.value) {
+    return
+  }
+  destroyMap()
+  await nextTick()
+  observeMapContainer()
 })
 
 watch(timeOffset, () => {

@@ -1,7 +1,6 @@
 <template>
   <div id="current_weather_card"
-    class="order-2 xl:order-none card bg-base-100 shadow-xl overflow-hidden"
-    :style="weatherHeroStyle">
+    class="order-2 xl:order-0 card bg-base-100 shadow-xl overflow-hidden" :style="weatherHeroStyle">
     <!-- Compact collapsed summary: used only for widget/forecast deep links on stacked
          (mobile/tablet) layouts so the forecast below needs little or no scrolling.
          Tapping expands back to the full card. -->
@@ -93,6 +92,7 @@
             <span v-if="isRefreshingWeather" class="loading loading-spinner"
               style="width: 0.9em; height: 0.9em;"></span>
           </p>
+          <p class="text-xs opacity-60">{{ t('weather_model') }}: {{ weatherModelLabel }}</p>
         </div>
 
         <WeatherMetric icon-class="text-base-content/50" :label="t('weather_clouds')"
@@ -134,7 +134,7 @@
           {{ t('save') }}
         </button>
         <button v-else class="btn btn-outline" type="button" :disabled="isSavingLocation"
-          @click="setAsHome(currentLocation)">
+          @click="currentLocation && setAsHome(currentLocation)">
           {{ t('set_home') }}
         </button>
         <button class="btn btn-secondary" type="button"
@@ -194,6 +194,7 @@ const {
   currentLocation,
   homeLocation,
   currentWeather,
+  weatherModel,
   cached,
   savedLocations,
   isLoadingWeather,
@@ -251,6 +252,20 @@ const currentWeatherUpdatedAt = computed(() => {
   }
 
   return new Date(currentWeather.value.fetch_time).toLocaleString(locale.value)
+})
+
+const weatherModelLabel = computed(() => {
+  const model = weatherModel.value || 'best_match'
+  const knownLabels: Record<string, string> = {
+    best_match: t('weather_model_best_match'),
+    ecmwf_ifs: 'ECMWF IFS',
+    ecmwf_ifs025: 'ECMWF IFS 0.25°',
+    dwd_icon: 'DWD ICON',
+  }
+  return knownLabels[model] ?? model
+    .split('_')
+    .map((part) => part.toUpperCase())
+    .join(' ')
 })
 
 async function refreshWeather(force = false): Promise<void> {

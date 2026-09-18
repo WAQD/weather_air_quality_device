@@ -210,6 +210,8 @@
   "last_seen": "Last seen",
   "last_update": "Last Update",
   "last_updated": "Last updated",
+  "weather_model": "Weather model",
+  "weather_model_best_match": "Best match",
   "light": "Light",
   "loading": "Loading...",
   "location": "Location",
