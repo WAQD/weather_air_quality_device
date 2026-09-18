@@ -9,12 +9,13 @@
           :style="{ visibility: flagLoaded ? 'visible' : 'hidden' }" @load="flagLoaded = true"
           @error="flagLoaded = false" />
       </div>
-      <div class="flex-1 min-w-0 flex items-center justify-between gap-3">
+      <div
+        class="flex-1 min-w-0 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
         <div class="min-w-0">
-          <div class="text-2xl font-thin whitespace-nowrap">
+          <div class="text-2xl font-thin wrap-break-word">
             {{ currentLocation.name }}</div>
         </div>
-        <div class="shrink-0 text-right max-w-[11rem] sm:max-w-[16rem]">
+        <div class="max-w-full text-left sm:shrink-0 sm:max-w-[16rem] sm:text-right">
           <div class="text-xs uppercase font-semibold opacity-60 truncate">
             {{ currentLocation.state || currentLocation.county ||
               currentLocation.country }}
