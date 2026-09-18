@@ -23,31 +23,31 @@
     "@openmeteo/weather-map-layer": "^0.1.0",
     "capacitor-native-settings": "^8.2.0",
     "chart.js": "^4.5.1",
-    "daisyui": "^5.7.28",
+    "daisyui": "^5.7.37",
     "highcharts": "^13.0.2",
-    "maplibre-gl": "^6.8.0",
+    "maplibre-gl": "^6.9.0",
     "qrcode": "^1.5.4",
     "vue": "^3.5.42",
     "vue-i18n": "^11.4.10",
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
-    "@capacitor/assets": "^1.0.14",
-    "@capacitor/cli": "^8.5.1",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.3",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^26.5.0",
+    "@types/node": "^26.5.1",
     "@types/qrcode": "^1.5.6",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
-    "autoprefixer": "^10.5.5",
+    "autoprefixer": "^10.5.6",
     "cssnano": "^8.0.10",
     "postcss": "^8.5.28",
     "sharp": "^0.35.4",
     "tailwindcss": "^4.3.3",
     "terser": "^5.51.2",
     "typescript": "~7.0.2",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-pwa": "^1.3.0",
     "vite-plugin-static-copy": "^4.1.1",
@@ -59,5 +59,8 @@
     "serialize-javascript": "^7.0.4",
     "tar": "^7.5.21",
     "sharp": "^0.35.4"
+  },
+  "allowScripts": {
+    "nodemon@2.0.18": true
   }
 }
