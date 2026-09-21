@@ -23,7 +23,7 @@ class OpenMeteo(WeatherProvider):
     # Open-Meteo defaults to `best_match`. Country-specific overrides live here
     # so adding another regional preference does not require changing the provider.
     WEATHER_MODEL_BY_COUNTRY: Dict[str, str] = {
-        "HR": "ecmwf_ifs",
+        "HR": "best_match",
     }
 
     @classmethod
