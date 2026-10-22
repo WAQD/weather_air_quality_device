@@ -30,6 +30,7 @@ dependencies = [
     "htmlmin2>=0.1.13",              # BSD License - HTML minifier
     "requests==2.33.1",              # Apache License
     "adafruit-platformdetect>=3.88", # MIT License
+    "certifi>=2026.10.19",
 ]
 readme = "README.md"
 
