@@ -1,5 +1,6 @@
 import pint
 import time
+from datetime import datetime, timedelta
 from threading import Thread
 
 from waqd import unit_reg
@@ -17,6 +18,22 @@ from waqd_station.components.sensors import (
 from waqd_station.settings import Settings
 
 from test.conftest import mock_run_on_non_target
+
+
+def test_stale_sensor_log_is_not_restored(base_fixture, mocker):
+    from waqd import LOCAL_TIMEZONE
+    from waqd.components import sensor_base
+
+    stale_timestamp = datetime.now(LOCAL_TIMEZONE) - timedelta(days=1)
+    mocker.patch.object(
+        sensor_base.SensorValueLogger,
+        "get_sensor_values",
+        return_value=((stale_timestamp, 28.4),),
+    )
+
+    sensor = TempSensor(logging_enabled=True, max_measure_points=2)
+
+    assert sensor.get_temperature().magnitude == 22
 
 
 def test_max_delta(base_fixture, target_mockup_fixture, capsys):
@@ -128,9 +145,11 @@ def test_sr501(base_fixture, target_mockup_fixture, mocker):
     assert sensor._motion_detected == 2
 
 
-def testBME280(base_fixture, target_mockup_fixture):
+def testBME280(base_fixture, target_mockup_fixture, mocker):
     from test.mock.adafruit_bme280.advanced import TEMP, PRESSURE, HUMIDITY
+    from waqd.components.weather.open_meteo import OpenMeteo
 
+    mocker.patch.object(OpenMeteo, "get_current_weather", return_value=None)
     settings = Settings(base_fixture.testdata_path / "integration")
     measure_points = 2
     BME280.UPDATE_TIME = 1
@@ -149,9 +168,11 @@ def testBME280(base_fixture, target_mockup_fixture):
     assert sensor.get_pressure().magnitude >= PRESSURE  # adjusted for location
 
 
-def test_bmp280(base_fixture, target_mockup_fixture):
+def test_bmp280(base_fixture, target_mockup_fixture, mocker):
     from test.mock.adafruit_bmp280 import TEMP, PRESSURE
+    from waqd.components.weather.open_meteo import OpenMeteo
 
+    mocker.patch.object(OpenMeteo, "get_current_weather", return_value=None)
     settings = Settings(base_fixture.testdata_path / "integration")
 
     measure_points = 2

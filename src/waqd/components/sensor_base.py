@@ -124,10 +124,11 @@ class SensorImpl:
                         last_date = log_values[0][0]
                     except Exception:
                         return
-                    if (last_date - datetime.datetime.now(LOCAL_TIMEZONE)) < datetime.timedelta(
-                        hours=3
-                    ):
+                    value_age = datetime.datetime.now(LOCAL_TIMEZONE) - last_date
+                    if datetime.timedelta(0) <= value_age < datetime.timedelta(hours=3):
                         self._values.append(log_values[0][1])
+                    else:
+                        self._values.append(default_value)
             else:
                 self._values.append(default_value)
         else:
