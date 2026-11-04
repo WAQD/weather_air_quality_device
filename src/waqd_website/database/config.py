@@ -1,11 +1,10 @@
 import secrets
-from datetime import datetime
 from functools import lru_cache
 from typing import Optional
 
 from sqlmodel import Session, select
 
-from waqd_website.database import ServerConfig, engine
+from waqd_website.database import ServerConfig, engine, utc_now
 
 # Server Configuration management functions
 
@@ -26,7 +25,7 @@ def set_config_value(key: str, value: str) -> None:
 
         if config:
             config.value = value
-            config.updated_at = datetime.utcnow()
+            config.updated_at = utc_now()
             session.add(config)
         else:
             config = ServerConfig(key=key, value=value)

@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 
@@ -19,6 +19,11 @@ engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
 )
+
+
+def utc_now() -> datetime:
+    """Current UTC time with timezone info, as required for persisted datetimes."""
+    return datetime.now(timezone.utc)
 
 
 class UserDeviceLink(SQLModel, table=True):
@@ -56,7 +61,7 @@ class Device(SQLModel, table=True):
     location: Optional[str] = Field(default=None, max_length=500)
     status: str = Field(default="offline", max_length=50)  # online, offline
     last_seen: Optional[datetime] = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
     # Long-lived API key for device authentication (128 character hex string)
     api_key: Optional[str] = Field(default=None, max_length=256, index=True)
 
@@ -84,7 +89,7 @@ class DeviceRegistrationSession(SQLModel, table=True):
     expires_at: datetime
     requesting_user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     claimed_at: Optional[datetime] = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
     location: str = Field(default=None, max_length=255)
 
 
@@ -95,7 +100,7 @@ class ServerConfig(SQLModel, table=True):
 
     key: str = Field(primary_key=True, max_length=255)
     value: str = Field(max_length=1024)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class UserWeatherLocation(SQLModel, table=True):
@@ -112,7 +117,7 @@ class UserWeatherLocation(SQLModel, table=True):
     altitude: float = Field(default=0.0)
     latitude: float = Field(default=0.0)
     longitude: float = Field(default=0.0)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class UserSavedWeatherLocation(SQLModel, table=True):
@@ -130,7 +135,7 @@ class UserSavedWeatherLocation(SQLModel, table=True):
     altitude: float = Field(default=0.0)
     latitude: float = Field(default=0.0)
     longitude: float = Field(default=0.0)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class PasswordResetToken(SQLModel, table=True):
@@ -142,7 +147,7 @@ class PasswordResetToken(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id")
     expires_at: datetime
     used: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class EmailVerificationToken(SQLModel, table=True):
@@ -155,7 +160,7 @@ class EmailVerificationToken(SQLModel, table=True):
     email: str = Field(max_length=255)
     expires_at: datetime = Field(index=True)
     used: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 # Create database tables - must be last

@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* Pin responsive breakpoints to CSS pixels. Tailwind v4 defaults to rem-based
+   breakpoints, so they grow with the browser's default font size (e.g. Windows
+   text scaling at 150% turns the 1280px `xl` breakpoint into 1920px). Layout
+   width should depend on the available window width, not the text size. This
+   also keeps CSS breakpoints in sync with the `matchMedia('(min-width: 1280px)')`
+   check used by CurrentWeatherCard. */
+@theme {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
 @plugin "daisyui" {
   themes: light --default, dark;
 }
@@ -105,4 +119,15 @@ body {
   .card.image-full>figure img {
     filter: brightness(50%) !important;
   }
+}
+
+/* Windows Firefox composites backdrop blur on the CPU for large surfaces and
+   stutters badly while scrolling (especially the weather and /home pages).
+   The backgrounds behind these surfaces are already translucent enough to stay
+   readable without the blur, so drop it for that engine only. Chrome and
+   Firefox on other platforms keep the original look. */
+.waqd-firefox-windows .glass,
+.waqd-firefox-windows [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

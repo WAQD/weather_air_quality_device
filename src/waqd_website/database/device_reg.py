@@ -1,6 +1,6 @@
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Optional
 
 from sqlmodel import Session, select
@@ -12,6 +12,7 @@ from waqd_website.database import (
     User,
     UserDeviceLink,
     engine,
+    utc_now,
 )
 
 
@@ -43,7 +44,7 @@ def create_registration_session(device_id: str, location: str) -> DeviceRegistra
         # Create new session
         session_id = str(uuid.uuid4())
         passphrase = generate_passphrase()
-        expires_at = datetime.utcnow() + timedelta(minutes=5)
+        expires_at = utc_now() + timedelta(minutes=5)
 
         new_session = DeviceRegistrationSession(
             session_id=session_id,
@@ -95,7 +96,7 @@ def claim_session(passphrase: str, user_id: int) -> Optional[str]:
             return None
 
         # Check if expired
-        if reg_session.expires_at < datetime.utcnow():
+        if reg_session.expires_at < utc_now():
             reg_session.status = RegistrationStatus.EXPIRED
             session.add(reg_session)
             session.commit()
@@ -104,7 +105,7 @@ def claim_session(passphrase: str, user_id: int) -> Optional[str]:
         # Claim the session
         reg_session.status = RegistrationStatus.CLAIMED
         reg_session.requesting_user_id = user_id
-        reg_session.claimed_at = datetime.utcnow()
+        reg_session.claimed_at = utc_now()
 
         session.add(reg_session)
         session.commit()
@@ -136,7 +137,7 @@ def confirm_registration(session_id: str, approved: bool) -> Optional[Device]:
         if reg_session.status != RegistrationStatus.CLAIMED:
             return None
 
-        if reg_session.expires_at < datetime.utcnow():
+        if reg_session.expires_at < utc_now():
             reg_session.status = RegistrationStatus.EXPIRED
             session.add(reg_session)
             session.commit()
@@ -195,7 +196,7 @@ def expire_old_sessions():
     with Session(engine) as session:
         expired_sessions = session.exec(
             select(DeviceRegistrationSession).where(
-                DeviceRegistrationSession.expires_at < datetime.utcnow(),
+                DeviceRegistrationSession.expires_at < utc_now(),
                 DeviceRegistrationSession.status
                 in ([RegistrationStatus.PENDING, RegistrationStatus.CLAIMED]),
             )

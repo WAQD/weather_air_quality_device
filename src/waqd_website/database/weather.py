@@ -1,10 +1,9 @@
-from datetime import datetime
 from typing import Optional
 
 from sqlmodel import Session, select
 
 from waqd.components.weather.base_types import Location
-from waqd_website.database import UserWeatherLocation, UserSavedWeatherLocation, engine
+from waqd_website.database import UserWeatherLocation, UserSavedWeatherLocation, engine, utc_now
 
 
 def get_user_weather_location(user_id: int) -> Optional[Location]:
@@ -41,7 +40,7 @@ def save_user_weather_location(user_id: int, location: Location) -> Location:
         saved_location.altitude = location.altitude
         saved_location.latitude = location.latitude
         saved_location.longitude = location.longitude
-        saved_location.updated_at = datetime.utcnow()
+        saved_location.updated_at = utc_now()
 
         session.add(saved_location)
         session.commit()

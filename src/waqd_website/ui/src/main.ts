@@ -3,6 +3,11 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import i18n, { initI18n } from './i18n'
+import { applyBrowserClasses } from './utils/browser'
+
+// Flag the rendering engine before the first paint so the CSS workarounds for
+// known compositing issues apply from the start.
+applyBrowserClasses()
 
 // Set __waqdNavigate immediately so Android can call it at any time during cold start,
 // even before initI18n finishes. Any path called before the app is ready gets queued
